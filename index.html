@@ -63,6 +63,16 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 .divisor{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
 .grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px}
 .rotulo{color:var(--muted); opacity:.75; font-size:.8rem}
+.sel-receita{
+  width:auto; max-width:200px; padding:3px 16px 4px 0; color:var(--muted);
+  border-bottom:1px solid transparent;
+}
+.sel-receita:hover{color:var(--ink)}
+.salvar-cx{display:inline-flex; align-items:center; gap:10px}
+.salvar-cx input{
+  font:inherit; font-size:.92rem; color:var(--ink); background:transparent;
+  border:0; border-bottom:1px solid var(--line); padding:3px 0; width:180px;
+}
 .ghost{
   font:inherit; font-size:.92rem; background:none; color:var(--muted);
   border:0; padding:3px 0; cursor:pointer; text-underline-offset:3px;
@@ -229,11 +239,7 @@ footer p{margin:14px 0 0}
   </div>
   <span class="divisor" aria-hidden="true"></span>
 
-  <span class="grupo">
-    <span class="rotulo">Carregar</span>
-    <button class="ghost" type="button" data-preset="gelato">base branca</button>
-    <button class="ghost" type="button" data-preset="sorbet">sorbet de fruta</button>
-  </span>
+  <span class="grupo" id="grupoReceitas"></span>
 
   <span class="divisor" aria-hidden="true"></span>
 
@@ -398,6 +404,57 @@ footer p{margin:14px 0 0}
 
   var CHAVE = "mistura-v1";
   var CHAVE_BIB = "mistura-produtos-v1";
+  var CHAVE_REC = "mistura-receitas-v1";
+
+  // Receitas salvas pela pessoa. Como os produtos, vivem à parte da receita aberta.
+  var receitas = [];
+
+  function normalizaReceita(r){
+    if (!r || !r.nome || !Array.isArray(r.linhas)) return null;
+    var linhas = r.linhas.map(function(l){
+      if (!l || !l.id) return null;
+      var o = {id:String(l.id), g:Number(l.g) || 0};
+      if (l.id === "custom" && l.comp){
+        o.comp = {nome:String(l.comp.nome || ""), gord:Number(l.comp.gord) || 0,
+                  ac:Number(l.comp.ac) || 0, outros:Number(l.comp.outros) || 0};
+      }
+      return o;
+    }).filter(Boolean);
+    if (!linhas.length) return null;
+    return {
+      id: String(r.id || novoId()),
+      nome: String(r.nome).slice(0, 60),
+      estilo: ALVOS[r.estilo] ? r.estilo : "gelato",
+      temp: (isFinite(r.temp) && r.temp < 0) ? Number(r.temp) : -12,
+      linhas: linhas
+    };
+  }
+
+  function carregaReceitas(){
+    try {
+      var r = JSON.parse(localStorage.getItem(CHAVE_REC));
+      if (Array.isArray(r)) receitas = r.map(normalizaReceita).filter(Boolean);
+    } catch (e) { receitas = []; }
+  }
+
+  function salvaReceitas(){
+    var minhas = receitas.filter(function(r){ return !r.repo; })
+      .map(function(r){ return {id:r.id, nome:r.nome, estilo:r.estilo, temp:r.temp, linhas:r.linhas}; });
+    try { localStorage.setItem(CHAVE_REC, JSON.stringify(minhas)); } catch (e) {}
+  }
+
+  function receita(id){
+    for (var i = 0; i < receitas.length; i++){ if (receitas[i].id === id) return receitas[i]; }
+    return null;
+  }
+
+  function copiaLinhas(linhas){
+    return linhas.map(function(l){
+      var o = {id:l.id, g:Number(l.g) || 0};
+      if (l.comp) o.comp = {nome:l.comp.nome, gord:l.comp.gord, ac:l.comp.ac, outros:l.comp.outros};
+      return o;
+    });
+  }
 
   // Produtos que a pessoa cadastrou. Ficam guardados à parte da receita, para
   // sobreviverem a "Limpar tudo" e aparecerem em qualquer receita futura.
@@ -427,6 +484,23 @@ footer p{margin:14px 0 0}
     var meus = biblioteca.filter(function(p){ return !p.repo; })
       .map(function(p){ return {id:p.id, nome:p.nome, gord:p.gord, ac:p.ac, outros:p.outros}; });
     try { localStorage.setItem(CHAVE_BIB, JSON.stringify(meus)); } catch (e) {}
+  }
+
+  function carregaReceitasDoRepositorio(){
+    if (!window.fetch) return;
+    fetch("receitas.json", {cache:"no-store"}).then(function(resp){
+      if (!resp.ok) throw 0;
+      return resp.json();
+    }).then(function(lista){
+      if (!Array.isArray(lista)) return;
+      var mudou = false;
+      lista.map(normalizaReceita).filter(Boolean).forEach(function(r){
+        var existe = false;
+        receitas.forEach(function(x){ if (x.nome === r.nome) existe = true; });
+        if (!existe){ r.repo = true; receitas.push(r); mudou = true; }
+      });
+      if (mudou) render();
+    }).catch(function(){});
   }
 
   // Lista publicada junto com a página (produtos.json na mesma pasta). Serve como
@@ -464,7 +538,7 @@ footer p{margin:14px 0 0}
   function novoId(){
     return "p:" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
-  var estado = {estilo:"gelato", temp:-12, linhas:[]};
+  var estado = {estilo:"gelato", temp:-12, receitaAtual:"", linhas:[]};
   var seq = 0;
 
   var elLinhas = document.getElementById("linhas");
@@ -772,32 +846,167 @@ footer p{margin:14px 0 0}
       }
     });
     elVazio.hidden = estado.linhas.length > 0;
+    desenhaReceitas();
     desenhaBib();
     atualiza();
+  }
+
+  // Seletor de receitas: exemplos embutidos, as salvas pela pessoa e as ações
+  // de salvar e excluir. Fica na barra de cima, ao lado dos estilos.
+  var elGrupoRec = document.getElementById("grupoReceitas");
+
+  function desenhaReceitas(){
+    elGrupoRec.innerHTML = "";
+
+    var sel = document.createElement("select");
+    sel.className = "sel-receita";
+    sel.setAttribute("aria-label", "Receita");
+
+    var vazia = document.createElement("option");
+    vazia.value = ""; vazia.textContent = "Receitas…";
+    sel.appendChild(vazia);
+
+    var gEx = document.createElement("optgroup");
+    gEx.label = "Exemplos";
+    [["preset:gelato", "Base branca de gelato"], ["preset:sorbet", "Sorbet de fruta"]].forEach(function(cfg){
+      var o = document.createElement("option");
+      o.value = cfg[0]; o.textContent = cfg[1];
+      gEx.appendChild(o);
+    });
+    sel.appendChild(gEx);
+
+    if (receitas.length){
+      var gMinhas = document.createElement("optgroup");
+      gMinhas.label = "Minhas receitas";
+      receitas.forEach(function(r){
+        var o = document.createElement("option");
+        o.value = r.id; o.textContent = r.nome + (r.repo ? " ·" : "");
+        gMinhas.appendChild(o);
+      });
+      sel.appendChild(gMinhas);
+    }
+
+    sel.value = estado.receitaAtual || "";
+    sel.addEventListener("change", function(){ abreReceita(sel.value); });
+    elGrupoRec.appendChild(sel);
+
+    var salvar = document.createElement("button");
+    salvar.type = "button"; salvar.className = "ghost";
+    salvar.textContent = "Salvar";
+    salvar.addEventListener("click", function(){ abreCampoNome(); });
+    elGrupoRec.appendChild(salvar);
+
+    var atual = receita(estado.receitaAtual);
+    if (atual){
+      var excluir = document.createElement("button");
+      excluir.type = "button"; excluir.className = "ghost";
+      excluir.textContent = "Excluir";
+      excluir.addEventListener("click", function(){
+        receitas = receitas.filter(function(r){ return r.id !== atual.id; });
+        salvaReceitas();
+        estado.receitaAtual = "";
+        render(); salva();
+      });
+      elGrupoRec.appendChild(excluir);
+    }
+  }
+
+  function abreCampoNome(){
+    var atual = receita(estado.receitaAtual);
+    var cx = document.createElement("span");
+    cx.className = "salvar-cx";
+    var inp = document.createElement("input");
+    inp.type = "text"; inp.placeholder = "Nome da receita";
+    inp.value = atual ? atual.nome : "";
+    inp.setAttribute("aria-label", "Nome da receita");
+    var ok = document.createElement("button");
+    ok.type = "button"; ok.className = "ghost destaque"; ok.textContent = "ok";
+
+    function confirma(){
+      var nome = inp.value.trim();
+      if (!nome){ inp.focus(); return; }
+      var existente = null;
+      receitas.forEach(function(r){ if (r.nome === nome) existente = r; });
+      var dados = {
+        id: existente ? existente.id : novoId(),
+        nome: nome, estilo: estado.estilo, temp: estado.temp,
+        linhas: copiaLinhas(estado.linhas)
+      };
+      var nova = normalizaReceita(dados);
+      if (!nova) return;
+      if (existente){
+        // Mesmo nome substitui, para "salvar por cima" depois de ajustar a receita.
+        receitas = receitas.map(function(r){ return r.id === existente.id ? nova : r; });
+      } else {
+        receitas.push(nova);
+      }
+      salvaReceitas();
+      estado.receitaAtual = nova.id;
+      render(); salva();
+    }
+
+    ok.addEventListener("click", confirma);
+    inp.addEventListener("keydown", function(ev){
+      if (ev.key === "Enter"){ ev.preventDefault(); confirma(); }
+      if (ev.key === "Escape"){ desenhaReceitas(); }
+    });
+    cx.appendChild(inp); cx.appendChild(ok);
+    elGrupoRec.innerHTML = "";
+    elGrupoRec.appendChild(cx);
+    inp.focus(); inp.select();
+  }
+
+  function abreReceita(valor){
+    if (!valor){ estado.receitaAtual = ""; desenhaReceitas(); return; }
+    if (valor.indexOf("preset:") === 0){
+      var pre = PRESETS[valor.slice(7)];
+      if (!pre) return;
+      estado.estilo = pre.estilo;
+      estado.linhas = copiaLinhas(pre.linhas);
+      estado.receitaAtual = valor;
+    } else {
+      var r = receita(valor);
+      if (!r) return;
+      estado.estilo = r.estilo;
+      estado.temp = r.temp;
+      estado.linhas = copiaLinhas(r.linhas);
+      estado.receitaAtual = r.id;
+    }
+    elTemp.value = estado.temp;
+    aplicaEstilo();
+    render(); salva();
   }
 
   // Barra da biblioteca: quantos produtos existem e como levá-los para outro aparelho.
   function desenhaBib(){
     elBib.innerHTML = "";
-    var doRepo = biblioteca.filter(function(p){ return p.repo; }).length;
+    var doRepo = biblioteca.filter(function(p){ return p.repo; }).length +
+                 receitas.filter(function(r){ return r.repo; }).length;
+    var partes = [];
+    if (biblioteca.length) partes.push(biblioteca.length + (biblioteca.length === 1 ? " produto" : " produtos"));
+    if (receitas.length) partes.push(receitas.length + (receitas.length === 1 ? " receita" : " receitas"));
     var txt = document.createElement("span");
-    if (!biblioteca.length){
-      txt.textContent = "Nenhum produto salvo ainda";
-    } else {
-      txt.textContent = biblioteca.length + (biblioteca.length === 1 ? " produto" : " produtos");
-      if (doRepo) txt.textContent += ", " + doRepo + " do arquivo publicado";
-    }
+    txt.textContent = partes.length ? partes.join(" · ") : "Nada salvo ainda";
+    if (doRepo) txt.textContent += " (" + doRepo + " do arquivo publicado)";
     elBib.appendChild(txt);
 
-    if (biblioteca.length){
+    if (biblioteca.length || receitas.length){
       var exp = document.createElement("button");
       exp.type = "button"; exp.className = "ghost"; exp.textContent = "exportar";
       exp.title = "Baixar um arquivo com os seus produtos";
       exp.addEventListener("click", function(){
-        var blob = new Blob([JSON.stringify(biblioteca, null, 2)], {type:"application/json"});
+        var pacote = {
+          produtos: biblioteca.map(function(p){
+            return {id:p.id, nome:p.nome, gord:p.gord, ac:p.ac, outros:p.outros};
+          }),
+          receitas: receitas.map(function(r){
+            return {id:r.id, nome:r.nome, estilo:r.estilo, temp:r.temp, linhas:r.linhas};
+          })
+        };
+        var blob = new Blob([JSON.stringify(pacote, null, 2)], {type:"application/json"});
         var a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "meus-produtos.json";
+        a.download = "meus-dados.json";
         a.click();
         setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
       });
@@ -818,8 +1027,17 @@ footer p{margin:14px 0 0}
       var leitor = new FileReader();
       leitor.onload = function(){
         try {
-          var lista = JSON.parse(leitor.result);
-          if (!Array.isArray(lista)) return;
+          var bruto = JSON.parse(leitor.result);
+          // Aceita tanto o pacote novo quanto um arquivo antigo só de produtos.
+          var lista = Array.isArray(bruto) ? bruto : (bruto.produtos || []);
+          var recs = Array.isArray(bruto) ? [] : (bruto.receitas || []);
+          recs.map(normalizaReceita).filter(Boolean).forEach(function(r){
+            var igual = null;
+            receitas.forEach(function(x){ if (x.nome === r.nome) igual = x; });
+            if (igual){ receitas = receitas.map(function(x){ return x === igual ? r : x; }); }
+            else { receitas.push(r); }
+          });
+          salvaReceitas();
           lista.map(function(p){
             if (p && !p.id) p.id = novoId();
             return normalizaProduto(p);
@@ -900,6 +1118,7 @@ footer p{margin:14px 0 0}
       localStorage.setItem(CHAVE, JSON.stringify({
         estilo: estado.estilo,
         temp: estado.temp,
+        receitaAtual: estado.receitaAtual,
         linhas: estado.linhas.map(function(l){
           var o = {id:l.id, g:l.g};
           if (l.id === "custom") o.comp = limpaComp(l);
@@ -917,6 +1136,7 @@ footer p{margin:14px 0 0}
       if (!dado || !Array.isArray(dado.linhas)) return false;
       estado.estilo = ALVOS[dado.estilo] ? dado.estilo : "gelato";
       if (isFinite(dado.temp) && dado.temp < 0) estado.temp = Number(dado.temp);
+      estado.receitaAtual = typeof dado.receitaAtual === "string" ? dado.receitaAtual : "";
       estado.linhas = dado.linhas.filter(function(l){ return acha(l.id); })
         .map(function(l){
           var o = {id:l.id, g:Number(l.g) || 0};
@@ -981,20 +1201,14 @@ footer p{margin:14px 0 0}
 
   document.getElementById("limpar").addEventListener("click", function(){
     estado.linhas = [];
-    render();
-  });
-
-  Array.prototype.forEach.call(document.querySelectorAll("[data-preset]"), function(b){
-    b.addEventListener("click", function(){
-      var p = PRESETS[b.dataset.preset];
-      estado.estilo = p.estilo;
-      estado.linhas = p.linhas.map(function(l){ return {id:l.id, g:l.g}; });
-      aplicaEstilo(); render();
-    });
+    estado.receitaAtual = "";
+    render(); salva();
   });
 
   carregaBiblioteca();
+  carregaReceitas();
   carregaDoRepositorio();
+  carregaReceitasDoRepositorio();
   if (!carrega()){
     estado.estilo = PRESETS.gelato.estilo;
     estado.linhas = PRESETS.gelato.linhas.map(function(l){ return {id:l.id, g:l.g}; });
