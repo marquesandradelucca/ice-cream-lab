@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Ice Cream Lab — Calculadora de Mistura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#FCFCFA;
+  --ink:#1B1D1B;
+  --muted:#787D78;
+  --line:#E5E5DE;
+  --band:#B9B9AC;
+  --signal:#9A6214;
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#131513; --ink:#EAEBE7; --muted:#8D928C;
+    --line:#282B27; --band:#565B52; --signal:#D7A555;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#131513; --ink:#EAEBE7; --muted:#8D928C;
+  --line:#282B27; --band:#565B52; --signal:#D7A555;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%; scroll-padding-top: env(safe-area-inset-top, 0px)}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:14px; line-height:1.6; letter-spacing:-.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.num, input[type="number"]{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
+.wrap{max-width:1000px; margin:0 auto; padding:48px 24px 96px}
+@media (max-width:620px){.wrap{padding:28px 18px 64px}}
+
+header.top{margin-bottom:30px}
+h1{font-size:1.45rem; font-weight:600; letter-spacing:-.02em; margin:0}
+header.top .sub{font-size:1.05rem; font-weight:500; color:var(--ink); margin:12px 0 9px}
+header.top p{margin:0; color:var(--muted); max-width:56ch}
+
+.toolbar{
+  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
+  padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:30px;
+}
+.seg{display:inline-flex; gap:16px}
+.seg button{
+  font:inherit; color:var(--muted); background:none; border:0; padding:3px 0 5px; cursor:pointer;
+  border-bottom:1.5px solid transparent;
+}
+.seg button[aria-pressed="true"]{color:var(--ink); border-bottom-color:var(--ink)}
+.seg button:hover{color:var(--ink)}
+.divisor{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
+.grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px}
+.rotulo{color:var(--muted); opacity:.75; font-size:.8rem}
+.ghost{
+  font:inherit; font-size:.92rem; background:none; color:var(--muted);
+  border:0; padding:3px 0; cursor:pointer; text-underline-offset:3px;
+  text-decoration:underline; text-decoration-color:var(--line);
+}
+.ghost:hover{color:var(--ink); text-decoration:underline}
+
+.cols{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.92fr);
+  grid-template-areas:"ingredientes composicao" "dureza composicao";
+  align-content:start; column-gap:56px; row-gap:34px; align-items:start;
+}
+#ingredientes{grid-area:ingredientes}
+#resultado{grid-area:composicao}
+.dureza{grid-area:dureza}
+@media (max-width:760px){
+  .cols{grid-template-columns:1fr; grid-template-areas:"ingredientes" "composicao" "dureza"; row-gap:30px}
+  .row{grid-template-columns:minmax(0,1fr) auto 22px; gap:8px}
+  .qtd{width:84px}
+}
+#resultado,.dureza{padding-top:30px; border-top:1px solid var(--line)}
+@media (min-width:761px){
+  #resultado{padding-top:0; border-top:0}
+}
+
+.panel h2{
+  font-size:.95rem; font-weight:500; color:var(--muted);
+  margin:0 0 16px; letter-spacing:0;
+}
+
+.rows{display:flex; flex-direction:column; gap:2px}
+.row{display:grid; grid-template-columns:minmax(0,1fr) auto 26px; gap:10px; align-items:center}
+.qtd{display:flex; align-items:center; gap:4px; border-bottom:1px solid var(--line); width:94px}
+.qtd:hover,.qtd:focus-within{border-bottom-color:var(--muted)}
+.qtd input{border-bottom:0; flex:1; min-width:0}
+.qtd input:hover{border-bottom-color:transparent}
+.passo{display:flex; flex-direction:column; gap:3px; padding-bottom:2px}
+.passo button{
+  width:15px; height:11px; padding:0; border:0; background:none; cursor:pointer;
+  color:var(--muted); display:flex; align-items:center; justify-content:center; line-height:1;
+}
+.passo button::before{content:""; border-left:4px solid transparent; border-right:4px solid transparent}
+.passo button.mais::before{border-bottom:5px solid currentColor}
+.passo button.menos::before{border-top:5px solid currentColor}
+.passo button:hover{color:var(--ink)}
+select,input[type="number"]{
+  font:inherit; color:var(--ink); background:transparent;
+  border:0; border-bottom:1px solid var(--line); border-radius:0;
+  padding:7px 0; width:100%; min-width:0;
+}
+select{appearance:none; -webkit-appearance:none; padding-right:14px;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:right 5px center, right 1px center; background-size:4px 4px, 4px 4px;
+  background-repeat:no-repeat; color:var(--ink);
+}
+input[type="number"]{text-align:right; -moz-appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
+.row .del{border:0; background:none; color:transparent; font-size:1.05rem; line-height:1; cursor:pointer; padding:4px}
+.row:hover .del,.row:focus-within .del{color:var(--muted)}
+.row .del:hover{color:var(--signal)}
+
+.rowfoot{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:22px}
+.total{display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:.92rem}
+.total input{width:74px; text-align:right}
+.add{font:inherit; font-size:.92rem; background:none; color:var(--ink); border:0; padding:3px 0; cursor:pointer; text-underline-offset:3px}
+.add:hover{text-decoration:underline}
+.empty{color:var(--muted); font-size:.92rem; margin:6px 0 0; max-width:46ch}
+
+.metric{padding:13px 0 15px; border-top:1px solid var(--line)}
+.metric:first-child{border-top:0; padding-top:0}
+.metric .head{display:flex; align-items:baseline; gap:10px}
+.metric .name{flex:1; color:var(--muted); font-size:.92rem}
+.metric .val{font-size:1rem; font-weight:500}
+.metric .alvo{color:var(--muted); font-size:.76rem; min-width:72px; text-align:right}
+.metric.out .val{color:var(--signal)}
+.bar{position:relative; height:3px; margin-top:11px; background:var(--line)}
+.bar .band{position:absolute; inset:0 auto; top:0; bottom:0; background:var(--band)}
+.bar .mark{position:absolute; top:-3px; width:2px; height:9px; background:var(--ink)}
+.metric.out .bar .mark{background:var(--signal)}
+
+.notes{margin:22px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:9px}
+.notes li{font-size:.9rem; line-height:1.5; color:var(--muted); padding-left:16px; position:relative; max-width:52ch}
+.notes li::before{content:""; position:absolute; left:0; top:.62em; width:5px; height:5px; background:var(--signal)}
+.notes li.ok::before{background:var(--muted)}
+
+.dureza{margin-top:0}
+.dureza-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:16px}
+.dureza-head h2{margin:0}
+.dureza-head input{width:58px}
+.sugestao{margin:16px 0 0; font-size:.9rem; line-height:1.5; color:var(--muted); max-width:52ch}
+.sugestao b{color:var(--ink); font-weight:500}
+
+footer{
+  margin-top:48px; padding-top:20px; border-top:1px solid var(--line);
+  color:var(--muted); font-size:.8rem; line-height:1.65; max-width:76ch;
+}
+footer summary{
+  cursor:pointer; list-style:none; font-size:.9rem; color:var(--muted);
+  display:inline-flex; align-items:center; gap:7px; padding:2px 0;
+}
+footer summary::-webkit-details-marker{display:none}
+footer summary::before{
+  content:""; border-top:4px solid transparent; border-bottom:4px solid transparent;
+  border-left:5px solid currentColor; transition:transform .15s;
+}
+footer details[open] summary::before{transform:rotate(90deg)}
+footer summary:hover{color:var(--ink)}
+footer p{margin:14px 0 0}
+
+@media (max-width:760px){
+  .rowfoot{flex-direction:column; align-items:flex-start; gap:14px}
+  .metric .head{flex-wrap:wrap}
+  .metric .alvo{flex-basis:100%; text-align:left; min-width:0; margin-top:1px}
+}
+@media (prefers-reduced-motion: reduce){footer summary::before{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Ice Cream Lab</h1>
+  <h2 class="sub">Calculadora de Mistura</h2>
+  <p>Monte a receita em gramas e acompanhe onde ela cai nas faixas de balanceamento.</p>
+</header>
+
+<div class="toolbar">
+  <div class="seg" id="estilo" role="group" aria-label="Estilo de referência">
+    <button type="button" data-estilo="gelato" aria-pressed="true">Gelato</button>
+    <button type="button" data-estilo="icecream" aria-pressed="false">Ice cream</button>
+    <button type="button" data-estilo="sorbet" aria-pressed="false">Sorbet</button>
+  </div>
+  <span class="divisor" aria-hidden="true"></span>
+
+  <span class="grupo">
+    <span class="rotulo">Carregar</span>
+    <button class="ghost" type="button" data-preset="gelato">base branca</button>
+    <button class="ghost" type="button" data-preset="sorbet">sorbet de fruta</button>
+  </span>
+
+  <span class="divisor" aria-hidden="true"></span>
+
+  <button class="ghost" type="button" id="limpar">Limpar tudo</button>
+</div>
+
+<div class="cols">
+  <section class="panel" id="ingredientes">
+    <h2>Ingredientes</h2>
+    <div class="rows" id="linhas"></div>
+    <p class="empty" id="vazio" hidden>Nenhum ingrediente ainda. Adicione o primeiro ou carregue uma base.</p>
+    <div class="rowfoot">
+      <button class="add" type="button" id="adicionar">Adicionar ingrediente</button>
+      <label class="total" for="peso">Mistura
+        <input type="number" id="peso" min="0" step="10" value="0" inputmode="decimal" />
+        <span>g</span>
+      </label>
+    </div>
+  </section>
+
+  <section class="panel" id="resultado" aria-live="polite">
+    <h2>Composição</h2>
+    <div id="metricas"></div>
+    <ul class="notes" id="avisos"></ul>
+
+  </section>
+
+  <section class="panel dureza" aria-live="polite">
+      <div class="dureza-head">
+        <h2>Dureza</h2>
+        <label class="total" for="temp">servindo a
+          <input type="number" id="temp" min="-25" max="-2" step="1" value="-12" inputmode="numeric" />
+          <span>°C</span>
+        </label>
+      </div>
+      <div id="metricasDureza"></div>
+      <p class="sugestao" id="sugestao"></p>
+  </section>
+</div>
+
+<footer>
+  <details>
+    <summary>Notas sobre o cálculo</summary>
+    <p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>
+  <p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>
+  <p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos. É o que dá o PAC mais fiel. Em troca, o percentual de açúcares sai um pouco acima do que você declararia num rótulo, onde só a fração indicada pelo número DE conta como açúcar.</p>
+  <p>O ponto de congelamento soma duas contribuições: os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A água congelada sai repetindo essa conta com a água que ainda resta líquida, porque o que sobra vai ficando mais concentrado conforme o gelo se forma.</p>
+  <p>Acima de 55 a 60% de água congelada, o cálculo passa a superestimar o gelo: as medições em laboratório ficam abaixo da curva teórica. Ficam de fora também os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun, que deixa o creme mais fácil de servir. Use o número para comparar receitas, não como medida absoluta.</p>
+  </details>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // POD = poder adoçante, PAC = poder anticongelante (sacarose = 100)
+  var COEF = {
+    sacarose:   {pod:100, pac:100},
+    dextrose:   {pod:70,  pac:190},
+    frutose:    {pod:170, pac:190},
+    invertido:  {pod:125, pac:190},
+    glucose:    {pod:23,  pac:70},
+    malto:      {pod:12,  pac:33},
+    lactose:    {pod:16,  pac:100}
+  };
+
+  // Composição por 100 g. O que falta para 100 é água.
+  var ING = [
+    {id:"leite",      nome:"Leite integral",            gord:3.5, slng:8.5},
+    {id:"desnatado",  nome:"Leite desnatado",           gord:0.1, slng:9.0},
+    {id:"creme35",    nome:"Creme fresco 35%", longo:"Creme de leite fresco 35%", gord:35,  slng:5.5},
+    {id:"creme20",    nome:"Creme UHT 20%",             gord:20,  slng:7.0},
+    {id:"lpdesn",     nome:"Leite em pó desnat.", longo:"Leite em pó desnatado",     gord:1,   slng:96},
+    {id:"lpint",      nome:"Leite em pó integral",      gord:26,  slng:70},
+    {id:"soro",       nome:"Soro em pó", longo:"Soro de leite em pó",        gord:1,   soro:96},
+    {id:"condensado", nome:"Leite condensado",          gord:8,   slng:22, ac:{sacarose:44}},
+    {id:"manteiga",   nome:"Manteiga",                  gord:82,  slng:1.5},
+    {id:"iogurte",    nome:"Iogurte natural", longo:"Iogurte natural integral",  gord:3.5, slng:9},
+    {id:"gema",       nome:"Gema de ovo",               gord:31,  outros:17},
+    {id:"agua",       nome:"Água"},
+    {id:"sacarose",   nome:"Açúcar (sacarose)",         ac:{sacarose:100}},
+    {id:"dextrose",   nome:"Dextrose", longo:"Dextrose (mono-hidratada)", ac:{dextrose:92}},
+    {id:"glucose",    nome:"Glucose pó 38 DE", longo:"Glucose em pó DE 38–40",    ac:{glucose:96}},
+    {id:"invertido",  nome:"Açúcar invertido",          ac:{invertido:75}},
+    {id:"mel",        nome:"Mel",                       ac:{frutose:40, dextrose:40}},
+    {id:"malto",      nome:"Maltodextrina 18 DE", longo:"Maltodextrina DE 18",       ac:{malto:95}},
+    {id:"mascavo",    nome:"Açúcar mascavo",            ac:{sacarose:96}, outros:2},
+    {id:"cacau",      nome:"Cacau em pó",               gord:11,  outros:85},
+    {id:"choco70",    nome:"Chocolate 70%",             gord:40,  outros:30, ac:{sacarose:29}},
+    {id:"pasta",      nome:"Pasta de castanha", longo:"Pasta de castanha pura",    gord:55,  outros:43},
+    {id:"pureDoce",   nome:"Purê fruta doce", longo:"Purê de fruta doce",        ac:{frutose:6, sacarose:6}, outros:2},
+    {id:"pureAcida",  nome:"Purê fruta ácida", longo:"Purê de fruta ácida",       ac:{frutose:4, sacarose:4}, outros:2},
+    {id:"estab",      nome:"Estabilizante",             outros:100}
+  ];
+
+  var ALVOS = {
+    gelato:   {gord:[4,9],   slng:[7,11],  ac:[16,22], sol:[36,42], pod:[160,210], pac:[240,280]},
+    icecream: {gord:[10,16], slng:[9,12],  ac:[14,18], sol:[36,42], pod:[150,200], pac:[240,280]},
+    sorbet:   {gord:[0,1],   slng:[0,1],   ac:[25,32], sol:[28,35], pod:[230,280], pac:[300,360]}
+  };
+
+  var ESCALA = {
+    gord:[0,20], slng:[0,14], ac:[0,36], sol:[20,50], pod:[80,320], pac:[120,420],
+    fp:[-4.5,-1], wf:[55,95]
+  };
+
+  var ALVO_FP = [-3.0, -2.75];
+
+  // Ponto de congelamento de soluções de sacarose (Leighton/Pickering), como
+  // curva ajustada aos valores tabelados: erro de até 0,08 °C até 180 g/100 g,
+  // daí para cima segue reta. c = gramas de equivalente-sacarose por 100 g de água.
+  var K = [0.0587289852, 1.09367e-5, 1.9583e-6, -8.3e-9];
+
+  function quedaSE(c){
+    if (c <= 180){
+      return K[0]*c + K[1]*c*c + K[2]*c*c*c + K[3]*c*c*c*c;
+    }
+    var fim = K[0]*180 + K[1]*32400 + K[2]*5832000 + K[3]*1049760000;
+    var incl = K[0] + 2*K[1]*180 + 3*K[2]*32400 + 4*K[3]*5832000;
+    return fim + incl * (c - 180);
+  }
+
+  // Queda total: equivalentes de sacarose mais os sais do leite.
+  // se e sais em g/100 g de mistura; agua em % da mistura.
+  function queda(se, sais, agua){
+    return quedaSE(se * 100 / agua) + sais * 2.37 / agua;
+  }
+
+  function dureza(r, temp){
+    if (!r.peso || r.agua <= 0) return null;
+    var se = r.pac / 10;              // PAC por kg em g de equivalente-sacarose por 100 g
+    var sais = r.slng + r.soro;       // sólidos lácteos e de soro trazem os sais
+    var fp = -queda(se, sais, r.agua);
+    var out = {se:se, fp:fp};
+    if (temp < fp){
+      // Conforme a água congela, a que resta fica mais concentrada e o ponto de
+      // congelamento cai. Procura-se a fração congelada que equilibra a temperatura.
+      var lo = 0, hi = 0.995, m;
+      for (var i = 0; i < 60; i++){
+        m = (lo + hi) / 2;
+        if (queda(se, sais, r.agua * (1 - m)) < -temp) lo = m; else hi = m;
+      }
+      out.wf = (lo + hi) / 2 * 100;
+    }
+    return out;
+  }
+
+  var PRESETS = {
+    gelato: {estilo:"gelato", linhas:[
+      {id:"leite", g:645},{id:"creme35", g:112},{id:"lpdesn", g:48},
+      {id:"sacarose", g:132},{id:"dextrose", g:28},{id:"glucose", g:32},{id:"estab", g:3}
+    ]},
+    sorbet: {estilo:"sorbet", linhas:[
+      {id:"pureDoce", g:600},{id:"agua", g:192},{id:"sacarose", g:135},
+      {id:"dextrose", g:25},{id:"glucose", g:45},{id:"estab", g:3}
+    ]}
+  };
+
+  var CHAVE = "mistura-v1";
+  var estado = {estilo:"gelato", temp:-12, linhas:[]};
+  var seq = 0;
+
+  var elLinhas = document.getElementById("linhas");
+  var elVazio = document.getElementById("vazio");
+  var elPeso = document.getElementById("peso");
+  var elMetricas = document.getElementById("metricas");
+  var elAvisos = document.getElementById("avisos");
+  var elTemp = document.getElementById("temp");
+  var elDureza = document.getElementById("metricasDureza");
+  var elSugestao = document.getElementById("sugestao");
+
+  function acha(id){
+    for (var i=0;i<ING.length;i++){ if (ING[i].id === id) return ING[i]; }
+    return null;
+  }
+
+  function calcula(){
+    var t = {peso:0, gord:0, slng:0, soro:0, ac:0, outros:0, pod:0, pac:0};
+    estado.linhas.forEach(function(l){
+      var ing = acha(l.id); if (!ing) return;
+      var g = Number(l.g) || 0;
+      t.peso += g;
+      t.gord += g * (ing.gord || 0) / 100;
+      t.slng += g * (ing.slng || 0) / 100;
+      t.soro += g * (ing.soro || 0) / 100;
+      t.outros += g * (ing.outros || 0) / 100;
+      if (ing.ac){
+        Object.keys(ing.ac).forEach(function(tipo){
+          var gr = g * ing.ac[tipo] / 100;
+          t.ac += gr;
+          t.pod += gr * COEF[tipo].pod / 100;
+          t.pac += gr * COEF[tipo].pac / 100;
+        });
+      }
+      // 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro são lactose
+      var lactose = g * (ing.slng || 0) / 100 * 0.545 + g * (ing.soro || 0) / 100 * 0.765;
+      t.pod += lactose * COEF.lactose.pod / 100;
+      t.pac += lactose * COEF.lactose.pac / 100;
+    });
+    t.sol = t.gord + t.slng + t.soro + t.ac + t.outros;
+    t.agua = t.peso - t.sol;
+    var p = t.peso || 1;
+    return {
+      peso: t.peso,
+      gord: t.gord / p * 100,
+      slng: t.slng / p * 100,
+      soro: t.soro / p * 100,
+      ac: t.ac / p * 100,
+      outros: t.outros / p * 100,
+      sol: t.sol / p * 100,
+      agua: t.agua / p * 100,
+      pod: t.pod / p * 1000,
+      pac: t.pac / p * 1000
+    };
+  }
+
+  function n(v, casas){
+    return v.toFixed(casas === undefined ? 1 : casas).replace(".", ",").replace("-", "\u2212");
+  }
+
+  // Faixa-alvo: sem casas decimais quando não acrescentam nada, e com "a" no lugar
+  // do travessão quando os números são negativos, para não virar uma fila de traços.
+  function faixa(a, b, casas){
+    var inteiros = (casas === 0) || (a === Math.round(a) && b === Math.round(b));
+    var ca = inteiros ? 0 : casas;
+    var txt = n(a, ca) + (a < 0 || b < 0 ? " a " : "–") + n(b, ca);
+    return txt;
+  }
+
+  function barra(valor, alvo, escala){
+    var min = escala[0], max = escala[1], span = max - min;
+    function pos(v){ return Math.max(0, Math.min(100, (v - min) / span * 100)); }
+    var a = pos(alvo[0]), b = pos(alvo[1]);
+    return '<div class="bar"><span class="band" style="left:' + a + '%;width:' + Math.max(b - a, 1) + '%"></span>' +
+           '<span class="mark" style="left:calc(' + pos(valor) + '% - 1.5px)"></span></div>';
+  }
+
+  function linhaMetrica(nome, valor, alvo, escala, sufixo, casas){
+    var fora = valor < alvo[0] || valor > alvo[1];
+    return '<div class="metric' + (fora ? " out" : "") + '">' +
+      '<div class="head"><span class="name">' + nome + '</span>' +
+      '<span class="val num">' + n(valor, casas) + sufixo + '</span>' +
+      '<span class="alvo num">' + faixa(alvo[0], alvo[1], casas) + '</span></div>' +
+      barra(valor, alvo, escala) + '</div>';
+  }
+
+  function avisos(r){
+    var out = [];
+    if (r.slng + r.soro > 11) out.push("Sólidos lácteos acima de 11%: a lactose pode cristalizar e deixar a textura arenosa. Reduza o leite em pó.");
+    if (r.sol < ALVOS[estado.estilo].sol[0]) out.push("Sólidos totais baixos: tende a ficar aguado e com cristais de gelo. Suba leite em pó, gordura ou glucose.");
+    if (r.sol > ALVOS[estado.estilo].sol[1]) out.push("Sólidos totais altos: a mistura fica pesada e pastosa.");
+    if (r.pac > ALVOS[estado.estilo].pac[1]) out.push("PAC alto: fica mole e derrete rápido. Troque parte da dextrose ou do invertido por sacarose.");
+    if (r.pac < ALVOS[estado.estilo].pac[0]) out.push("PAC baixo: sai duro do freezer. Troque parte da sacarose por dextrose.");
+    if (r.pod > ALVOS[estado.estilo].pod[1]) out.push("Doce demais para o estilo. Parte do açúcar pode virar glucose em pó, que dá corpo sem adoçar.");
+    if (estado.estilo !== "sorbet" && r.gord > ALVOS.gelato.gord[1] && estado.estilo === "gelato") out.push("Gordura acima da faixa de gelato: a sensação fica amanteigada e o sabor, mais abafado.");
+    if (!out.length && r.peso > 0) out.push({ok:true, txt:"Tudo dentro das faixas do estilo escolhido."});
+    return out;
+  }
+
+  function render(){
+    // linhas
+    elLinhas.innerHTML = "";
+    estado.linhas.forEach(function(l){
+      var row = document.createElement("div");
+      row.className = "row";
+      var sel = document.createElement("select");
+      sel.setAttribute("aria-label", "Ingrediente");
+      ING.forEach(function(ing){
+        var o = document.createElement("option");
+        o.value = ing.id; o.textContent = ing.nome;
+        if (ing.longo) o.title = ing.longo;
+        if (ing.id === l.id) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.title = (acha(l.id) || {}).longo || "";
+      sel.addEventListener("change", function(){
+        l.id = sel.value;
+        sel.title = (acha(l.id) || {}).longo || "";
+        atualiza();
+      });
+
+      var inp = document.createElement("input");
+      inp.type = "number"; inp.min = "0"; inp.step = "1"; inp.value = l.g;
+      inp.inputMode = "decimal";
+      inp.setAttribute("aria-label", "Gramas");
+      inp.addEventListener("input", function(){ l.g = inp.value === "" ? 0 : Number(inp.value); atualiza(); });
+      l.input = inp;
+
+      // Setas para ajustar a quantidade sem digitar. O passo acompanha a ordem de
+      // grandeza do valor, para que 3 g de estabilizante e 600 g de leite andem bem.
+      function passoDe(v){
+        if (v < 10) return 0.5;
+        if (v < 50) return 1;
+        return 5;
+      }
+      function ajusta(dir, ev){
+        var atual = Number(l.g) || 0;
+        var passo = passoDe(dir > 0 ? atual + 0.01 : atual - 0.01);
+        if (ev && (ev.shiftKey || ev.metaKey)) passo *= 10;
+        var novo = Math.max(0, Math.round((atual + dir * passo) * 10) / 10);
+        l.g = novo;
+        inp.value = novo;
+        atualiza();
+      }
+
+      var passo = document.createElement("div");
+      passo.className = "passo";
+      [["mais", 1, "Aumentar"], ["menos", -1, "Diminuir"]].forEach(function(cfg){
+        var b = document.createElement("button");
+        b.type = "button"; b.className = cfg[0];
+        b.setAttribute("aria-label", cfg[2] + " a quantidade");
+        b.addEventListener("click", function(ev){ ajusta(cfg[1], ev); });
+        passo.appendChild(b);
+      });
+
+      var del = document.createElement("button");
+      del.type = "button"; del.className = "del"; del.innerHTML = "&times;";
+      del.setAttribute("aria-label", "Remover ingrediente");
+      del.addEventListener("click", function(){
+        estado.linhas = estado.linhas.filter(function(x){ return x !== l; });
+        render(); salva();
+      });
+
+      var qtd = document.createElement("div");
+      qtd.className = "qtd";
+      qtd.appendChild(inp); qtd.appendChild(passo);
+      row.appendChild(sel); row.appendChild(qtd); row.appendChild(del);
+      elLinhas.appendChild(row);
+    });
+    elVazio.hidden = estado.linhas.length > 0;
+    atualiza();
+  }
+
+  function atualiza(){
+    var r = calcula();
+    var alvo = ALVOS[estado.estilo];
+    if (document.activeElement !== elPeso){
+      elPeso.value = Math.round(r.peso * 10) / 10;
+    }
+
+    if (!r.peso){
+      elMetricas.innerHTML = '<p class="empty">A composição aparece aqui assim que a mistura tiver peso. Para reescalar pelo peso total, a receita precisa ter alguma quantidade.</p>';
+      elAvisos.innerHTML = "";
+      elDureza.innerHTML = "";
+      elSugestao.textContent = "";
+      salva(); return;
+    }
+
+    elMetricas.innerHTML =
+      linhaMetrica("Gordura", r.gord, alvo.gord, ESCALA.gord, "%") +
+      linhaMetrica("Sólidos lácteos (SLNG)", r.slng + r.soro, alvo.slng, ESCALA.slng, "%") +
+      linhaMetrica("Açúcares", r.ac, alvo.ac, ESCALA.ac, "%") +
+      linhaMetrica("Sólidos totais", r.sol, alvo.sol, ESCALA.sol, "%") +
+      linhaMetrica("POD (doçura)", r.pod, alvo.pod, ESCALA.pod, "", 0) +
+      linhaMetrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0) +
+      '<div class="metric"><div class="head"><span class="name">Água</span>' +
+      '<span class="val num">' + n(r.agua) + '%</span><span class="alvo"></span></div></div>';
+
+    elAvisos.innerHTML = "";
+    avisos(r).forEach(function(a){
+      var li = document.createElement("li");
+      if (typeof a === "string"){ li.textContent = a; }
+      else { li.className = "ok"; li.textContent = a.txt; }
+      elAvisos.appendChild(li);
+    });
+
+    var d = dureza(r, estado.temp);
+    if (!d){
+      elDureza.innerHTML = '<p class="empty">Sem água na mistura não há o que congelar.</p>';
+      elSugestao.textContent = "";
+    } else {
+      var linhas = linhaMetrica("Ponto de congelamento", d.fp, ALVO_FP, ESCALA.fp, " °C");
+      if (d.wf === undefined){
+        linhas += '<div class="metric"><div class="head"><span class="name">Água congelada</span>' +
+          '<span class="val num">—</span><span class="alvo"></span></div></div>';
+        elSugestao.innerHTML = "A " + n(estado.temp, 0) + " °C a receita ainda está líquida: ela só começa a congelar a <b>" +
+          n(d.fp) + " °C</b>.";
+      } else {
+        linhas += '<div class="metric"><div class="head"><span class="name">Água congelada</span>' +
+          '<span class="val num">' + n(d.wf, 0) + '%</span><span class="alvo"></span></div></div>';
+        elSugestao.innerHTML = "A <b>" + n(estado.temp, 0) + " °C</b>, " + n(d.wf, 0) +
+          "% da água está congelada. Use o número para comparar receitas entre si e para achar, no seu freezer, " +
+          "a faixa que te agrada na colher.";
+      }
+      elDureza.innerHTML = linhas;
+    }
+    salva();
+  }
+
+  function salva(){
+    try {
+      localStorage.setItem(CHAVE, JSON.stringify({
+        estilo: estado.estilo,
+        temp: estado.temp,
+        linhas: estado.linhas.map(function(l){ return {id:l.id, g:l.g}; })
+      }));
+    } catch (e) {}
+  }
+
+  function carrega(){
+    try {
+      var bruto = localStorage.getItem(CHAVE);
+      if (!bruto) return false;
+      var dado = JSON.parse(bruto);
+      if (!dado || !Array.isArray(dado.linhas)) return false;
+      estado.estilo = ALVOS[dado.estilo] ? dado.estilo : "gelato";
+      if (isFinite(dado.temp) && dado.temp < 0) estado.temp = Number(dado.temp);
+      estado.linhas = dado.linhas.filter(function(l){ return acha(l.id); })
+        .map(function(l){ return {id:l.id, g:Number(l.g) || 0}; });
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function aplicaEstilo(){
+    Array.prototype.forEach.call(document.querySelectorAll("#estilo button"), function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.estilo === estado.estilo));
+    });
+  }
+
+  document.getElementById("estilo").addEventListener("click", function(ev){
+    var b = ev.target.closest("button"); if (!b) return;
+    estado.estilo = b.dataset.estilo;
+    aplicaEstilo(); atualiza();
+  });
+
+  // Reescala a receita inteira a partir de um peso total novo.
+  // A base é congelada no foco para que os arredondamentos não se acumulem a cada tecla.
+  var base = null;
+
+  elPeso.addEventListener("focus", function(){
+    var total = calcula().peso;
+    base = total > 0 ? {total:total, g:estado.linhas.map(function(l){ return l.g; })} : null;
+  });
+
+  elPeso.addEventListener("input", function(){
+    if (!base) return;
+    var alvo = Number(elPeso.value);
+    if (!isFinite(alvo) || alvo <= 0 || elPeso.value === "") return;
+    var fator = alvo / base.total;
+    estado.linhas.forEach(function(l, i){
+      l.g = Math.round(base.g[i] * fator * 10) / 10;
+      if (l.input) l.input.value = l.g;
+    });
+    atualiza();
+  });
+
+  elPeso.addEventListener("blur", function(){
+    base = null;
+    atualiza();
+  });
+
+  elTemp.addEventListener("input", function(){
+    var v = Number(elTemp.value);
+    if (elTemp.value === "" || !isFinite(v) || v >= 0) return;
+    estado.temp = v;
+    atualiza();
+  });
+
+  document.getElementById("adicionar").addEventListener("click", function(){
+    estado.linhas.push({id:"leite", g:0});
+    render();
+    var inputs = elLinhas.querySelectorAll('input[type="number"]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  document.getElementById("limpar").addEventListener("click", function(){
+    estado.linhas = [];
+    render();
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-preset]"), function(b){
+    b.addEventListener("click", function(){
+      var p = PRESETS[b.dataset.preset];
+      estado.estilo = p.estilo;
+      estado.linhas = p.linhas.map(function(l){ return {id:l.id, g:l.g}; });
+      aplicaEstilo(); render();
+    });
+  });
+
+  if (!carrega()){
+    estado.estilo = PRESETS.gelato.estilo;
+    estado.linhas = PRESETS.gelato.linhas.map(function(l){ return {id:l.id, g:l.g}; });
+  }
+  elTemp.value = estado.temp;
+  aplicaEstilo();
+  render();
+})();
+</script>
+</body>
+</html>
