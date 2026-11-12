@@ -126,6 +126,36 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .row:hover .del,.row:focus-within .del{color:var(--muted)}
 .row .del:hover{color:var(--signal)}
 
+.custom{
+  margin:4px 0 12px; padding:12px 0 2px 14px;
+  border-left:2px solid var(--line);
+}
+.custom .nome{
+  font:inherit; color:var(--ink); background:transparent; width:100%;
+  border:0; border-bottom:1px solid var(--line); padding:5px 0;
+}
+.custom .nome:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+.custom .campos{display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; margin-top:12px}
+.custom .campo{display:flex; flex-direction:column; gap:2px; width:92px}
+.custom .campo span{font-size:.73rem; color:var(--muted)}
+.custom .campo input{width:100%}
+.custom .agua-calc{font-size:.78rem; color:var(--muted); padding-bottom:7px}
+.custom .agua-calc.erro{color:var(--signal)}
+.custom .acoes{display:flex; flex-wrap:wrap; gap:16px; margin-top:13px}
+.custom .ghost.destaque{color:var(--ink); text-decoration-color:var(--muted)}
+.resumo{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:12px;
+  margin:-2px 0 10px; padding-left:14px; border-left:2px solid var(--line);
+  font-size:.78rem; color:var(--muted);
+}
+.resumo .ghost{font-size:.78rem}
+.bib{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:12px;
+  margin-top:18px; padding-top:13px; border-top:1px solid var(--line);
+  font-size:.78rem; color:var(--muted);
+}
+.bib .ghost{font-size:.78rem}
+.custom .ajuda{margin:11px 0 0; font-size:.75rem; line-height:1.5; color:var(--muted); max-width:46ch}
 .rowfoot{display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:22px}
 .total{display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:.92rem}
 .total input{width:74px; text-align:right}
@@ -222,6 +252,7 @@ footer p{margin:14px 0 0}
         <span>g</span>
       </label>
     </div>
+    <div class="bib" id="bib"></div>
   </section>
 
   <section class="panel" id="resultado" aria-live="polite">
@@ -298,7 +329,8 @@ footer p{margin:14px 0 0}
     {id:"pasta",      nome:"Pasta de castanha", longo:"Pasta de castanha pura",    gord:55,  outros:43},
     {id:"pureDoce",   nome:"Purê fruta doce", longo:"Purê de fruta doce",        ac:{frutose:6, sacarose:6}, outros:2},
     {id:"pureAcida",  nome:"Purê fruta ácida", longo:"Purê de fruta ácida",       ac:{frutose:4, sacarose:4}, outros:2},
-    {id:"estab",      nome:"Estabilizante",             outros:100}
+    {id:"estab",      nome:"Estabilizante",             outros:100},
+    {id:"custom",     nome:"Personalizado…",            custom:true}
   ];
 
   var ALVOS = {
@@ -365,11 +397,79 @@ footer p{margin:14px 0 0}
   };
 
   var CHAVE = "mistura-v1";
+  var CHAVE_BIB = "mistura-produtos-v1";
+
+  // Produtos que a pessoa cadastrou. Ficam guardados à parte da receita, para
+  // sobreviverem a "Limpar tudo" e aparecerem em qualquer receita futura.
+  var biblioteca = [];
+
+  function normalizaProduto(p){
+    if (!p || !p.id || !p.nome) return null;
+    return {
+      id: String(p.id),
+      nome: String(p.nome).slice(0, 60),
+      gord: Number(p.gord) || 0,
+      ac: Number(p.ac) || 0,
+      outros: Number(p.outros) || 0
+    };
+  }
+
+  function carregaBiblioteca(){
+    try {
+      var b = JSON.parse(localStorage.getItem(CHAVE_BIB));
+      if (Array.isArray(b)) biblioteca = b.map(normalizaProduto).filter(Boolean);
+    } catch (e) { biblioteca = []; }
+  }
+
+  function salvaBiblioteca(){
+    // Os produtos vindos do repositório não são gravados aqui: o arquivo no
+    // GitHub é a fonte deles, e o navegador guarda só o que foi criado nele.
+    var meus = biblioteca.filter(function(p){ return !p.repo; })
+      .map(function(p){ return {id:p.id, nome:p.nome, gord:p.gord, ac:p.ac, outros:p.outros}; });
+    try { localStorage.setItem(CHAVE_BIB, JSON.stringify(meus)); } catch (e) {}
+  }
+
+  // Lista publicada junto com a página (produtos.json na mesma pasta). Serve como
+  // biblioteca compartilhada entre aparelhos; um produto local de mesmo nome vence.
+  function carregaDoRepositorio(){
+    if (!window.fetch) return;
+    fetch("produtos.json", {cache:"no-store"}).then(function(resp){
+      if (!resp.ok) throw 0;
+      return resp.json();
+    }).then(function(lista){
+      if (!Array.isArray(lista)) return;
+      var mudou = false;
+      lista.map(function(p){
+        // O arquivo publicado pode vir sem id: ele é gerado na hora.
+        if (p && !p.id) p.id = novoId();
+        return normalizaProduto(p);
+      }).filter(Boolean).forEach(function(pr){
+        var existe = false;
+        biblioteca.forEach(function(x){ if (x.nome === pr.nome) existe = true; });
+        if (!existe){
+          pr.repo = true;
+          biblioteca.push(pr);
+          mudou = true;
+        }
+      });
+      if (mudou) render();
+    }).catch(function(){});
+  }
+
+  function produto(id){
+    for (var i = 0; i < biblioteca.length; i++){ if (biblioteca[i].id === id) return biblioteca[i]; }
+    return null;
+  }
+
+  function novoId(){
+    return "p:" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
   var estado = {estilo:"gelato", temp:-12, linhas:[]};
   var seq = 0;
 
   var elLinhas = document.getElementById("linhas");
   var elVazio = document.getElementById("vazio");
+  var elBib = document.getElementById("bib");
   var elPeso = document.getElementById("peso");
   var elMetricas = document.getElementById("metricas");
   var elAvisos = document.getElementById("avisos");
@@ -379,13 +479,31 @@ footer p{margin:14px 0 0}
 
   function acha(id){
     for (var i=0;i<ING.length;i++){ if (ING[i].id === id) return ING[i]; }
-    return null;
+    return produto(id);
+  }
+
+  // Para a linha personalizada, a composição vem dos campos preenchidos a partir
+  // do rótulo do produto, e não da lista fixa de ingredientes.
+  function composicao(l){
+    if (l.id === "custom"){
+      var c = l.comp || {};
+      return {gord:Number(c.gord)||0, outros:Number(c.outros)||0, ac:{sacarose:Number(c.ac)||0}};
+    }
+    var pr = produto(l.id);
+    if (pr) return {gord:pr.gord, outros:pr.outros, ac:{sacarose:pr.ac}};
+    return acha(l.id);
+  }
+
+  function limpaComp(l){
+    var c = l.comp || {};
+    return {nome: c.nome || "", gord: Number(c.gord) || 0,
+            ac: Number(c.ac) || 0, outros: Number(c.outros) || 0};
   }
 
   function calcula(){
     var t = {peso:0, gord:0, slng:0, soro:0, ac:0, outros:0, pod:0, pac:0};
     estado.linhas.forEach(function(l){
-      var ing = acha(l.id); if (!ing) return;
+      var ing = composicao(l); if (!ing) return;
       var g = Number(l.g) || 0;
       t.peso += g;
       t.gord += g * (ing.gord || 0) / 100;
@@ -473,18 +591,31 @@ footer p{margin:14px 0 0}
       row.className = "row";
       var sel = document.createElement("select");
       sel.setAttribute("aria-label", "Ingrediente");
-      ING.forEach(function(ing){
+      function opcao(ing, pai){
         var o = document.createElement("option");
         o.value = ing.id; o.textContent = ing.nome;
         if (ing.longo) o.title = ing.longo;
         if (ing.id === l.id) o.selected = true;
-        sel.appendChild(o);
-      });
+        pai.appendChild(o);
+      }
+      ING.forEach(function(ing){ if (!ing.custom) opcao(ing, sel); });
+      if (biblioteca.length){
+        var grupo = document.createElement("optgroup");
+        grupo.label = "Meus produtos";
+        biblioteca.forEach(function(pr){ opcao(pr, grupo); });
+        sel.appendChild(grupo);
+      }
+      opcao(acha("custom"), sel);
       sel.title = (acha(l.id) || {}).longo || "";
       sel.addEventListener("change", function(){
+        var era = l.id;
         l.id = sel.value;
         sel.title = (acha(l.id) || {}).longo || "";
-        atualiza();
+        // Personalizados e produtos da biblioteca trazem um bloco extra embaixo da
+        // linha, então entrar ou sair deles muda a estrutura, não só os números.
+        function temExtra(id){ return id === "custom" || !!produto(id); }
+        if (temExtra(era) || temExtra(l.id)){ l.editando = false; render(); salva(); }
+        else { atualiza(); }
       });
 
       var inp = document.createElement("input");
@@ -534,9 +665,178 @@ footer p{margin:14px 0 0}
       qtd.appendChild(inp); qtd.appendChild(passo);
       row.appendChild(sel); row.appendChild(qtd); row.appendChild(del);
       elLinhas.appendChild(row);
+
+      var prSel = produto(l.id);
+
+      if (l.id === "custom" || (prSel && l.editando)){
+        var dados = prSel ? prSel : (l.comp = limpaComp(l));
+        var box = document.createElement("div");
+        box.className = "custom";
+
+        var nome = document.createElement("input");
+        nome.type = "text"; nome.className = "nome";
+        nome.placeholder = "Nome do produto";
+        nome.value = dados.nome;
+        nome.setAttribute("aria-label", "Nome do produto");
+        box.appendChild(nome);
+
+        var campos = document.createElement("div");
+        campos.className = "campos";
+        var agua = document.createElement("span");
+        agua.className = "agua-calc";
+
+        function mostraAgua(){
+          var resto = 100 - ((Number(dados.gord)||0) + (Number(dados.ac)||0) + (Number(dados.outros)||0));
+          agua.textContent = "água " + n(Math.max(0, resto), 0) + "%";
+          agua.classList.toggle("erro", resto < -0.5);
+        }
+
+        [["gord","Gordura"],["ac","Açúcares"],["outros","Outros sólidos"]].forEach(function(cfg){
+          var wrap = document.createElement("label");
+          wrap.className = "campo";
+          var tit = document.createElement("span"); tit.textContent = cfg[1];
+          var c = document.createElement("input");
+          c.type = "number"; c.min = "0"; c.max = "100"; c.step = "0.1";
+          c.inputMode = "decimal"; c.value = dados[cfg[0]];
+          c.addEventListener("input", function(){
+            dados[cfg[0]] = c.value === "" ? 0 : Number(c.value);
+            mostraAgua();
+            if (prSel){ delete prSel.repo; salvaBiblioteca(); }
+            atualiza();
+          });
+          wrap.appendChild(tit); wrap.appendChild(c);
+          campos.appendChild(wrap);
+        });
+        campos.appendChild(agua); mostraAgua();
+        box.appendChild(campos);
+
+        var acoes = document.createElement("div");
+        acoes.className = "acoes";
+
+        if (prSel){
+          nome.addEventListener("input", function(){
+            dados.nome = nome.value; delete dados.repo; salvaBiblioteca(); render();
+          });
+          var pronto = document.createElement("button");
+          pronto.type = "button"; pronto.className = "ghost";
+          pronto.textContent = "Concluir";
+          pronto.addEventListener("click", function(){ l.editando = false; render(); });
+          var remover = document.createElement("button");
+          remover.type = "button"; remover.className = "ghost";
+          remover.textContent = "Remover da biblioteca";
+          remover.addEventListener("click", function(){
+            var copia = {nome:dados.nome, gord:dados.gord, ac:dados.ac, outros:dados.outros};
+            biblioteca = biblioteca.filter(function(x){ return x.id !== prSel.id; });
+            salvaBiblioteca();
+            // As linhas que usavam o produto viram personalizadas, para não perder a receita.
+            estado.linhas.forEach(function(x){
+              if (x.id === prSel.id){ x.id = "custom"; x.comp = copia; x.editando = false; }
+            });
+            render(); salva();
+          });
+          acoes.appendChild(pronto); acoes.appendChild(remover);
+        } else {
+          nome.addEventListener("input", function(){ dados.nome = nome.value; salva(); });
+          var salvar = document.createElement("button");
+          salvar.type = "button"; salvar.className = "ghost destaque";
+          salvar.textContent = "Salvar na biblioteca";
+          salvar.addEventListener("click", function(){
+            var limpo = normalizaProduto({id:novoId(), nome:(dados.nome||"").trim(), gord:dados.gord, ac:dados.ac, outros:dados.outros});
+            if (!limpo){ nome.focus(); return; }
+            biblioteca.push(limpo); salvaBiblioteca();
+            l.id = limpo.id; l.comp = null;
+            render(); salva();
+          });
+          acoes.appendChild(salvar);
+        }
+
+        var ajuda = document.createElement("p");
+        ajuda.className = "ajuda";
+        ajuda.textContent = "Valores por 100 g do rótulo. Outros sólidos = carboidratos menos açúcares, mais proteínas e fibras. O que faltar para 100 vira água.";
+        box.appendChild(acoes); box.appendChild(ajuda);
+        elLinhas.appendChild(box);
+
+      } else if (prSel){
+        // Produto da biblioteca: resumo discreto com atalho para editar.
+        var resumo = document.createElement("div");
+        resumo.className = "resumo";
+        var txt = document.createElement("span");
+        txt.textContent = "gordura " + n(prSel.gord, 0) + "% · açúcares " + n(prSel.ac, 0) +
+                          "% · outros " + n(prSel.outros, 0) + "%";
+        var editar = document.createElement("button");
+        editar.type = "button"; editar.className = "ghost";
+        editar.textContent = "Editar";
+        editar.addEventListener("click", function(){ l.editando = true; render(); });
+        resumo.appendChild(txt); resumo.appendChild(editar);
+        elLinhas.appendChild(resumo);
+      }
     });
     elVazio.hidden = estado.linhas.length > 0;
+    desenhaBib();
     atualiza();
+  }
+
+  // Barra da biblioteca: quantos produtos existem e como levá-los para outro aparelho.
+  function desenhaBib(){
+    elBib.innerHTML = "";
+    var doRepo = biblioteca.filter(function(p){ return p.repo; }).length;
+    var txt = document.createElement("span");
+    if (!biblioteca.length){
+      txt.textContent = "Nenhum produto salvo ainda";
+    } else {
+      txt.textContent = biblioteca.length + (biblioteca.length === 1 ? " produto" : " produtos");
+      if (doRepo) txt.textContent += ", " + doRepo + " do arquivo publicado";
+    }
+    elBib.appendChild(txt);
+
+    if (biblioteca.length){
+      var exp = document.createElement("button");
+      exp.type = "button"; exp.className = "ghost"; exp.textContent = "exportar";
+      exp.title = "Baixar um arquivo com os seus produtos";
+      exp.addEventListener("click", function(){
+        var blob = new Blob([JSON.stringify(biblioteca, null, 2)], {type:"application/json"});
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "meus-produtos.json";
+        a.click();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+      });
+      elBib.appendChild(exp);
+    }
+
+    var imp = document.createElement("button");
+    imp.type = "button"; imp.className = "ghost"; imp.textContent = "importar";
+    imp.title = "Carregar produtos de um arquivo exportado";
+    imp.addEventListener("click", function(){ arquivo.click(); });
+    elBib.appendChild(imp);
+
+    var arquivo = document.createElement("input");
+    arquivo.type = "file"; arquivo.accept = "application/json,.json"; arquivo.hidden = true;
+    arquivo.addEventListener("change", function(){
+      var f = arquivo.files && arquivo.files[0];
+      if (!f) return;
+      var leitor = new FileReader();
+      leitor.onload = function(){
+        try {
+          var lista = JSON.parse(leitor.result);
+          if (!Array.isArray(lista)) return;
+          lista.map(function(p){
+            if (p && !p.id) p.id = novoId();
+            return normalizaProduto(p);
+          }).filter(Boolean).forEach(function(pr){
+            // Não duplica: o mesmo nome substitui o produto existente.
+            var igual = null;
+            biblioteca.forEach(function(x){ if (x.nome === pr.nome) igual = x; });
+            if (igual){ igual.gord = pr.gord; igual.ac = pr.ac; igual.outros = pr.outros; }
+            else { pr.id = novoId(); biblioteca.push(pr); }
+          });
+          salvaBiblioteca(); render();
+        } catch (e) {}
+      };
+      leitor.readAsText(f);
+      arquivo.value = "";
+    });
+    elBib.appendChild(arquivo);
   }
 
   function atualiza(){
@@ -600,7 +900,11 @@ footer p{margin:14px 0 0}
       localStorage.setItem(CHAVE, JSON.stringify({
         estilo: estado.estilo,
         temp: estado.temp,
-        linhas: estado.linhas.map(function(l){ return {id:l.id, g:l.g}; })
+        linhas: estado.linhas.map(function(l){
+          var o = {id:l.id, g:l.g};
+          if (l.id === "custom") o.comp = limpaComp(l);
+          return o;
+        })
       }));
     } catch (e) {}
   }
@@ -614,7 +918,11 @@ footer p{margin:14px 0 0}
       estado.estilo = ALVOS[dado.estilo] ? dado.estilo : "gelato";
       if (isFinite(dado.temp) && dado.temp < 0) estado.temp = Number(dado.temp);
       estado.linhas = dado.linhas.filter(function(l){ return acha(l.id); })
-        .map(function(l){ return {id:l.id, g:Number(l.g) || 0}; });
+        .map(function(l){
+          var o = {id:l.id, g:Number(l.g) || 0};
+          if (l.id === "custom") o.comp = limpaComp(l);
+          return o;
+        });
       return true;
     } catch (e) { return false; }
   }
@@ -685,6 +993,8 @@ footer p{margin:14px 0 0}
     });
   });
 
+  carregaBiblioteca();
+  carregaDoRepositorio();
   if (!carrega()){
     estado.estilo = PRESETS.gelato.estilo;
     estado.linhas = PRESETS.gelato.linhas.map(function(l){ return {id:l.id, g:l.g}; });
