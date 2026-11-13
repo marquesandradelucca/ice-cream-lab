@@ -12,7 +12,7 @@
   color-scheme: light;
   --paper:#FCFCFA;
   --ink:#1B1D1B;
-  --muted:#787D78;
+  --muted:#686E68; /* cinza único para textos secundários */
   --line:#E5E5DE;
   --band:#B9B9AC;
   --signal:#1B1D1B;
@@ -25,13 +25,13 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
-    --paper:#131513; --ink:#EAEBE7; --muted:#8D928C;
+    --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
     --line:#282B27; --band:#565B52; --signal:#EAEBE7;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
-  --paper:#131513; --ink:#EAEBE7; --muted:#8D928C;
+  --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
   --line:#282B27; --band:#565B52; --signal:#EAEBE7;
 }
 *,*::before,*::after{box-sizing:inherit}
@@ -55,14 +55,17 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
   display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
   padding-bottom:0; margin-bottom:var(--esp);
 }
-/* Abas: forma de aba, com a ativa marcada por um traço embaixo. */
-.seg{display:inline-flex; gap:14px}
+/* Estilos: seleção discreta em cinza, sem sublinhado. */
+.seg{display:inline-flex; position:relative; align-items:center; gap:3px; isolation:isolate}
+.seg .pill-indicator{position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--line); z-index:-1; pointer-events:none; transition:transform 360ms cubic-bezier(.22,1,.36,1),width 360ms cubic-bezier(.22,1,.36,1)}
 .seg button{
-  font:inherit; font-size:.92rem; color:var(--muted); background:none; border:0;
-  padding:3px 0 5px; cursor:pointer; border-bottom:1.5px solid transparent;
+  font:inherit; font-size:.92rem; color:var(--muted); background:transparent;
+  border:0; border-radius:999px; padding:6px 12px; cursor:pointer;
+  position:relative; transition:color 225ms ease;
 }
-.seg button[aria-pressed="true"]{color:var(--ink); border-bottom-color:var(--ink)}
-.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{color:var(--ink)}
+.seg:not(.pill-ready) button[aria-pressed="true"]{background:var(--line)}
+.seg button:hover:not([aria-pressed="true"]){color:var(--ink)}
 
 /* Título da lista: o que está aberto agora. */
 .receita-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin-bottom:var(--esp-s)}
@@ -72,23 +75,32 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
   font:inherit; font-size:1rem; color:var(--ink); background:transparent;
   border:0; border-bottom:1px solid var(--line); padding:2px 0; width:220px;
 }
-.receita-head .ghost{font-size:.85rem}
+.receita-head .ghost{font-size:.85rem; color:var(--ink); font-weight:400; text-decoration-color:var(--muted)}
 
 /* Ação destrutiva: menor e mais apagada que o resto. */
 .divisor{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
 .grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px}
-.rotulo{color:var(--muted); opacity:.75; font-size:.8rem}
+.rotulo{color:var(--muted); font-size:.8rem; font-weight:400}
+/* Abrir receita: seletor nativo com aparência de botão primário. */
 .sel-receita{
-  width:auto; max-width:210px; padding:3px 16px 4px 0; color:var(--ink);
-  font-size:.92rem; border-bottom:1px solid transparent;
+  width:auto; max-width:210px; min-height:36px;
+  padding:7px 30px 7px 12px;
+  font-size:.92rem; line-height:1.4; font-weight:500;
+  color:var(--paper); background-color:var(--ink);
+  border:1px solid var(--ink); border-radius:999px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--paper) 50%),linear-gradient(135deg,var(--paper) 50%,transparent 50%);
+  background-position:calc(100% - 17px) center,calc(100% - 13px) center;
+  background-size:4px 4px,4px 4px; background-repeat:no-repeat;
 }
-.sel-receita:hover{border-bottom-color:var(--line)}
+.sel-receita:hover{border-color:var(--muted); opacity:.88}
+.sel-receita option,.sel-receita optgroup{color:var(--ink); background:var(--paper)}
+
 .ghost{
   font:inherit; font-size:.92rem; background:none; color:var(--muted);
   border:0; padding:3px 0; cursor:pointer; text-underline-offset:3px;
   text-decoration:underline; text-decoration-color:var(--line);
 }
-.ghost:hover{color:var(--ink); text-decoration:underline}
+.ghost:hover{color:var(--ink); text-decoration:underline; text-decoration-color:var(--ink)}
 
 .cols{
   display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1fr);
@@ -109,7 +121,7 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 }
 
 .panel h2{
-  font-size:.95rem; font-weight:500; color:var(--muted);
+  font-size:.95rem; font-weight:500; color:var(--ink);
   margin:0 0 var(--esp-s); letter-spacing:0;
 }
 
@@ -123,7 +135,10 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 .passo button::before{content:""; border-left:4px solid transparent; border-right:4px solid transparent}
 .passo button.mais::before{border-bottom:5px solid currentColor}
 .passo button.menos::before{border-top:5px solid currentColor}
-.passo button:hover{color:var(--ink)}
+/* Área clicável maior sem aumentar a altura das linhas. */
+.passo button{width:20px; height:16px; margin:-2.5px 0; touch-action:manipulation}
+.passo button:hover,.passo button:focus-visible{color:var(--ink)}
+.passo button:active{opacity:.55}
 select,input[type="number"]{
   font:inherit; color:var(--ink); background:transparent;
   border:0; border-bottom:1px solid var(--line); border-radius:0;
@@ -139,7 +154,9 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
 select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .qtd{display:flex; align-items:center; gap:4px; border-bottom:1px solid var(--line); width:94px}
-.qtd:hover,.qtd:focus-within{border-bottom-color:var(--muted)}
+.qtd:hover{border-bottom-color:var(--muted)}
+.qtd:focus-within{border-bottom-color:var(--ink)}
+.row:focus-within select{border-bottom-color:var(--muted)}
 .qtd input[type="number"]{border-bottom:0; flex:1; min-width:0}
 .qtd input[type="number"]:hover{border-bottom-color:transparent}
 .row .del{border:0; background:none; color:transparent; font-size:1.05rem; line-height:1; cursor:pointer; padding:4px}
@@ -177,15 +194,22 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .custom .ajuda{margin:11px 0 0; font-size:.75rem; line-height:1.5; color:var(--muted); max-width:46ch}
 /* O botão e o total seguem a mesma grade das linhas, para o número do total
    cair exatamente embaixo das quantidades. */
+/* Ação primária compacta, sem ocupar toda a largura da coluna. */
 .add{
-  display:block; width:100%; text-align:left; margin-top:0;
-  font:inherit; font-size:.92rem; background:none; color:var(--muted);
-  border:0; border-bottom:1px solid transparent; padding:8px 0; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:auto; min-height:36px; margin-top:14px; margin-bottom:0;
+  font:inherit; font-size:.92rem; font-weight:500;
+  background:var(--ink); color:var(--paper);
+  border:1px solid var(--ink); border-radius:999px;
+  padding:7px 12px; cursor:pointer;
+  transition:opacity .15s ease;
 }
-.add:hover{color:var(--ink)}
+.add:hover{opacity:.86}
+.add:active{opacity:.7}
+
 .linha-total{
   display:grid; grid-template-columns:minmax(0,1fr) auto 12px 24px; gap:10px;
-  align-items:center; margin-top:var(--esp-s);
+  align-items:center; margin-top:28px;
 }
 .rotulo-total{color:var(--muted); font-size:.92rem}
 .un{color:var(--muted); font-size:.82rem; justify-self:start}
@@ -195,13 +219,16 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .qtd-temp{width:68px}
 .empty{color:var(--muted); font-size:.92rem; margin:6px 0 0; max-width:46ch}
 
-.metric{padding:0 0 var(--esp-s)}
+.metric{padding:0 0 9px}
 .metric .head{display:flex; align-items:baseline; gap:10px}
-.metric .name{flex:1; color:var(--muted); font-size:.92rem}
-.metric .val{font-size:1rem; font-weight:500}
-.metric .alvo{color:var(--muted); font-size:.76rem; min-width:72px; text-align:right}
+.metric .name{flex:1; color:var(--muted); font-size:.92rem; font-weight:400}
+.metric .val{font-size:.92rem; font-weight:500}
+.metric .alvo{color:var(--muted); font-size:.76rem; font-weight:400; min-width:72px; text-align:right}
 .metric.out .val{font-weight:600}
 .metric.out .alvo{color:var(--ink)}
+/* Estado fora da faixa: sinalização textual, sem alterar as barras originais. */
+.metric .situacao{font-size:.72rem; font-weight:400; color:var(--muted); margin-left:7px; white-space:nowrap}
+.metric.out .situacao{color:var(--ink)}
 .bar{position:relative; height:3px; margin-top:9px; background:var(--line)}
 .bar .band{position:absolute; inset:0 auto; top:0; bottom:0; background:var(--band)}
 .bar .mark{position:absolute; top:-3px; width:2px; height:9px; background:var(--ink)}
@@ -211,6 +238,35 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .notes li{font-size:.9rem; line-height:1.5; color:var(--muted); padding-left:16px; position:relative; max-width:52ch}
 .notes li::before{content:""; position:absolute; left:0; top:.62em; width:5px; height:5px; background:var(--ink)}
 .notes li.ok::before{background:none; border:1px solid var(--muted)}
+/* Indicadores discretos de estado; o texto continua informativo sem cor. */
+.notes li.status-ok::before{background:#4D916A; border:0; border-radius:50%; width:7px; height:7px; top:.55em}
+.notes li.status-atencao::before{background:#C79B40; border:0; border-radius:50%; width:7px; height:7px; top:.55em}
+.notes li.status-critico::before{background:#B85D53; border:0; border-radius:50%; width:7px; height:7px; top:.55em}
+/* Símbolos convencionais em vez de pontos coloridos. */
+.notes li.status-ok::before,.notes li.status-atencao::before,.notes li.status-critico::before{
+  width:12px;height:auto;top:0;background:none;border:0;border-radius:0;
+  font-size:13px;font-weight:500;line-height:1.5;
+}
+.notes li.status-ok::before{content:"✓";color:#4D916A}
+.notes li.status-atencao::before{content:"!";color:#C79B40}
+.notes li.status-critico::before{content:"×";color:#B85D53}
+/* O número acompanha o marcador e usa a mesma cor sem colorir a faixa de referência. */
+.metric .bar{margin-top:25px}
+.bar .mark{background:#4D916A}
+.bar .mark.status-ok{background:#4D916A}
+.bar .mark.status-atencao{background:#C79B40}
+.bar .mark.status-critico{background:#B85D53}
+.bar .mark-label{
+  position:absolute;left:50%;bottom:11px;transform:translateX(-50%);
+  color:inherit;white-space:nowrap;font-size:var(--type-body, 1rem);
+  font-weight:400;line-height:1.3;pointer-events:none;
+}
+.bar .mark.status-ok{color:#4D916A}
+.bar .mark.status-atencao{color:#C79B40}
+.bar .mark.status-critico{color:#B85D53}
+.bar .mark.inicio .mark-label{left:0;transform:none}
+.bar .mark.fim .mark-label{left:0;transform:translateX(-100%)}
+
 
 .dureza{margin-top:0}
 
@@ -244,7 +300,106 @@ footer p{margin:14px 0 0}
   .metric .head{flex-wrap:wrap}
   .metric .alvo{flex-basis:100%; text-align:left; min-width:0; margin-top:1px}
 }
-@media (prefers-reduced-motion: reduce){footer summary::before{transition:none}}
+@media (prefers-reduced-motion: reduce){footer summary::before,.seg .pill-indicator{transition:none}}
+
+/* Etapa 4B — escala tipográfica única para todas as seções.
+   14px: leitura e dados | 12px: referências | 16px: títulos | 21px: marca. */
+:root{
+  --type-brand:1.5rem;
+  --type-heading:1.142857rem;
+  --type-body:1rem;
+  --type-small:.857143rem;
+  --weight-regular:400;
+  --weight-medium:500;
+}
+/* A marca é a única exceção de tamanho; semibold reservado ao logotipo. */
+h1{font-size:var(--type-brand);font-weight:600;letter-spacing:-.02em}
+header.top .sub,.panel h2,.nome-receita{
+  font-size:var(--type-heading);font-weight:var(--weight-medium);
+  color:var(--ink);letter-spacing:0;
+}
+header.top p{font-size:var(--type-body);font-weight:var(--weight-regular);color:var(--muted)}
+/* Ingredientes, valores, rótulos dos gráficos e total: mesma escala. */
+.row select,.row input[type="number"],.metric .name,.metric .val,
+.rotulo-total,.total,.total input[type="number"],.dureza-head label,
+.dureza-head input,.veredito{
+  font-size:var(--type-body);font-weight:var(--weight-regular);
+}
+.row select,.row input[type="number"],.metric .val,
+.total input[type="number"],.dureza-head input,.veredito{color:var(--ink)}
+.metric .name,.rotulo-total,.total,.dureza-head label{color:var(--muted)}
+/* Destaque dos desvios é transmitido pelo símbolo e feedback, não por negrito. */
+.metric.out .val{font-weight:var(--weight-regular)}
+/* Referências e textos auxiliares compartilham tamanho e cor. */
+.rotulo,.metric .alvo,.metric .situacao,.un,
+.custom .campo span,.custom .agua-calc,.custom .ajuda,
+.resumo,.resumo .ghost,.bib,.bib .ghost,
+.explica,.sugestao,footer,footer summary{
+  font-size:var(--type-small);font-weight:var(--weight-regular);color:var(--muted);
+}
+.metric .alvo{min-width:72px}
+.notes li,.empty{font-size:var(--type-body);font-weight:var(--weight-regular);color:var(--muted)}
+/* Ações: peso consistente e cor dependente da importância. */
+.seg button,.sel-receita,.add{font-size:var(--type-body);font-weight:var(--weight-medium)}
+.ghost,.receita-head .ghost{font-size:var(--type-small);font-weight:var(--weight-regular)}
+.receita-head .ghost{color:var(--ink)}
+.nome-receita-edit{font-size:var(--type-heading);font-weight:var(--weight-medium)}
+.sugestao b{font-weight:var(--weight-medium)}
+
+/* Menus próprios: preservam o select como fonte de dados, sem usar o popup do sistema. */
+.native-select-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;clip-path:inset(50%)}
+.lab-dropdown{position:relative;min-width:0;font-size:var(--type-body);font-weight:400;color:var(--ink)}
+.lab-dropdown-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;min-height:36px;padding:7px 2px 7px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.lab-dropdown-trigger:hover,.lab-dropdown.open .lab-dropdown-trigger{border-bottom-color:var(--muted)}
+.lab-dropdown-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lab-dropdown-chevron{flex:none;width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-right:5px}
+.lab-dropdown.open .lab-dropdown-chevron{transform:rotate(225deg) translate(-2px,-1px)}
+.lab-dropdown-menu{position:absolute;z-index:1000;top:calc(100% + 5px);left:0;width:max(100%,220px);max-width:min(340px,calc(100vw - 32px));max-height:260px;overflow:hidden;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:7px 7px 7px 0;box-shadow:0 9px 24px rgba(0,0,0,.09);opacity:0;transform:translateY(-5px);visibility:hidden;pointer-events:none;transition:opacity 210ms ease,transform 210ms ease,visibility 210ms}
+.lab-dropdown.open .lab-dropdown-menu{opacity:1;transform:translateY(0);visibility:visible;pointer-events:auto}
+/* Rolagem como os gráficos: linha reta de 3px, sem cantos arredondados. */
+/* Firefox usa a espessura "thin"; Chromium/Safari usam a largura exata abaixo.
+   Evitamos scrollbar-width:thin no Chromium porque ele substitui ::-webkit-scrollbar. */
+html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) transparent}
+.lab-dropdown-scroll{max-height:244px;overflow-y:auto;overscroll-behavior:contain;padding:0 4px 0 7px;scrollbar-gutter:stable}
+@supports selector(::-webkit-scrollbar){
+  html,body,.lab-dropdown-scroll{scrollbar-width:auto;scrollbar-color:auto}
+  html::-webkit-scrollbar,body::-webkit-scrollbar,.lab-dropdown-scroll::-webkit-scrollbar{width:3px;height:3px}
+  html::-webkit-scrollbar-track,body::-webkit-scrollbar-track,.lab-dropdown-scroll::-webkit-scrollbar-track{background:transparent;border:0}
+  html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb,.lab-dropdown-scroll::-webkit-scrollbar-thumb{background:var(--band);border:0;border-radius:0}
+  html::-webkit-scrollbar-thumb:hover,body::-webkit-scrollbar-thumb:hover,.lab-dropdown-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+}
+
+.lab-dropdown-group{padding:10px 9px 4px;color:var(--muted);font-size:var(--type-small);font-weight:400}
+.lab-dropdown-option{display:block;width:100%;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:var(--type-body);font-weight:400;text-align:left;padding:8px 9px;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
+.lab-dropdown-option:hover,.lab-dropdown-option.active{background:var(--line)}
+.lab-dropdown-option[aria-selected="true"]{background:var(--line)}
+.lab-dropdown-option:focus-visible,.lab-dropdown-trigger:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.lab-dropdown.recipe{width:auto;max-width:210px;font-weight:500}
+.lab-dropdown.recipe .lab-dropdown-trigger{min-height:36px;padding:7px 12px;border:1px solid var(--ink);border-radius:999px;background:var(--ink);color:var(--paper);font-weight:500}
+.lab-dropdown.recipe .lab-dropdown-menu{min-width:240px;left:0}
+.lab-dropdown.recipe .lab-dropdown-trigger:hover{opacity:.88}
+@media(prefers-reduced-motion:reduce){.lab-dropdown-menu{transition:none}}
+/* Limites separados, alinhados às extremidades da faixa cinza. */
+.metric .bar{margin-bottom:22px}
+.bar .range-label{
+  position:absolute;top:8px;color:var(--muted);
+  font-size:var(--type-small);font-weight:400;line-height:1.3;
+  white-space:nowrap;pointer-events:none;
+}
+.bar .range-label.min{transform:translateX(-50%)}
+.bar .range-label.max{transform:translateX(-50%)}
+/* Faixas estreitas: ambos os limites ficam na mesma linha, voltados para fora.
+   Mantemos a escala matemática da barra, inclusive na seção Dureza. */
+.bar .range-label.min.compact{transform:translateX(calc(-100% - 4px))}
+.bar .range-label.max.compact{transform:translateX(4px)}
+.bar .range-label.edge-start{transform:translateX(0)}
+.bar .range-label.edge-end{transform:translateX(-100%)}
+/* Tipografia dos ingredientes na mesma cor dos nomes dos gráficos. */
+#ingredientes .lab-dropdown-trigger,
+#ingredientes .row input[type="number"],
+#ingredientes .un,
+#ingredientes .rotulo-total,
+#ingredientes .total input[type="number"]{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -265,7 +420,7 @@ footer p{margin:14px 0 0}
     <span class="rotulo">Faixas de</span>
     <div class="seg" id="estilo" role="group" aria-label="Estilo de referência">
       <button type="button" data-estilo="gelato" aria-pressed="true">Gelato</button>
-      <button type="button" data-estilo="icecream" aria-pressed="false">Ice cream</button>
+      <button type="button" data-estilo="icecream" aria-pressed="false">Sorvete tradicional</button>
       <button type="button" data-estilo="sorbet" aria-pressed="false">Sorbet</button>
     </div>
   </span>
@@ -669,7 +824,10 @@ footer p{margin:14px 0 0}
   }
 
   function n(v, casas){
-    return v.toFixed(casas === undefined ? 1 : casas).replace(".", ",").replace("-", "\u2212");
+    var txt = v.toFixed(casas === undefined ? 1 : casas);
+    // Remove somente decimais finais sem informação: 8,0 → 8; 2,75 permanece 2,75.
+    txt = txt.replace(/\.0+$/, "").replace(/(\.\d*?[1-9])0+$/, "$1");
+    return txt.replace(".", ",").replace("-", "\u2212");
   }
 
   // Faixa-alvo: sem casas decimais quando não acrescentam nada, e com "a" no lugar
@@ -681,33 +839,76 @@ footer p{margin:14px 0 0}
     return txt;
   }
 
-  function barra(valor, alvo, escala){
+  // Classificação visual compartilhada entre gráficos e avisos.
+  // 20% da largura do intervalo é um limiar de interface, não um limite técnico de segurança.
+  function nivelFaixa(valor, alvo){
+    if (valor >= alvo[0] && valor <= alvo[1]) return "ok";
+    var distancia = valor < alvo[0] ? alvo[0] - valor : valor - alvo[1];
+    var largura = alvo[1] - alvo[0];
+    return largura > 0 && distancia / largura >= 0.2 ? "critico" : "atencao";
+  }
+
+  function barra(valor, alvo, escala, texto, casas){
     var min = escala[0], max = escala[1], span = max - min;
     function pos(v){ return Math.max(0, Math.min(100, (v - min) / span * 100)); }
-    var a = pos(alvo[0]), b = pos(alvo[1]);
+    var a = pos(alvo[0]), b = pos(alvo[1]), p = pos(valor);
+    var borda = p < 12 ? " inicio" : p > 88 ? " fim" : "";
+    var nivel = nivelFaixa(valor, alvo);
+    // Escalas estreitas usam linhas alternadas, preservando cada número na extremidade real.
+    var ocultarZero = estado.estilo === "sorbet" && alvo[0] === 0;
+    var compact = b - a < 18 && !ocultarZero ? " compact" : "";
     return '<div class="bar"><span class="band" style="left:' + a + '%;width:' + Math.max(b - a, 1) + '%"></span>' +
-           '<span class="mark" style="left:calc(' + pos(valor) + '% - 1.5px)"></span></div>';
+           '<span class="range-label min num' + compact + (a < 7 && !compact ? ' edge-start' : '') + '" style="left:' + a + '%">' + (ocultarZero ? '' : n(alvo[0], casas)) + '</span>' +
+           '<span class="range-label max num' + compact + (b > 93 && !compact ? ' edge-end' : '') + '" style="left:' + b + '%">' + n(alvo[1], casas) + '</span>' +
+           '<span class="mark status-' + nivel + borda + '" style="left:calc(' + p + '% - 1.5px)">' +
+           '<span class="mark-label num">' + texto + '</span></span></div>';
   }
 
   function linhaMetrica(nome, valor, alvo, escala, sufixo, casas){
     var fora = valor < alvo[0] || valor > alvo[1];
+    var texto = n(valor, casas) + sufixo;
     return '<div class="metric' + (fora ? " out" : "") + '">' +
       '<div class="head"><span class="name">' + nome + '</span>' +
-      '<span class="val num">' + n(valor, casas) + sufixo + '</span>' +
-      '<span class="alvo num">' + faixa(alvo[0], alvo[1], casas) + '</span></div>' +
-      barra(valor, alvo, escala) + '</div>';
+      '</div>' +
+      barra(valor, alvo, escala, texto, casas) + '</div>';
   }
 
   function avisos(r){
+    var alvos = ALVOS[estado.estilo];
+    var itens = [
+      {nome:"Gordura", valor:r.gord, alvo:alvos.gord, unidade:"%", casas:1,
+       baixo:"Pode reduzir a cremosidade; considere aumentar a gordura.",
+       alto:"Pode deixar a textura amanteigada e abafar o sabor."},
+      {nome:"Sólidos lácteos (SLNG)", valor:r.slng+r.soro, alvo:alvos.slng, unidade:"%", casas:1,
+       baixo:"Considere ajustar a quantidade de sólidos lácteos.",
+       alto:"O excesso de lactose pode favorecer uma textura arenosa; revise os sólidos lácteos."},
+      {nome:"Açúcares", valor:r.ac, alvo:alvos.ac, unidade:"%", casas:1,
+       baixo:"Revise a proporção de açúcares da receita.",
+       alto:"Revise a proporção de açúcares da receita."},
+      {nome:"Sólidos totais", valor:r.sol, alvo:alvos.sol, unidade:"%", casas:1,
+       baixo:"Pode favorecer cristais de gelo; considere aumentar os sólidos.",
+       alto:"A mistura pode ficar pesada e pastosa; considere reduzir os sólidos."},
+      {nome:"POD (doçura)", valor:r.pod, alvo:alvos.pod, unidade:"", casas:0,
+       baixo:"A doçura pode ficar abaixo do esperado para o estilo.",
+       alto:"Pode ficar doce demais; considere substituir parte do açúcar por glucose em pó."},
+      {nome:"PAC (maciez)", valor:r.pac, alvo:alvos.pac, unidade:"", casas:0,
+       baixo:"Pode ficar firme demais; considere substituir parte da sacarose por dextrose.",
+       alto:"Pode ficar mole demais; considere substituir parte da dextrose por sacarose."}
+    ];
     var out = [];
-    if (r.slng + r.soro > 11) out.push("Sólidos lácteos acima de 11%: a lactose pode cristalizar e deixar a textura arenosa. Reduza o leite em pó.");
-    if (r.sol < ALVOS[estado.estilo].sol[0]) out.push("Sólidos totais baixos: tende a ficar aguado e com cristais de gelo. Suba leite em pó, gordura ou glucose.");
-    if (r.sol > ALVOS[estado.estilo].sol[1]) out.push("Sólidos totais altos: a mistura fica pesada e pastosa.");
-    if (r.pac > ALVOS[estado.estilo].pac[1]) out.push("PAC alto: fica mole e derrete rápido. Troque parte da dextrose ou do invertido por sacarose.");
-    if (r.pac < ALVOS[estado.estilo].pac[0]) out.push("PAC baixo: sai duro do freezer. Troque parte da sacarose por dextrose.");
-    if (r.pod > ALVOS[estado.estilo].pod[1]) out.push("Doce demais para o estilo. Parte do açúcar pode virar glucose em pó, que dá corpo sem adoçar.");
-    if (estado.estilo !== "sorbet" && r.gord > ALVOS.gelato.gord[1] && estado.estilo === "gelato") out.push("Gordura acima da faixa de gelato: a sensação fica amanteigada e o sabor, mais abafado.");
-    if (!out.length && r.peso > 0) out.push({ok:true, txt:"Tudo dentro das faixas do estilo escolhido."});
+    itens.forEach(function(item){
+      var abaixo = item.valor < item.alvo[0];
+      var acima = item.valor > item.alvo[1];
+      if (!abaixo && !acima) return;
+      var distancia = abaixo ? item.alvo[0] - item.valor : item.valor - item.alvo[1];
+      var nivel = nivelFaixa(item.valor, item.alvo);
+      var direcao = abaixo ? "abaixo" : "acima";
+      out.push({nivel:nivel, txt:item.nome + " " + direcao + " da faixa (" +
+        n(item.valor, item.casas) + item.unidade + "; referência " +
+        faixa(item.alvo[0], item.alvo[1], item.casas) + item.unidade + "). " +
+        (abaixo ? item.baixo : item.alto)});
+    });
+    if (!out.length && r.peso > 0) out.push({nivel:"ok", txt:"Todos os parâmetros dentro das faixas de referência."});
     return out;
   }
 
@@ -719,11 +920,102 @@ footer p{margin:14px 0 0}
       var b = document.createElement("button");
       b.type = "button"; b.className = cfg[0];
       b.setAttribute("aria-label", cfg[2] + " " + rotulo);
+      b.title = cfg[2] + " " + rotulo + " (Shift: ajuste maior)";
       b.addEventListener("click", function(ev){ aoAjustar(cfg[1], ev); });
       passo.appendChild(b);
     });
     return passo;
   }
+
+
+  // Dropdown acessível compartilhado entre ingredientes e receitas.
+  // O select original continua sendo a fonte de opções e dispara os eventos existentes.
+  function criaDropdown(select, tipo){
+    select.classList.add("native-select-hidden");
+    select.tabIndex = -1;
+    var wrap = document.createElement("div");
+    wrap.className = "lab-dropdown" + (tipo === "recipe" ? " recipe" : "");
+    var trigger = document.createElement("button");
+    trigger.type = "button"; trigger.className = "lab-dropdown-trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-label", select.getAttribute("aria-label") || "Selecionar opção");
+    var label = document.createElement("span"); label.className = "lab-dropdown-label";
+    var chevron = document.createElement("span"); chevron.className = "lab-dropdown-chevron"; chevron.setAttribute("aria-hidden", "true");
+    trigger.appendChild(label); trigger.appendChild(chevron);
+    var menu = document.createElement("div"); menu.className = "lab-dropdown-menu";
+    menu.setAttribute("role", "listbox"); menu.setAttribute("aria-label", select.getAttribute("aria-label") || "Opções");
+    var scroll = document.createElement("div"); scroll.className = "lab-dropdown-scroll";
+    menu.appendChild(scroll);
+    var options = [];
+    var current = -1;
+    function close(focus){
+      wrap.classList.remove("open"); trigger.setAttribute("aria-expanded", "false");
+      options.forEach(function(b){b.tabIndex=-1; b.classList.remove("active")});
+      if(focus) trigger.focus();
+    }
+    function highlight(i, focus){
+      if(!options.length) return;
+      current = (i + options.length) % options.length;
+      options.forEach(function(b,j){b.classList.toggle("active",j===current);b.tabIndex=j===current?0:-1});
+      if(focus){options[current].focus();options[current].scrollIntoView({block:"nearest"})}
+    }
+    function open(){
+      document.querySelectorAll(".lab-dropdown.open").forEach(function(other){
+        if(other!==wrap) other.dispatchEvent(new CustomEvent("lab-close"));
+      });
+      wrap.classList.add("open");trigger.setAttribute("aria-expanded","true");
+      var selected = options.findIndex(function(b){return b.dataset.value===select.value});
+      highlight(Math.max(0,selected),false);
+    }
+    function choose(value){
+      select.value=value;
+      label.textContent=select.selectedOptions[0] ? select.selectedOptions[0].textContent : "";
+      close(true);
+      select.dispatchEvent(new Event("change",{bubbles:true}));
+    }
+    function addOption(opt){
+      if(opt.disabled) return;
+      var b=document.createElement("button");b.type="button";b.className="lab-dropdown-option";
+      b.setAttribute("role","option");b.dataset.value=opt.value;b.textContent=opt.textContent;
+      b.setAttribute("aria-selected",String(opt.value===select.value));b.tabIndex=-1;
+      b.addEventListener("click",function(){choose(opt.value)});
+      b.addEventListener("keydown",function(ev){
+        if(ev.key==="ArrowDown"||ev.key==="ArrowUp"){ev.preventDefault();highlight(current+(ev.key==="ArrowDown"?1:-1),true)}
+        else if(ev.key==="Home"){ev.preventDefault();highlight(0,true)}
+        else if(ev.key==="End"){ev.preventDefault();highlight(options.length-1,true)}
+        else if(ev.key==="Escape"){ev.preventDefault();close(true)}
+        else if(ev.key==="Tab"){close(false)}
+      });
+      options.push(b);scroll.appendChild(b);
+    }
+    Array.from(select.children).forEach(function(child){
+      if(child.tagName==="OPTGROUP"){
+        var heading=document.createElement("div");heading.className="lab-dropdown-group";
+        heading.textContent=child.label;scroll.appendChild(heading);
+        Array.from(child.children).forEach(addOption);
+      }else if(child.tagName==="OPTION") addOption(child);
+    });
+    label.textContent=select.selectedOptions[0] ? select.selectedOptions[0].textContent : "";
+    trigger.addEventListener("click",function(){wrap.classList.contains("open")?close(false):open()});
+    trigger.addEventListener("keydown",function(ev){
+      if(ev.key==="ArrowDown"||ev.key==="ArrowUp"||ev.key==="Enter"||ev.key===" "){
+        ev.preventDefault();if(!wrap.classList.contains("open"))open();
+        highlight(ev.key==="ArrowUp"?Math.max(0,current-1):current,true);
+      }else if(ev.key==="Escape")close(false);
+    });
+    wrap.addEventListener("lab-close",function(){close(false)});
+    wrap.appendChild(select);wrap.appendChild(trigger);wrap.appendChild(menu);
+    return wrap;
+  }
+  document.addEventListener("pointerdown",function(ev){
+    document.querySelectorAll(".lab-dropdown.open").forEach(function(el){
+      if(!el.contains(ev.target))el.dispatchEvent(new CustomEvent("lab-close"));
+    });
+  });
+  document.addEventListener("keydown",function(ev){
+    if(ev.key==="Escape")document.querySelectorAll(".lab-dropdown.open").forEach(function(el){el.dispatchEvent(new CustomEvent("lab-close"))});
+  });
 
   function render(){
     // linhas
@@ -732,7 +1024,8 @@ footer p{margin:14px 0 0}
       var row = document.createElement("div");
       row.className = "row";
       var sel = document.createElement("select");
-      sel.setAttribute("aria-label", "Ingrediente");
+      sel.setAttribute("aria-label", "Selecionar ingrediente");
+      sel.title = "Selecionar ingrediente";
       function opcao(ing, pai){
         var o = document.createElement("option");
         o.value = ing.id; o.textContent = ing.nome;
@@ -748,11 +1041,12 @@ footer p{margin:14px 0 0}
         sel.appendChild(grupo);
       }
       opcao(acha("custom"), sel);
-      sel.title = (acha(l.id) || {}).longo || "";
+      sel.title = (acha(l.id) || {}).longo || "Selecionar ingrediente";
       sel.addEventListener("change", function(){
         var era = l.id;
         l.id = sel.value;
-        sel.title = (acha(l.id) || {}).longo || "";
+        sel.title = (acha(l.id) || {}).longo || "Selecionar ingrediente";
+        inp.setAttribute("aria-label", "Quantidade em gramas de " + ((acha(l.id) || {}).nome || "ingrediente"));
         // Personalizados e produtos da biblioteca trazem um bloco extra embaixo da
         // linha, então entrar ou sair deles muda a estrutura, não só os números.
         function temExtra(id){ return id === "custom" || !!produto(id); }
@@ -763,7 +1057,8 @@ footer p{margin:14px 0 0}
       var inp = document.createElement("input");
       inp.type = "number"; inp.min = "0"; inp.step = "1"; inp.value = l.g;
       inp.inputMode = "decimal";
-      inp.setAttribute("aria-label", "Gramas");
+      inp.setAttribute("aria-label", "Quantidade em gramas de " + ((acha(l.id) || {}).nome || "ingrediente"));
+      inp.title = "Editar quantidade em gramas";
       inp.addEventListener("input", function(){ l.g = inp.value === "" ? 0 : Number(inp.value); atualiza(); });
       l.input = inp;
 
@@ -784,11 +1079,11 @@ footer p{margin:14px 0 0}
         atualiza();
       }
 
-      var passo = criaPasso(ajusta, "a quantidade");
+      var passo = criaPasso(ajusta, "a quantidade de " + ((acha(l.id) || {}).nome || "ingrediente"));
 
       var del = document.createElement("button");
       del.type = "button"; del.className = "del"; del.innerHTML = "&times;";
-      del.setAttribute("aria-label", "Remover ingrediente");
+      del.setAttribute("aria-label", "Remover " + ((acha(l.id) || {}).nome || "ingrediente"));
       del.addEventListener("click", function(){
         estado.linhas = estado.linhas.filter(function(x){ return x !== l; });
         render(); salva();
@@ -799,7 +1094,7 @@ footer p{margin:14px 0 0}
       qtd.appendChild(inp); qtd.appendChild(passo);
       var un = document.createElement("span");
       un.className = "un"; un.textContent = "g";
-      row.appendChild(sel); row.appendChild(qtd); row.appendChild(un); row.appendChild(del);
+      row.appendChild(criaDropdown(sel, "ingredient")); row.appendChild(qtd); row.appendChild(un); row.appendChild(del);
       elLinhas.appendChild(row);
 
       var prSel = produto(l.id);
@@ -960,7 +1255,7 @@ footer p{margin:14px 0 0}
 
     sel.value = "";
     sel.addEventListener("change", function(){ abreReceita(sel.value); });
-    elGrupoRec.appendChild(sel);
+    elGrupoRec.appendChild(criaDropdown(sel, "recipe"));
 
     desenhaCabecalho();
   }
@@ -1160,7 +1455,58 @@ footer p{margin:14px 0 0}
            troca + ", ou mexa nos açúcares na mesma direção.";
   }
 
+  // Preserva a posição anterior dos marcadores mesmo quando os gráficos são recriados.
+  var posicoesAnteriores = null;
+  function capturaMarcadores(){
+    return Array.prototype.map.call(elMetricas.querySelectorAll('.bar .mark'), function(mark){
+      return parseFloat(mark.style.left.replace('calc(', '')) || 0;
+    });
+  }
+  function capturaFaixas(){
+    return Array.prototype.map.call(elMetricas.querySelectorAll('.bar .band'), function(band){
+      return {left:parseFloat(band.style.left) || 0, width:parseFloat(band.style.width) || 0};
+    });
+  }
+  function animaFaixas(anteriores){
+    if (!anteriores || !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    Array.prototype.forEach.call(elMetricas.querySelectorAll('.bar .band'), function(band, i){
+      var anterior = anteriores[i];
+      if (!anterior || !band.animate) return;
+      var novoLeft = parseFloat(band.style.left) || 0;
+      var novaWidth = parseFloat(band.style.width) || 0;
+      if (Math.abs(novoLeft - anterior.left) < .02 && Math.abs(novaWidth - anterior.width) < .02) return;
+      band.animate([
+        {left:anterior.left + '%', width:anterior.width + '%'},
+        {left:novoLeft + '%', width:novaWidth + '%'}
+      ], {duration:420, easing:'cubic-bezier(.22,1,.36,1)'});
+      var limites = band.parentElement.querySelectorAll('.range-label');
+      Array.prototype.forEach.call(limites, function(legenda, idx){
+        if (!legenda.animate) return;
+        var antigo = anterior.left + (idx === 0 ? 0 : anterior.width);
+        var novo = novoLeft + (idx === 0 ? 0 : novaWidth);
+        legenda.animate([{left:antigo + '%'}, {left:novo + '%'}],
+          {duration:420, easing:'cubic-bezier(.22,1,.36,1)'});
+      });
+    });
+  }
+
+  function animaMarcadores(anteriores){
+    if (!anteriores || !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    Array.prototype.forEach.call(elMetricas.querySelectorAll('.bar .mark'), function(mark, i){
+      var nova = parseFloat(mark.style.left.replace('calc(', '')) || 0;
+      var antiga = anteriores[i];
+      if (!Number.isFinite(antiga) || Math.abs(nova - antiga) < .02) return;
+      var largura = mark.parentElement.getBoundingClientRect().width;
+      if (!largura || !mark.animate) return;
+      var delta = (antiga - nova) / 100 * largura;
+      mark.animate([{transform:'translateX(' + delta + 'px)'},{transform:'translateX(0)'}],
+        {duration:420, easing:'cubic-bezier(.22,1,.36,1)'});
+    });
+  }
+
   function atualiza(){
+    var anteriores = capturaMarcadores();
+    var faixasAnteriores = capturaFaixas();
     var r = calcula();
     var alvo = ALVOS[estado.estilo];
     if (document.activeElement !== elPeso){
@@ -1184,12 +1530,14 @@ footer p{margin:14px 0 0}
       linhaMetrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0) +
       '<div class="metric"><div class="head"><span class="name">Água</span>' +
       '<span class="val num">' + n(r.agua) + '%</span><span class="alvo"></span></div></div>';
+    animaMarcadores(anteriores);
+    animaFaixas(faixasAnteriores);
 
     elAvisos.innerHTML = "";
     avisos(r).forEach(function(a){
       var li = document.createElement("li");
-      if (typeof a === "string"){ li.textContent = a; }
-      else { li.className = "ok"; li.textContent = a.txt; }
+      li.className = "status-" + a.nivel;
+      li.textContent = a.txt;
       elAvisos.appendChild(li);
     });
 
@@ -1268,11 +1616,26 @@ footer p{margin:14px 0 0}
     } catch (e) { return false; }
   }
 
+  var seletorEstilo = document.getElementById('estilo');
+  var pillEstilo = document.createElement('span');
+  pillEstilo.className = 'pill-indicator';
+  pillEstilo.setAttribute('aria-hidden', 'true');
+  seletorEstilo.insertBefore(pillEstilo, seletorEstilo.firstChild);
+  function posicionaPill(){
+    var ativo = seletorEstilo.querySelector('button[aria-pressed="true"]');
+    if (!ativo) return;
+    pillEstilo.style.width = ativo.offsetWidth + 'px';
+    pillEstilo.style.transform = 'translateX(' + ativo.offsetLeft + 'px)';
+    seletorEstilo.classList.add('pill-ready');
+  }
   function aplicaEstilo(){
     Array.prototype.forEach.call(document.querySelectorAll("#estilo button"), function(b){
       b.setAttribute("aria-pressed", String(b.dataset.estilo === estado.estilo));
     });
+    posicionaPill();
   }
+  window.addEventListener('resize', posicionaPill);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(posicionaPill);
 
   document.getElementById("estilo").addEventListener("click", function(ev){
     var b = ev.target.closest("button"); if (!b) return;
