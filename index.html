@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
+<meta name="author" content="Lucca Marques" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Ice Cream Lab — Calculadora de Mistura</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,8 +20,18 @@
   --signal:#1B1D1B;
   --st-atencao:#B07F2C;
   --st-critico:#A94F45;
-  --esp:28px;        /* espaço entre blocos */
-  --esp-s:14px;      /* espaço dentro de um bloco */
+  /* Escala de espaçamento: só múltiplos de 4. Cada degrau tem um papel.
+     1  micro: ícone e texto, setas, rótulo sobre campo
+     2  entre controles do mesmo grupo, itens de lista
+     3  padding horizontal de botões e pílulas, ações em linha
+     4  dentro de um bloco: título e conteúdo, partes de um cartão
+     5  padding de cartão
+     6  margem lateral da página
+     7  entre blocos: colunas, fileiras, cabeçalho e rodapé */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px;
+  --esp:var(--sp-7);
+  --esp-s:var(--sp-4);
+  --ctl:40px;        /* altura de todo controle: botão, pílula, linha de ingrediente */
   box-sizing:border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -48,20 +59,16 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 .num, input[type="number"]{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
-.wrap{max-width:940px; margin:0 auto; padding:calc(var(--esp) * 1.5) 24px calc(var(--esp) * 2.5)}
-@media (max-width:620px){.wrap{padding:28px 18px 64px}}
+.wrap{max-width:940px; margin:0 auto; padding:var(--sp-7) var(--sp-6) calc(var(--sp-7) * 2)}
+@media (max-width:620px){.wrap{padding:var(--sp-7) var(--sp-4) calc(var(--sp-7) * 2)}}
 
 header.top{margin-bottom:var(--esp)}
 h1{font-size:1.45rem; font-weight:600; letter-spacing:-.02em; margin:0}
-header.top .sub{font-size:1.05rem; font-weight:500; color:var(--ink); margin:var(--esp-s) 0 8px}
+header.top .sub{font-size:1.05rem; font-weight:500; color:var(--ink); margin:var(--sp-3) 0 var(--sp-2)}
 header.top p{margin:0; color:var(--muted); max-width:56ch}
 
-.toolbar{
-  display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center;
-  padding-bottom:0; margin-bottom:var(--esp);
-}
 /* Estilos: seleção discreta em cinza, sem sublinhado. */
-.seg{display:inline-flex; position:relative; align-items:center; gap:3px; isolation:isolate;
+.seg{display:inline-flex; position:relative; align-items:center; gap:var(--sp-1); isolation:isolate;
   flex-wrap:nowrap; max-width:100%; min-width:0; overflow-x:auto; scrollbar-width:none}
 .seg::-webkit-scrollbar{display:none}
 .seg.rola{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);
@@ -70,57 +77,67 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 .seg .pill-indicator{position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--line); z-index:-1; pointer-events:none; transition:transform 360ms cubic-bezier(.22,1,.36,1),width 360ms cubic-bezier(.22,1,.36,1)}
 .seg button{
   font:inherit; font-size:.92rem; color:var(--muted); background:transparent;
-  border:0; border-radius:999px; padding:6px 12px; cursor:pointer;
+  border:0; border-radius:999px; padding:0 var(--sp-3); cursor:pointer;
   position:relative; transition:color 225ms ease;
+  display:inline-flex; align-items:center; min-height:var(--ctl);
 }
 .seg button[aria-pressed="true"]{color:var(--ink)}
 .seg:not(.pill-ready) button[aria-pressed="true"]{background:var(--line)}
 .seg button:hover:not([aria-pressed="true"]){color:var(--ink)}
 
 /* Título da lista: o que está aberto agora. */
-.receita-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 14px; margin-bottom:var(--esp-s)}
+.receita-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-2) var(--sp-4); margin-bottom:var(--esp-s)}
 .nome-receita{font-size:1rem; font-weight:500; color:var(--ink); margin:0; flex:0 1 auto}
 .nome-receita.sem-nome{color:var(--muted); font-weight:400}
 .nome-receita-edit{
   font:inherit; font-size:1rem; color:var(--ink); background:transparent;
-  border:0; border-bottom:1px solid var(--line); padding:2px 0; width:220px;
+  border:0; border-bottom:1px solid var(--line); padding:var(--sp-1) 0; width:220px;
 }
 .receita-head .ghost{font-size:.85rem; color:var(--ink); font-weight:400; text-decoration-color:var(--muted)}
 
 /* Ação destrutiva: menor e mais apagada que o resto. */
-.divisor{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
-.grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; min-width:0; max-width:100%}
-.rotulo{color:var(--muted); font-size:.8rem; font-weight:400}
+.grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-1) var(--sp-3); min-width:0; max-width:100%}
 
 .ghost{
   font:inherit; font-size:.92rem; background:none; color:var(--muted);
-  border:0; padding:3px 0; cursor:pointer; text-underline-offset:3px;
+  border:0; padding:var(--sp-1) 0; cursor:pointer; text-underline-offset:3px;
   text-decoration:underline; text-decoration-color:var(--line);
 }
 .ghost:hover{color:var(--ink); text-decoration:underline; text-decoration-color:var(--ink)}
 
 .cols{
   display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  grid-template-areas:"ingredientes composicao";
+  grid-template-areas:"abrir composicao" "ingredientes composicao" "apoio composicao";
+  grid-template-rows:auto auto 1fr;
   align-content:start; column-gap:var(--esp); row-gap:var(--esp); align-items:start;
+}
+/* A coluna da direita corre de cima para baixo (título, estilos, barras) e não
+   depende das fileiras da esquerda. */
+#grupoReceitas{grid-area:abrir; justify-self:start; min-width:0}
+#resultado{grid-area:composicao; align-self:start; min-width:0}
+/* Salvos e notas: logo abaixo do cartão, na mesma coluna, com o espaço padrão entre blocos.
+   Entre os dois itens, que são do mesmo assunto, vale o espaço de dentro de um bloco. */
+.apoio{grid-area:apoio; align-self:start; min-width:0; display:flex; flex-direction:column; gap:var(--sp-4)}
+#resultado .comp-titulo{font-size:var(--type-heading,1.14rem); font-weight:500; color:var(--ink); margin:0 0 var(--sp-4); letter-spacing:0}
+/* Os três estilos se distribuem pela largura da coluna, e a pílula da esquerda avança
+   um pouco além da borda para que o texto dela fique visualmente alinhado ao título. */
+#resultado .seg{
+  display:flex; width:100%; justify-content:space-between;
+  margin:0 0 var(--sp-7) -6px;
 }
 #ingredientes{grid-area:ingredientes; align-self:start}
 /* Superfície de edição: cinza muito claro, sem sombra nem borda marcada.
    Padding e grade calibrados para não comprimir os controles. */
-#ingredientes{border:1px solid transparent;border-radius:12px;padding:16px;background:var(--edit-surface);min-width:0}
-#ingredientes .row{grid-template-columns:minmax(0,1fr) 80px 12px 20px;gap:7px}
-#ingredientes .qtd{width:80px}
-#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 80px 12px 20px;gap:7px}
-@media(max-width:760px){#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 84px 12px 20px;gap:8px}#ingredientes .qtd{width:84px}}
-@media(max-width:440px){#ingredientes{padding:14px}#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 70px 10px 18px;gap:6px}#ingredientes .qtd{width:70px}}
-#resultado{grid-area:composicao}
+#ingredientes{--card-pad:var(--sp-5);border:1px solid transparent;border-radius:12px;padding:var(--sp-4);background:var(--edit-surface);min-width:0}
+#ingredientes .row{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+@media(max-width:760px){#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}}
+@media(max-width:440px){#ingredientes{padding:var(--sp-4)}#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}}
 @media (max-width:760px){
-  .cols{grid-template-columns:1fr; grid-template-areas:"ingredientes" "composicao"; row-gap:var(--esp)}
-  .row,.linha-total{grid-template-columns:minmax(0,1fr) auto 12px 20px; gap:8px}
-  .qtd{width:84px}
+  .cols{grid-template-columns:minmax(0,1fr); grid-template-areas:"abrir" "ingredientes" "composicao" "apoio"; grid-template-rows:auto; row-gap:var(--esp)}
+  .row,.linha-total{grid-template-columns:minmax(0,1fr) auto; gap:var(--sp-2)}
 }
-#resultado{padding-top:20px}
-@media(max-width:440px){#resultado{padding-top:16px}}
+#resultado{padding-top:0}
 @media (min-width:761px){
   #resultado{padding-top:0; border-top:0}
 }
@@ -130,9 +147,9 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
   margin:0 0 var(--esp-s); letter-spacing:0;
 }
 
-.rows{display:flex; flex-direction:column; gap:2px}
-.row{display:grid; grid-template-columns:minmax(0,1fr) auto 12px 24px; gap:10px; align-items:center}
-.passo{display:flex; flex-direction:column; gap:3px; padding-bottom:2px}
+.rows{display:flex; flex-direction:column; gap:0}
+.row{position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--sp-3); align-items:center}
+.passo{position:relative; z-index:1; display:flex; flex-direction:column; gap:var(--sp-1); padding-bottom:0; margin-right:-6px}
 .passo button{
   width:15px; height:11px; padding:0; border:0; background:none; cursor:pointer;
   color:var(--muted); display:flex; align-items:center; justify-content:center; line-height:1;
@@ -141,15 +158,15 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 .passo button.mais::before{border-bottom:5px solid currentColor}
 .passo button.menos::before{border-top:5px solid currentColor}
 /* Área clicável maior sem aumentar a altura das linhas. */
-.passo button{width:20px; height:16px; margin:-2.5px 0; touch-action:manipulation}
+.passo button{width:20px; height:16px; margin:-2px 0; touch-action:manipulation}
 .passo button:hover,.passo button:focus-visible{color:var(--ink)}
 .passo button:active{opacity:.55}
 select,input[type="number"]{
-  font:inherit; color:var(--ink); background:transparent;
+  font:inherit; line-height:24px; color:var(--ink); background:transparent;
   border:0; border-bottom:1px solid var(--line); border-radius:0;
-  padding:7px 0; width:100%; min-width:0;
+  padding:var(--sp-2) 0; width:100%; min-width:0;
 }
-select{appearance:none; -webkit-appearance:none; padding-right:14px;
+select{appearance:none; -webkit-appearance:none; padding-right:var(--sp-4);
   background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
   background-position:right 5px center, right 1px center; background-size:4px 4px, 4px 4px;
   background-repeat:no-repeat; color:var(--ink);
@@ -158,93 +175,100 @@ input[type="number"]{text-align:right; -moz-appearance:textfield}
 input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
 select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
 select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
-.qtd{display:flex; align-items:center; gap:4px; border-bottom:1px solid var(--line); width:94px}
+.qtd{display:flex; align-items:center; gap:var(--sp-1); border-bottom:1px solid var(--line); width:94px}
 .qtd:hover{border-bottom-color:var(--muted)}
 .qtd:focus-within{border-bottom-color:var(--ink)}
 .row:focus-within select{border-bottom-color:var(--muted)}
 .qtd input[type="number"]{border-bottom:0; flex:1; min-width:0}
 .qtd input[type="number"]:hover{border-bottom-color:transparent}
-.row .del{border:0; background:none; color:transparent; font-size:1.05rem; line-height:1; cursor:pointer; padding:4px}
+/* O × mora na folga lateral do cartão, não numa coluna da linha: assim a coluna
+   da direita termina na mesma distância da borda que a da esquerda começa. */
+.row .del{
+  position:absolute; top:0; bottom:0; right:calc(var(--card-pad, var(--sp-5)) * -1 + 2px);
+  width:calc(var(--card-pad, var(--sp-5)) - 4px);
+  display:flex; align-items:center; justify-content:center;
+  border:0; background:none; color:transparent; font-size:1.05rem; line-height:1; cursor:pointer; padding:0;
+}
 .row:hover .del,.row:focus-within .del{color:var(--muted)}
 .row .del:hover{color:var(--ink)}
 
 .custom{
-  margin:6px 0 var(--esp-s); padding:14px; border-radius:12px; background:var(--paper);
+  margin:var(--sp-2) 0 var(--esp-s); padding:var(--sp-4); border-radius:12px; background:var(--paper);
 }
 .custom .nome{
   font:inherit; color:var(--ink); background:var(--edit-surface); width:100%;
-  border:0; border-radius:8px; padding:8px 10px;
+  border:0; border-radius:8px; padding:var(--sp-2) var(--sp-3);
 }
 .custom .nome:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
 .sem-peso .passo{visibility:hidden}
-.custom .campos{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px}
-.custom .campo{display:flex; flex-direction:column; gap:4px; min-width:0}
+.custom .campos{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--sp-3); margin-top:var(--sp-3)}
+.custom .campo{display:flex; flex-direction:column; gap:var(--sp-1); min-width:0}
 .custom .campo span{font-size:.73rem; color:var(--muted); white-space:nowrap}
-.custom .campo input{width:100%; background:var(--edit-surface); border-radius:8px; padding:8px 10px; text-align:right}
+.custom .campo input{width:100%; background:var(--edit-surface); border-radius:8px; padding:var(--sp-2) var(--sp-3); text-align:right}
 .custom .agua-calc{grid-column:1 / -1; font-size:.78rem; color:var(--muted)}
 .custom .agua-calc.erro{color:var(--st-critico)}
-.custom .acoes{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:14px}
+.custom .acoes{display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-3) var(--sp-4); margin-top:var(--sp-4)}
 .custom .ghost.destaque{
   color:var(--ink); border:1px solid var(--ink); border-radius:999px;
-  padding:6px 13px; text-decoration:none; font-weight:500;
+  padding:var(--sp-2) var(--sp-3); text-decoration:none; font-weight:500;
 }
 .custom .ghost.destaque:hover{background:var(--ink); color:var(--paper)}
 .resumo{
-  display:flex; flex-wrap:wrap; align-items:baseline; gap:12px;
-  margin:-2px 0 10px; padding-left:0;
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-3);
+  margin:0 0 var(--sp-3); padding-left:0;
   font-size:.78rem; color:var(--muted);
 }
 .resumo .ghost{font-size:.78rem}
 .bib{
-  display:flex; flex-wrap:wrap; align-items:baseline; gap:12px;
-  margin-top:var(--esp); font-size:.8rem; color:var(--muted);
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-3);
+  font-size:.8rem; color:var(--muted);
 }
 .bib .ghost{font-size:.78rem}
-.custom .ajuda{margin:11px 0 0; font-size:.75rem; line-height:1.5; color:var(--muted); max-width:46ch}
+.custom .ajuda{margin:var(--sp-3) 0 0; font-size:.75rem; line-height:1.5; color:var(--muted); max-width:46ch}
 /* O botão e o total seguem a mesma grade das linhas, para o número do total
    cair exatamente embaixo das quantidades. */
 /* Ação primária compacta, sem ocupar toda a largura da coluna. */
 .add{
   display:inline-flex; align-items:center; justify-content:center;
-  width:auto; min-height:36px; margin-top:14px; margin-bottom:0;
+  width:auto; min-height:var(--ctl); margin-top:var(--sp-4); margin-bottom:0;
   font:inherit; font-size:.92rem; font-weight:500;
   background:var(--ink); color:var(--paper);
   border:1px solid var(--ink); border-radius:999px;
-  padding:7px 12px; cursor:pointer;
+  padding:0 var(--sp-3); cursor:pointer;
   transition:opacity .15s ease;
 }
 .add:hover{opacity:.86}
 .add:active{opacity:.7}
 
 .linha-total{
-  display:grid; grid-template-columns:minmax(0,1fr) auto 12px 24px; gap:10px;
-  align-items:center; margin-top:28px;
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--sp-3);
+  align-items:center; margin-top:var(--sp-7);
 }
 .rotulo-total{color:var(--muted); font-size:.92rem}
-.un{color:var(--muted); font-size:.82rem; justify-self:start}
-.total{display:inline-flex; align-items:center; gap:6px; color:var(--muted); font-size:.92rem}
+.un{flex:none; color:var(--muted); font-size:.82rem}
+.total{display:inline-flex; align-items:center; gap:var(--sp-2); color:var(--muted); font-size:.92rem}
 .total .qtd{width:auto}
 .qtd-min{width:94px}
 .qtd-temp{width:68px}
-.empty{color:var(--muted); font-size:.92rem; margin:6px 0 0; max-width:46ch}
+.empty{color:var(--muted); font-size:.92rem; margin:var(--sp-2) 0 0; max-width:46ch}
 
-.metric{padding:0 0 9px}
-.metric .head{display:flex; align-items:baseline; gap:10px}
+.metric{padding:0 0 var(--sp-2)}
+.metric .head{display:flex; align-items:baseline; gap:var(--sp-3)}
 .metric .name{flex:1; color:var(--muted); font-size:.92rem; font-weight:400}
 .metric .val{font-size:.92rem; font-weight:500}
 .metric .alvo{color:var(--muted); font-size:.76rem; font-weight:400; min-width:72px; text-align:right}
 .metric.out .val{font-weight:600}
 .metric.out .alvo{color:var(--ink)}
 /* Estado fora da faixa: sinalização textual, sem alterar as barras originais. */
-.metric .situacao{font-size:.72rem; font-weight:400; color:var(--muted); margin-left:7px; white-space:nowrap}
+.metric .situacao{font-size:.72rem; font-weight:400; color:var(--muted); margin-left:var(--sp-2); white-space:nowrap}
 .metric.out .situacao{color:var(--ink)}
-.bar{position:relative; height:3px; margin-top:9px; background:var(--line)}
+.bar{position:relative; height:3px; margin-top:var(--sp-2); background:var(--line)}
 .bar .band{position:absolute; inset:0 auto; top:0; bottom:0; background:var(--band)}
 .bar .mark{position:absolute; top:-3px; width:2px; height:9px; background:var(--ink)}
 .metric.out .bar .mark{width:3px; height:11px; top:-4px}
 
-.notes{margin:var(--esp) 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:9px}
-.notes li{font-size:.9rem; line-height:1.5; color:var(--muted); padding-left:16px; position:relative; max-width:52ch}
+.notes{margin:var(--esp) 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--sp-2)}
+.notes li{font-size:.9rem; line-height:1.5; color:var(--muted); padding-left:var(--sp-4); position:relative; max-width:52ch}
 .notes li::before{content:""; position:absolute; left:0; top:.62em; width:5px; height:5px; background:var(--ink)}
 .notes li.ok::before{background:none; border:1px solid var(--muted)}
 /* Indicadores discretos de estado; o texto continua informativo sem cor. */
@@ -260,13 +284,13 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .notes li.status-atencao::before{content:"!";color:var(--st-atencao)}
 .notes li.status-critico::before{content:"×";color:var(--st-critico)}
 /* O número acompanha o marcador e usa a mesma cor sem colorir a faixa de referência. */
-.metric .bar{margin-top:25px}
+.metric .bar{margin-top:var(--sp-6)}
 .bar .mark{background:var(--ink)}
 .bar .mark.status-ok{background:var(--ink)}
 .bar .mark.status-atencao{background:var(--st-atencao)}
 .bar .mark.status-critico{background:var(--st-critico)}
 .bar .mark-label{
-  position:absolute;left:50%;bottom:11px;transform:translateX(-50%);
+  position:absolute;left:50%;bottom:10px;transform:translateX(-50%);
   color:inherit;white-space:nowrap;font-size:var(--type-body, 1rem);
   font-weight:400;line-height:1.3;pointer-events:none;
 }
@@ -280,29 +304,38 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 
 .explica{margin:0 0 var(--esp-s); font-size:.8rem; line-height:1.5; color:var(--muted); max-width:52ch}
 
-footer{
-  margin-top:var(--esp); padding-top:0;
+.notas{
   color:var(--muted); font-size:.8rem; line-height:1.65; max-width:76ch;
 }
-footer summary{
+.notas summary{
   cursor:pointer; list-style:none; font-size:.9rem; color:var(--muted);
-  display:inline-flex; align-items:center; gap:7px; padding:2px 0;
+  display:inline-flex; align-items:center; gap:var(--sp-2); padding:var(--sp-1) 0;
 }
-footer summary::-webkit-details-marker{display:none}
-footer summary::before{
+.notas summary::-webkit-details-marker{display:none}
+.notas summary::before{
   content:""; border-top:4px solid transparent; border-bottom:4px solid transparent;
   border-left:5px solid currentColor; transition:transform .15s;
 }
-footer details[open] summary::before{transform:rotate(90deg)}
-footer summary:hover{color:var(--ink)}
-footer p{margin:14px 0 0}
+.notas details[open] summary::before{transform:rotate(90deg)}
+.notas summary:hover{color:var(--ink)}
+.notas p{margin:var(--sp-4) 0 0}
+/* Créditos: uma linha discreta no fim, com o espaço padrão entre blocos acima. */
+.creditos{
+  margin-top:var(--esp); display:flex; flex-wrap:wrap; align-items:baseline;
+  gap:var(--sp-1) var(--sp-3); color:var(--muted);
+}
+/* Cada separador pertence ao item que ele introduz, para sumir junto com ele. */
+.creditos .marca::after{content:"·"; margin-left:var(--sp-3)}
+.creditos .ghost::before,.creditos .versao::before{content:"·"; margin-right:var(--sp-3); color:var(--muted); text-decoration:none; display:inline-block}
+.creditos .ghost{font-size:inherit; padding:0}
+@media(max-width:520px){.creditos .marca{display:none}}
 
 @media (max-width:760px){
-  .rowfoot{flex-direction:column; align-items:flex-start; gap:14px}
+  .rowfoot{flex-direction:column; align-items:flex-start; gap:var(--sp-4)}
   .metric .head{flex-wrap:wrap}
-  .metric .alvo{flex-basis:100%; text-align:left; min-width:0; margin-top:1px}
+  .metric .alvo{flex-basis:100%; text-align:left; min-width:0; margin-top:var(--sp-1)}
 }
-@media (prefers-reduced-motion: reduce){footer summary::before,.seg .pill-indicator{transition:none}}
+@media (prefers-reduced-motion: reduce){.notas summary::before,.seg .pill-indicator{transition:none}}
 
 /* Etapa 4B — escala tipográfica única para todas as seções.
    14px: leitura e dados | 12px: referências | 16px: títulos | 21px: marca. */
@@ -332,10 +365,10 @@ header.top p{font-size:var(--type-body);font-weight:var(--weight-regular);color:
 /* Destaque dos desvios é transmitido pelo símbolo e feedback, não por negrito. */
 .metric.out .val{font-weight:var(--weight-regular)}
 /* Referências e textos auxiliares compartilham tamanho e cor. */
-.rotulo,.metric .alvo,.metric .situacao,.un,
+.metric .alvo,.metric .situacao,.un,
 .custom .campo span,.custom .agua-calc,.custom .ajuda,
 .resumo,.resumo .ghost,.bib,.bib .ghost,
-.explica,footer,footer summary{
+.explica,.notas,.notas summary,.creditos{
   font-size:var(--type-small);font-weight:var(--weight-regular);color:var(--muted);
 }
 .metric .alvo{min-width:72px}
@@ -349,18 +382,18 @@ header.top p{font-size:var(--type-body);font-weight:var(--weight-regular);color:
 /* Menus próprios: preservam o select como fonte de dados, sem usar o popup do sistema. */
 .native-select-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;clip-path:inset(50%)}
 .lab-dropdown{position:relative;min-width:0;font-size:var(--type-body);font-weight:400;color:var(--ink)}
-.lab-dropdown-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;min-height:36px;padding:7px 2px 7px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.lab-dropdown-trigger{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);width:100%;min-width:0;min-height:var(--ctl);padding:0 var(--sp-1) 0 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .lab-dropdown-trigger:hover,.lab-dropdown.open .lab-dropdown-trigger{border-bottom-color:var(--muted)}
 .lab-dropdown-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.lab-dropdown-chevron{flex:none;width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-right:5px}
+.lab-dropdown-chevron{flex:none;width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-right:var(--sp-1)}
 .lab-dropdown.open .lab-dropdown-chevron{transform:rotate(225deg) translate(-2px,-1px)}
-.lab-dropdown-menu{position:absolute;z-index:1000;top:calc(100% + 5px);left:0;width:max(100%,220px);max-width:min(340px,calc(100vw - 32px));max-height:260px;overflow:hidden;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:7px 7px 7px 0;box-shadow:0 9px 24px rgba(0,0,0,.09);opacity:0;transform:translateY(-5px);visibility:hidden;pointer-events:none;transition:opacity 210ms ease,transform 210ms ease,visibility 210ms}
+.lab-dropdown-menu{position:absolute;z-index:1000;top:calc(100% + 5px);left:0;width:max(100%,220px);max-width:min(340px,calc(100vw - 32px));max-height:260px;overflow:hidden;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:var(--sp-2) var(--sp-2) var(--sp-2) 0;box-shadow:0 9px 24px rgba(0,0,0,.09);opacity:0;transform:translateY(-5px);visibility:hidden;pointer-events:none;transition:opacity 210ms ease,transform 210ms ease,visibility 210ms}
 .lab-dropdown.open .lab-dropdown-menu{opacity:1;transform:translateY(0);visibility:visible;pointer-events:auto}
 /* Rolagem como os gráficos: linha reta de 3px, sem cantos arredondados. */
 /* Firefox usa a espessura "thin"; Chromium/Safari usam a largura exata abaixo.
    Evitamos scrollbar-width:thin no Chromium porque ele substitui ::-webkit-scrollbar. */
 html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) transparent}
-.lab-dropdown-scroll{max-height:244px;overflow-y:auto;overscroll-behavior:contain;padding:0 4px 0 7px;scrollbar-gutter:stable}
+.lab-dropdown-scroll{max-height:244px;overflow-y:auto;overscroll-behavior:contain;padding:0 var(--sp-1) 0 var(--sp-2);scrollbar-gutter:stable}
 @supports selector(::-webkit-scrollbar){
   html,body,.lab-dropdown-scroll{scrollbar-width:auto;scrollbar-color:auto}
   html::-webkit-scrollbar,body::-webkit-scrollbar,.lab-dropdown-scroll::-webkit-scrollbar{width:3px;height:3px}
@@ -369,20 +402,20 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
   html::-webkit-scrollbar-thumb:hover,body::-webkit-scrollbar-thumb:hover,.lab-dropdown-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted)}
 }
 
-.lab-dropdown-group{padding:10px 9px 4px;color:var(--muted);font-size:var(--type-small);font-weight:400}
-.lab-dropdown-option{display:block;width:100%;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:var(--type-body);font-weight:400;text-align:left;padding:8px 9px;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
+.lab-dropdown-group{padding:var(--sp-3) var(--sp-2) var(--sp-1);color:var(--muted);font-size:var(--type-small);font-weight:400}
+.lab-dropdown-option{display:block;width:100%;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:var(--type-body);font-weight:400;text-align:left;padding:var(--sp-2) var(--sp-2);cursor:pointer;white-space:normal;overflow-wrap:anywhere}
 .lab-dropdown-option:hover,.lab-dropdown-option.active{background:var(--line)}
 .lab-dropdown-option[aria-selected="true"]{background:var(--line)}
 .lab-dropdown-option:focus-visible,.lab-dropdown-trigger:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
 .lab-dropdown.recipe{width:auto;max-width:210px;font-weight:500}
-.lab-dropdown.recipe .lab-dropdown-trigger{min-height:36px;padding:7px 12px;border:1px solid var(--ink);border-radius:999px;background:var(--ink);color:var(--paper);font-weight:500}
+.lab-dropdown.recipe .lab-dropdown-trigger{min-height:var(--ctl);padding:0 var(--sp-3);border:1px solid var(--ink);border-radius:999px;background:var(--ink);color:var(--paper);font-weight:500}
 .lab-dropdown.recipe .lab-dropdown-menu{min-width:240px;left:0}
 .lab-dropdown.recipe .lab-dropdown-trigger:hover{opacity:.88}
 @media(prefers-reduced-motion:reduce){.lab-dropdown-menu{transition:none}}
 /* Limites separados, alinhados às extremidades da faixa cinza. */
-.metric .bar{margin-bottom:22px}
+.metric .bar{margin-bottom:var(--sp-6)}
 .bar .range-label{
-  position:absolute;top:8px;color:var(--muted);
+  position:absolute;top:9px;color:var(--muted);
   font-size:var(--type-small);font-weight:400;line-height:1.3;
   white-space:nowrap;pointer-events:none;
 }
@@ -403,41 +436,43 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 
 /* Refinamento do frame: apenas dois cinzas-base (texto e estrutura).
    Superfície e faixa são misturas dos mesmos tokens, não novas cores. */
+/* Lateral: --card-pad. Em cima e embaixo o padding é menor, porque a primeira e a última
+   linha têm 40 px com o texto centralizado, e esse ar já conta como margem. */
 #ingredientes{
-  padding:20px;
+  padding:var(--sp-2) var(--card-pad) calc(var(--sp-3) - 2px); /* −2px: o texto do total assenta 2px mais baixo que o do título */
   border:0;
   background:var(--edit-surface);
 }
-#ingredientes .receita-head{gap:4px 16px;margin-bottom:0;align-items:baseline}
+#ingredientes .receita-head{gap:var(--sp-1) var(--sp-4);margin-bottom:var(--sp-2);align-items:center;min-height:var(--ctl)}
 #ingredientes .nome-receita,
-#ingredientes .nome-receita.sem-nome{color:var(--ink);font-size:var(--type-body);font-weight:500}
+#ingredientes .nome-receita.sem-nome{margin:0;color:var(--ink);font-size:var(--type-body);font-weight:500}
 #ingredientes .receita-head .ghost{color:var(--muted);text-decoration-color:var(--muted)}
 #ingredientes .receita-head .ghost:hover{color:var(--ink)}
 #ingredientes .row,
-#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 88px 12px 18px;gap:8px}
-#ingredientes .qtd{width:88px;min-width:0}
+#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+#ingredientes .qtd{width:100px;min-width:0}
 #ingredientes .row .lab-dropdown{min-width:0}
-#ingredientes .rows{gap:2px}
-#ingredientes .add{margin-top:12px}
-#ingredientes .linha-total{margin-top:12px}
+#ingredientes .rows{gap:0}
+#ingredientes .add{margin-top:var(--sp-3)}
+#ingredientes .linha-total{margin-top:var(--sp-3); min-height:var(--ctl)}
 /* Faixas sem uma terceira cor de cinza: transparência do cinza tipográfico. */
 .bar .band{background:color-mix(in srgb, var(--muted) 43%, var(--line))}
 /* Mesma densidade relativa entre os indicadores, sem comprimir a altura geral. */
-#resultado .metric{padding-bottom:6px}
+#resultado .metric{padding-bottom:var(--sp-1)}
 /* Água é um dado-resumo, deliberadamente sem faixa nem status. */
 .water-summary{
-  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
-  margin-top:18px;padding-top:0;border-top:0;
+  display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-3);
+  margin-top:var(--sp-4);padding-top:0;border-top:0;
 }
 .water-summary-label{color:var(--muted);font-size:var(--type-body);font-weight:400}
-.water-summary-value{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:4px 13px;border-radius:999px;background:var(--edit-surface);color:var(--ink);font-size:var(--type-body);font-weight:500;line-height:1.4}
+.water-summary-value{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:var(--sp-1) var(--sp-3);border-radius:999px;background:var(--edit-surface);color:var(--ink);font-size:var(--type-body);font-weight:500;line-height:1.4}
 @media(max-width:760px){
-  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 88px 12px 18px;gap:8px}
+  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
 }
 @media(max-width:440px){
-  #ingredientes{padding:16px}
-  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 70px 10px 16px;gap:6px}
-  #ingredientes .qtd{width:70px}
+  #ingredientes{--card-pad:var(--sp-4);padding:var(--sp-1) var(--card-pad) calc(var(--sp-2) - 1px)}
+  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+  #ingredientes .qtd{width:92px}
 }
 
 
@@ -468,22 +503,9 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
   <p>Monte a receita em gramas e acompanhe onde ela cai nas faixas de balanceamento.</p>
 </header>
 
-<div class="toolbar">
-  <span class="grupo" id="grupoReceitas"></span>
-
-  <span class="divisor" aria-hidden="true"></span>
-
-  <span class="grupo">
-    <span class="rotulo">Faixas de</span>
-    <div class="seg" id="estilo" role="group" aria-label="Estilo de referência">
-      <button type="button" data-estilo="gelato" aria-pressed="true">Gelato</button>
-      <button type="button" data-estilo="icecream" aria-pressed="false">Sorvete tradicional</button>
-      <button type="button" data-estilo="sorbet" aria-pressed="false">Sorbet</button>
-    </div>
-  </span>
-</div>
-
 <div class="cols">
+  <div class="grupo" id="grupoReceitas"></div>
+
   <section class="panel" id="ingredientes">
     <div class="receita-head" id="cabecalhoReceita"></div>
     <div class="rows" id="linhas"></div>
@@ -492,31 +514,48 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 
     <div class="linha-total">
       <label class="rotulo-total" for="peso">Mistura total</label>
-      <span class="qtd qtd-min" id="cxPeso"><input type="number" id="peso" min="0" step="10" value="0" inputmode="decimal" /></span>
-      <span class="un">g</span>
+      <span class="qtd qtd-min" id="cxPeso"><input type="number" id="peso" min="0" step="10" value="0" inputmode="decimal" /><span class="un">g</span></span>
     </div>
   </section>
 
   <section class="panel" id="resultado">
-    <h2>Composição</h2>
+    <h2 class="comp-titulo">Composição</h2>
+    <div class="seg" id="estilo" role="group" aria-label="Faixas de referência por estilo">
+      <button type="button" data-estilo="gelato" aria-pressed="true">Gelato</button>
+      <button type="button" data-estilo="icecream" aria-pressed="false">Sorvete tradicional</button>
+      <button type="button" data-estilo="sorbet" aria-pressed="false">Sorbet</button>
+    </div>
     <div id="metricas"></div>
     <ul class="notes" id="avisos" aria-live="polite"></ul>
 
   </section>
 
+  <div class="apoio">
+    <div class="bib" id="bib"></div>
+    
+    <div class="notas">
+      <details>
+        <summary>Notas sobre o cálculo</summary>
+        <p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>
+      <p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>
+      <p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos. É o que dá o PAC mais fiel. Em troca, o percentual de açúcares sai um pouco acima do que você declararia num rótulo, onde só a fração indicada pelo número DE conta como açúcar.</p>
+      <p>O ponto de congelamento soma duas contribuições: os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A faixa de −3,0 a −2,75 °C é a de um creme que serve bem entre −10 e −14 °C, como numa vitrine de gelateria. Num freezer doméstico a −18 °C nenhuma receita comum cai nessa faixa, e por isso o usual é tirar o pote alguns minutos antes de servir.</p>
+      <p>Ficam de fora da conta os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun, que deixa o creme mais fácil de servir. Use os números para comparar receitas, não como medida absoluta.</p>
+      <p>Esta calculadora avalia o equilíbrio da formulação, não a segurança alimentar. Pasteurização, higiene e armazenamento seguem as boas práticas e a legislação sanitária que se aplicam a você.</p>
+      <p id="fontes"><b>Fontes</b><br>
+      Método de cálculo: Goff, H. D.; Hartel, R. W. <i>Ice Cream</i>, 7ª ed. Springer, 2013 (ponto de congelamento, equivalentes de sacarose e sais do leite).<br>
+      Conceitos e regras práticas: Gelatologist, série de artigos sobre PAC, dureza e produção de gelato (Medium).<br>
+      Para aprofundar: Clarke, C.; Cox, A. <i>The Science of Ice Cream</i>, Royal Society of Chemistry; Caviezel, L. <i>Scienza e tecnologia del gelato artigianale</i>, Chiriotti Editori.</p>
+      </details>
+    </div>
+  </div>
 </div>
 
-<div class="bib" id="bib"></div>
-
-<footer>
-  <details>
-    <summary>Notas sobre o cálculo</summary>
-    <p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>
-  <p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>
-  <p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos. É o que dá o PAC mais fiel. Em troca, o percentual de açúcares sai um pouco acima do que você declararia num rótulo, onde só a fração indicada pelo número DE conta como açúcar.</p>
-  <p>O ponto de congelamento soma duas contribuições: os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A faixa de −3,0 a −2,75 °C é a de um creme que serve bem entre −10 e −14 °C, como numa vitrine de gelateria. Num freezer doméstico a −18 °C nenhuma receita comum cai nessa faixa, e por isso o usual é tirar o pote alguns minutos antes de servir.</p>
-  <p>Ficam de fora da conta os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun, que deixa o creme mais fácil de servir. Use os números para comparar receitas, não como medida absoluta.</p>
-  </details>
+<footer class="creditos">
+  <span class="marca">Ice Cream Lab</span>
+  <span class="autor">© 2026 Lucca Marques</span>
+  <button type="button" class="ghost" id="verFontes">fontes</button>
+  <span class="versao">v1.0</span>
 </footer>
 
 </div>
@@ -1116,10 +1155,10 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 
       var qtd = document.createElement("div");
       qtd.className = "qtd";
-      qtd.appendChild(inp); qtd.appendChild(passo);
       var un = document.createElement("span");
       un.className = "un"; un.textContent = "g";
-      row.appendChild(criaDropdown(sel, "ingredient")); row.appendChild(qtd); row.appendChild(un); row.appendChild(del);
+      qtd.appendChild(inp); qtd.appendChild(un); qtd.appendChild(passo);
+      row.appendChild(criaDropdown(sel, "ingredient")); row.appendChild(qtd); row.appendChild(del);
       elLinhas.appendChild(row);
 
       var prSel = produto(l.id);
@@ -1604,6 +1643,14 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       return true;
     } catch (e) { return false; }
   }
+
+  document.getElementById('verFontes').addEventListener('click', function(){
+    var detalhes = document.querySelector('.notas details');
+    detalhes.open = true;
+    var alvo = document.getElementById('fontes');
+    var reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    alvo.scrollIntoView({behavior: reduz ? 'auto' : 'smooth', block: 'center'});
+  });
 
   var seletorEstilo = document.getElementById('estilo');
   var pillEstilo = document.createElement('span');
