@@ -273,6 +273,7 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .bar .mark{position:absolute; top:-3px; width:2px; height:9px; background:var(--ink)}
 .metric.out .bar .mark{width:3px; height:11px; top:-4px}
 
+.aviso-estab{margin:var(--sp-4) 0 0; font-size:var(--type-small, .857rem); line-height:1.5; color:var(--muted)}
 .notes{margin:var(--esp) 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--sp-2)}
 .notes li{font-size:.9rem; line-height:1.5; color:var(--muted); padding-left:var(--sp-4); position:relative; max-width:52ch}
 /* Estado: uma bolinha que muda de cor (verde, amarelo ou vermelho). A frase ao lado diz
@@ -532,6 +533,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     </div>
     <div id="metricas"></div>
     <ul class="notes" id="avisos" aria-live="polite"></ul>
+    <p class="aviso-estab" id="avisoEstab" hidden>O intervalo referente aos estabilizantes é apenas uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>
 
   </section>
 
@@ -546,6 +548,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       <p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos. É o que dá o PAC mais fiel. Em troca, o percentual de açúcares sai um pouco acima do que você declararia num rótulo, onde só a fração indicada pelo número DE conta como açúcar.</p>
       <p>O ponto de congelamento soma duas contribuições: os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A faixa de −3,0 a −2,75 °C é a de um creme que serve bem entre −10 e −14 °C, como numa vitrine de gelateria. Num freezer doméstico a −18 °C nenhuma receita comum cai nessa faixa, e por isso o usual é tirar o pote alguns minutos antes de servir.</p>
       <p>Ficam de fora da conta os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun, que deixa o creme mais fácil de servir. Use os números para comparar receitas, não como medida absoluta.</p>
+      <p>A barra de estabilizantes soma os gramas das gomas como se valessem o mesmo, e a faixa de 0,2 a 0,5% é a do blend de gomas clássicas (Goff e Hartel, p. 76), que o próprio livro manda ajustar com o fornecedor. As gomas diferem em potência e em como hidratam. O amido fica fora da soma, porque a faixa não se aplica a ele. Estabilizantes aumentam a viscosidade, mas quase não mexem no ponto de congelamento, e por isso não entram no PAC.</p>
       <p>Esta calculadora avalia o equilíbrio da formulação, não a segurança alimentar. Pasteurização, higiene e armazenamento seguem as boas práticas e a legislação sanitária que se aplicam a você.</p>
       <p id="fontes"><b>Fontes</b><br>
       Método de cálculo: Goff, H. D.; Hartel, R. W. <i>Ice Cream</i>, 7ª ed. Springer, 2013 (ponto de congelamento, equivalentes de sacarose e sais do leite).<br>
@@ -560,7 +563,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     <span class="marca">Ice Cream Lab</span>
     <span class="autor">© 2026 Lucca Marques</span>
     <button type="button" class="ghost" id="verFontes">fontes</button>
-    <span class="versao">v1.0</span>
+    <span class="versao">v1.1</span>
   </footer>
 
 </div>
@@ -606,7 +609,30 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     {id:"pasta",      nome:"Pasta de castanha", longo:"Pasta de castanha pura",    gord:55,  outros:43},
     {id:"pureDoce",   nome:"Purê fruta doce", longo:"Purê de fruta doce",        ac:{frutose:6, sacarose:6}, outros:2},
     {id:"pureAcida",  nome:"Purê fruta ácida", longo:"Purê de fruta ácida",       ac:{frutose:4, sacarose:4}, outros:2},
-    {id:"estab",      nome:"Estabilizante",             outros:100},
+    {id:"estab", nome:"Estabilizante (liga)", outros:100, estab:true, longo:"Estabilizante (liga pronta)",
+      nota:"Siga o fornecedor: a liga define a temperatura de hidratação e a dose."},
+    {id:"guar", nome:"Goma guar", outros:100, estab:true,
+      nota:"Hidrata a frio (10–30 °C). Mistura muito viscosa em baixa dose, em cerca de 2 h."},
+    {id:"alfarroba", nome:"Goma alfarroba (LBG)", outros:100, estab:true,
+      nota:"Precisa da temperatura de pasteurização para hidratar. Pode gelificar ao congelar; a guar não."},
+    {id:"cmc", nome:"CMC (goma celulose)", outros:100, estab:true, longo:"Carboximetilcelulose sódica (CMC, goma de celulose)",
+      nota:"Dissolve fácil na mistura e retém muita água; considerada muito boa para sorvete."},
+    {id:"carragena", nome:"Carragena", outros:100, estab:true,
+      nota:"Em blends, 0,01–0,015%, só para evitar a separação da mistura. Acima disso, gelifica."},
+    {id:"xantana", nome:"Goma xantana", outros:100, estab:true,
+      nota:"Hidrata a frio (10–30 °C). Muito viscosa em dose baixa; pouco usada em sorvete."},
+    {id:"gelatina", nome:"Gelatina", outros:100, estab:true,
+      nota:"Gel fraco que derrete fácil na boca, sem sensação de goma."},
+    {id:"alginato", nome:"Alginato de sódio", outros:100, estab:true,
+      nota:"Dissolve a frio ou a quente, mas degrada se ficar quente demais. Reage com o cálcio do leite; pouco usado."},
+    {id:"pectina", nome:"Pectina", outros:100, estab:true, longo:"Pectina de alto e de baixo metoxilo",
+      nota:"Citada no livro como estabilizante; sem dados de uso."},
+    {id:"agar", nome:"Ágar", outros:100, estab:true,
+      nota:"Citada no livro como estabilizante; sem dados de uso."},
+    {id:"amido", nome:"Amido de milho", outros:100, estab:true, contaTotal:false,
+      nota:"Precisa de calor: dissolvido em água e aquecido, forma um creme espesso. Fora da soma de estabilizantes."},
+    {id:"amidomod", nome:"Amido modificado", outros:100, estab:true, contaTotal:false,
+      nota:"Citado no livro como estabilizante; sem dados de uso. Fora da soma de estabilizantes."},
     {id:"custom",     nome:"Personalizado…",            custom:true}
   ];
 
@@ -622,6 +648,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
   };
 
   var ALVO_FP = [-3.0, -2.75];
+  var ALVO_ESTAB = [0.2, 0.5];   // Goff e Hartel, 7ª ed., p. 76: 0,2–0,5% de blend na mistura
 
   // Ponto de congelamento de soluções de sacarose (Leighton/Pickering), como
   // curva ajustada aos valores tabelados: erro de até 0,08 °C até 180 g/100 g,
@@ -835,11 +862,12 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
   }
 
   function calcula(){
-    var t = {peso:0, gord:0, slng:0, soro:0, ac:0, outros:0, pod:0, pac:0};
+    var t = {peso:0, gord:0, slng:0, soro:0, ac:0, outros:0, pod:0, pac:0, estab:0};
     estado.linhas.forEach(function(l){
       var ing = composicao(l); if (!ing) return;
       var g = Number(l.g) || 0;
       t.peso += g;
+      if (ing.estab && ing.contaTotal !== false) t.estab += g;
       t.gord += g * (ing.gord || 0) / 100;
       t.slng += g * (ing.slng || 0) / 100;
       t.soro += g * (ing.soro || 0) / 100;
@@ -863,6 +891,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     return {
       peso: t.peso,
       gord: t.gord / p * 100,
+      estab: t.estab / p * 100,
       slng: t.slng / p * 100,
       soro: t.soro / p * 100,
       ac: t.ac / p * 100,
@@ -950,6 +979,11 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
        alto:"Pode ficar mole demais; considere substituir parte da dextrose por sacarose."}
     ];
     var out = [];
+    if (r.estab > 0){
+      itens.push({nome:"Estabilizantes", valor:r.estab, alvo:ALVO_ESTAB, unidade:"%", casas:2,
+        baixo:"Pouco estabilizante: os cristais de gelo crescem com mais facilidade durante o armazenamento.",
+        alto:"Excesso de estabilizante dá sensação de goma: o sorvete derrete devagar demais na boca."});
+    }
     // PAC alto derruba o ponto de congelamento e PAC baixo o sobe: quando os dois
     // estão fora em lados opostos, é o mesmo problema, e basta avisar uma vez.
     var fpAtual = pontoCongelamento(r);
@@ -1098,7 +1132,11 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
         if (ing.id === l.id) o.selected = true;
         pai.appendChild(o);
       }
-      ING.forEach(function(ing){ if (!ing.custom) opcao(ing, sel); });
+      ING.forEach(function(ing){ if (!ing.custom && !ing.estab) opcao(ing, sel); });
+      var gEst = document.createElement("optgroup");
+      gEst.label = "Estabilizantes";
+      ING.forEach(function(ing){ if (ing.estab) opcao(ing, gEst); });
+      sel.appendChild(gEst);
       if (biblioteca.length){
         var grupo = document.createElement("optgroup");
         grupo.label = "Meus produtos";
@@ -1118,7 +1156,10 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
         inp.setAttribute("aria-label", "Quantidade em gramas de " + ((acha(l.id) || {}).nome || "ingrediente"));
         // Personalizados e produtos da biblioteca trazem um bloco extra embaixo da
         // linha, então entrar ou sair deles muda a estrutura, não só os números.
-        function temExtra(id){ return id === "custom" || !!produto(id); }
+        function temExtra(id){
+          var ing = acha(id);
+          return id === "custom" || !!produto(id) || !!(ing && ing.nota);
+        }
         if (temExtra(era) || temExtra(l.id)){ l.editando = false; render(); salva(); }
         else { atualiza(); }
       });
@@ -1165,6 +1206,12 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       qtd.appendChild(inp); qtd.appendChild(un); qtd.appendChild(passo);
       row.appendChild(criaDropdown(sel, "ingredient")); row.appendChild(qtd); row.appendChild(del);
       elLinhas.appendChild(row);
+      var ingNota = acha(l.id);
+      if (ingNota && ingNota.nota){
+        var nota = document.createElement("div");
+        nota.className = "resumo"; nota.textContent = ingNota.nota;
+        elLinhas.appendChild(nota);
+      }
 
       var prSel = produto(l.id);
 
@@ -1587,6 +1634,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     if (!r.peso){
       elMetricas.innerHTML = '<p class="empty">A composição aparece aqui assim que a receita tiver algum ingrediente com quantidade.</p>';
       elAvisos.innerHTML = "";
+      document.getElementById("avisoEstab").hidden = true;
       salva(); return;
     }
 
@@ -1597,6 +1645,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       linhaMetrica("Sólidos totais", r.sol, alvo.sol, ESCALA.sol, "%") +
       linhaMetrica("POD (doçura)", r.pod, alvo.pod, ESCALA.pod, "", 0) +
       linhaMetrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0) +
+      (r.estab > 0 ? linhaMetrica("Estabilizantes", r.estab, ALVO_ESTAB, [0, 1], "%", 2) : "") +
       (pontoCongelamento(r) === null ? "" :
         linhaMetrica("Ponto de congelamento", pontoCongelamento(r), ALVO_FP, ESCALA.fp, " °C", 2)) +
       '<div class="water-summary" aria-label="Água na mistura">' +
@@ -1606,6 +1655,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     animaFaixas(faixasAnteriores);
 
     elAvisos.innerHTML = "";
+    document.getElementById("avisoEstab").hidden = !(r.estab > 0);
     avisos(r).forEach(function(a){
       var li = document.createElement("li");
       li.className = "status-" + a.nivel;
