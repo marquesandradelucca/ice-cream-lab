@@ -17,6 +17,8 @@
   --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper));
   --band:var(--muted);
   --signal:#1B1D1B;
+  --st-atencao:#B07F2C;
+  --st-critico:#A94F45;
   --esp:28px;        /* espaço entre blocos */
   --esp-s:14px;      /* espaço dentro de um bloco */
   box-sizing:border-box;
@@ -28,12 +30,14 @@
     color-scheme: dark;
     --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
     --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
+    --st-atencao:#D9A94F; --st-critico:#E08A7E;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
   --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
   --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
+    --st-atencao:#D9A94F; --st-critico:#E08A7E;
 }
 *,*::before,*::after{box-sizing:inherit}
 html{-webkit-text-size-adjust:100%; scroll-padding-top: env(safe-area-inset-top, 0px)}
@@ -57,7 +61,12 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
   padding-bottom:0; margin-bottom:var(--esp);
 }
 /* Estilos: seleção discreta em cinza, sem sublinhado. */
-.seg{display:inline-flex; position:relative; align-items:center; gap:3px; isolation:isolate}
+.seg{display:inline-flex; position:relative; align-items:center; gap:3px; isolation:isolate;
+  flex-wrap:nowrap; max-width:100%; min-width:0; overflow-x:auto; scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg.rola{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);
+  mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent)}
+.seg button{white-space:nowrap}
 .seg .pill-indicator{position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--line); z-index:-1; pointer-events:none; transition:transform 360ms cubic-bezier(.22,1,.36,1),width 360ms cubic-bezier(.22,1,.36,1)}
 .seg button{
   font:inherit; font-size:.92rem; color:var(--muted); background:transparent;
@@ -80,21 +89,8 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 
 /* Ação destrutiva: menor e mais apagada que o resto. */
 .divisor{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
-.grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px}
+.grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; min-width:0; max-width:100%}
 .rotulo{color:var(--muted); font-size:.8rem; font-weight:400}
-/* Abrir receita: seletor nativo com aparência de botão primário. */
-.sel-receita{
-  width:auto; max-width:210px; min-height:36px;
-  padding:7px 30px 7px 12px;
-  font-size:.92rem; line-height:1.4; font-weight:500;
-  color:var(--paper); background-color:var(--ink);
-  border:1px solid var(--ink); border-radius:999px;
-  background-image:linear-gradient(45deg,transparent 50%,var(--paper) 50%),linear-gradient(135deg,var(--paper) 50%,transparent 50%);
-  background-position:calc(100% - 17px) center,calc(100% - 13px) center;
-  background-size:4px 4px,4px 4px; background-repeat:no-repeat;
-}
-.sel-receita:hover{border-color:var(--muted); opacity:.88}
-.sel-receita option,.sel-receita optgroup{color:var(--ink); background:var(--paper)}
 
 .ghost{
   font:inherit; font-size:.92rem; background:none; color:var(--muted);
@@ -105,7 +101,7 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 
 .cols{
   display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  grid-template-areas:"ingredientes composicao" "ingredientes dureza";
+  grid-template-areas:"ingredientes composicao";
   align-content:start; column-gap:var(--esp); row-gap:var(--esp); align-items:start;
 }
 #ingredientes{grid-area:ingredientes; align-self:start}
@@ -118,13 +114,13 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 @media(max-width:760px){#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 84px 12px 20px;gap:8px}#ingredientes .qtd{width:84px}}
 @media(max-width:440px){#ingredientes{padding:14px}#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 70px 10px 18px;gap:6px}#ingredientes .qtd{width:70px}}
 #resultado{grid-area:composicao}
-.dureza{grid-area:dureza}
 @media (max-width:760px){
-  .cols{grid-template-columns:1fr; grid-template-areas:"ingredientes" "composicao" "dureza"; row-gap:var(--esp)}
+  .cols{grid-template-columns:1fr; grid-template-areas:"ingredientes" "composicao"; row-gap:var(--esp)}
   .row,.linha-total{grid-template-columns:minmax(0,1fr) auto 12px 20px; gap:8px}
   .qtd{width:84px}
 }
-#resultado,.dureza{padding-top:0}
+#resultado{padding-top:20px}
+@media(max-width:440px){#resultado{padding-top:16px}}
 @media (min-width:761px){
   #resultado{padding-top:0; border-top:0}
 }
@@ -173,25 +169,29 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .row .del:hover{color:var(--ink)}
 
 .custom{
-  margin:4px 0 var(--esp-s); padding:12px 0 2px 14px;
-  border-left:2px solid var(--line);
+  margin:6px 0 var(--esp-s); padding:14px; border-radius:12px; background:var(--paper);
 }
 .custom .nome{
-  font:inherit; color:var(--ink); background:transparent; width:100%;
-  border:0; border-bottom:1px solid var(--line); padding:5px 0;
+  font:inherit; color:var(--ink); background:var(--edit-surface); width:100%;
+  border:0; border-radius:8px; padding:8px 10px;
 }
 .custom .nome:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
-.custom .campos{display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; margin-top:12px}
-.custom .campo{display:flex; flex-direction:column; gap:2px; width:92px}
-.custom .campo span{font-size:.73rem; color:var(--muted)}
-.custom .campo input{width:100%}
-.custom .agua-calc{font-size:.78rem; color:var(--muted); padding-bottom:7px}
-.custom .agua-calc.erro{color:var(--ink); font-weight:600}
-.custom .acoes{display:flex; flex-wrap:wrap; gap:16px; margin-top:13px}
-.custom .ghost.destaque{color:var(--ink); text-decoration-color:var(--muted)}
+.sem-peso .passo{visibility:hidden}
+.custom .campos{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px}
+.custom .campo{display:flex; flex-direction:column; gap:4px; min-width:0}
+.custom .campo span{font-size:.73rem; color:var(--muted); white-space:nowrap}
+.custom .campo input{width:100%; background:var(--edit-surface); border-radius:8px; padding:8px 10px; text-align:right}
+.custom .agua-calc{grid-column:1 / -1; font-size:.78rem; color:var(--muted)}
+.custom .agua-calc.erro{color:var(--st-critico)}
+.custom .acoes{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:14px}
+.custom .ghost.destaque{
+  color:var(--ink); border:1px solid var(--ink); border-radius:999px;
+  padding:6px 13px; text-decoration:none; font-weight:500;
+}
+.custom .ghost.destaque:hover{background:var(--ink); color:var(--paper)}
 .resumo{
   display:flex; flex-wrap:wrap; align-items:baseline; gap:12px;
-  margin:-2px 0 10px; padding-left:14px; border-left:2px solid var(--line);
+  margin:-2px 0 10px; padding-left:0;
   font-size:.78rem; color:var(--muted);
 }
 .resumo .ghost{font-size:.78rem}
@@ -248,44 +248,37 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .notes li::before{content:""; position:absolute; left:0; top:.62em; width:5px; height:5px; background:var(--ink)}
 .notes li.ok::before{background:none; border:1px solid var(--muted)}
 /* Indicadores discretos de estado; o texto continua informativo sem cor. */
-.notes li.status-ok::before{background:#4D916A; border:0; border-radius:50%; width:7px; height:7px; top:.55em}
-.notes li.status-atencao::before{background:#C79B40; border:0; border-radius:50%; width:7px; height:7px; top:.55em}
-.notes li.status-critico::before{background:#B85D53; border:0; border-radius:50%; width:7px; height:7px; top:.55em}
+.notes li.status-ok::before{background:var(--muted); border:0; border-radius:50%; width:7px; height:7px; top:.55em}
+.notes li.status-atencao::before{background:var(--st-atencao); border:0; border-radius:50%; width:7px; height:7px; top:.55em}
+.notes li.status-critico::before{background:var(--st-critico); border:0; border-radius:50%; width:7px; height:7px; top:.55em}
 /* Símbolos convencionais em vez de pontos coloridos. */
 .notes li.status-ok::before,.notes li.status-atencao::before,.notes li.status-critico::before{
   width:12px;height:auto;top:0;background:none;border:0;border-radius:0;
   font-size:13px;font-weight:500;line-height:1.5;
 }
-.notes li.status-ok::before{content:"✓";color:#4D916A}
-.notes li.status-atencao::before{content:"!";color:#C79B40}
-.notes li.status-critico::before{content:"×";color:#B85D53}
+.notes li.status-ok::before{content:"✓";color:var(--muted)}
+.notes li.status-atencao::before{content:"!";color:var(--st-atencao)}
+.notes li.status-critico::before{content:"×";color:var(--st-critico)}
 /* O número acompanha o marcador e usa a mesma cor sem colorir a faixa de referência. */
 .metric .bar{margin-top:25px}
-.bar .mark{background:#4D916A}
-.bar .mark.status-ok{background:#4D916A}
-.bar .mark.status-atencao{background:#C79B40}
-.bar .mark.status-critico{background:#B85D53}
+.bar .mark{background:var(--ink)}
+.bar .mark.status-ok{background:var(--ink)}
+.bar .mark.status-atencao{background:var(--st-atencao)}
+.bar .mark.status-critico{background:var(--st-critico)}
 .bar .mark-label{
   position:absolute;left:50%;bottom:11px;transform:translateX(-50%);
   color:inherit;white-space:nowrap;font-size:var(--type-body, 1rem);
   font-weight:400;line-height:1.3;pointer-events:none;
 }
-.bar .mark.status-ok{color:#4D916A}
-.bar .mark.status-atencao{color:#C79B40}
-.bar .mark.status-critico{color:#B85D53}
+.bar .mark.status-ok{color:var(--ink)}
+.bar .mark.status-atencao{color:var(--st-atencao)}
+.bar .mark.status-critico{color:var(--st-critico)}
 .bar .mark.inicio .mark-label{left:0;transform:none}
 .bar .mark.fim .mark-label{left:0;transform:translateX(-100%)}
 
 
-.dureza{margin-top:0}
 
-.dureza-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; margin-bottom:16px}
-.dureza-head h2{margin:0}
-.dureza-head input{width:58px}
 .explica{margin:0 0 var(--esp-s); font-size:.8rem; line-height:1.5; color:var(--muted); max-width:52ch}
-.veredito{margin:0 0 var(--esp-s); font-size:1rem; font-weight:500; color:var(--ink)}
-.sugestao{margin:var(--esp-s) 0 0; font-size:.9rem; line-height:1.5; color:var(--muted); max-width:52ch}
-.sugestao b{color:var(--ink); font-weight:500}
 
 footer{
   margin-top:var(--esp); padding-top:0;
@@ -330,20 +323,19 @@ header.top .sub,.panel h2,.nome-receita{
 header.top p{font-size:var(--type-body);font-weight:var(--weight-regular);color:var(--muted)}
 /* Ingredientes, valores, rótulos dos gráficos e total: mesma escala. */
 .row select,.row input[type="number"],.metric .name,.metric .val,
-.rotulo-total,.total,.total input[type="number"],.dureza-head label,
-.dureza-head input,.veredito{
+.rotulo-total,.total,.total input[type="number"]{
   font-size:var(--type-body);font-weight:var(--weight-regular);
 }
 .row select,.row input[type="number"],.metric .val,
-.total input[type="number"],.dureza-head input,.veredito{color:var(--ink)}
-.metric .name,.rotulo-total,.total,.dureza-head label{color:var(--muted)}
+.total input[type="number"]{color:var(--ink)}
+.metric .name,.rotulo-total,.total{color:var(--muted)}
 /* Destaque dos desvios é transmitido pelo símbolo e feedback, não por negrito. */
 .metric.out .val{font-weight:var(--weight-regular)}
 /* Referências e textos auxiliares compartilham tamanho e cor. */
 .rotulo,.metric .alvo,.metric .situacao,.un,
 .custom .campo span,.custom .agua-calc,.custom .ajuda,
 .resumo,.resumo .ghost,.bib,.bib .ghost,
-.explica,.sugestao,footer,footer summary{
+.explica,footer,footer summary{
   font-size:var(--type-small);font-weight:var(--weight-regular);color:var(--muted);
 }
 .metric .alvo{min-width:72px}
@@ -353,7 +345,6 @@ header.top p{font-size:var(--type-body);font-weight:var(--weight-regular);color:
 .ghost,.receita-head .ghost{font-size:var(--type-small);font-weight:var(--weight-regular)}
 .receita-head .ghost{color:var(--ink)}
 .nome-receita-edit{font-size:var(--type-heading);font-weight:var(--weight-medium)}
-.sugestao b{font-weight:var(--weight-medium)}
 
 /* Menus próprios: preservam o select como fonte de dados, sem usar o popup do sistema. */
 .native-select-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;clip-path:inset(50%)}
@@ -506,25 +497,13 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     </div>
   </section>
 
-  <section class="panel" id="resultado" aria-live="polite">
+  <section class="panel" id="resultado">
     <h2>Composição</h2>
     <div id="metricas"></div>
-    <ul class="notes" id="avisos"></ul>
+    <ul class="notes" id="avisos" aria-live="polite"></ul>
 
   </section>
 
-  <section class="panel dureza" aria-live="polite">
-      <div class="dureza-head">
-        <h2>Dureza</h2>
-        <label class="total" for="temp">quero servir a
-          <span class="qtd qtd-temp" id="cxTemp"><input type="number" id="temp" min="-25" max="-2" step="1" value="-12" inputmode="numeric" /></span>
-          <span>°C</span>
-        </label>
-      </div>
-      <p class="explica">Os açúcares (PAC) definem o ponto de congelamento, e ele decide quanto da água vira gelo na temperatura em que você serve.</p>
-      <div id="metricasDureza"></div>
-      <p class="sugestao" id="sugestao"></p>
-  </section>
 </div>
 
 <div class="bib" id="bib"></div>
@@ -535,8 +514,8 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     <p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>
   <p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>
   <p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos. É o que dá o PAC mais fiel. Em troca, o percentual de açúcares sai um pouco acima do que você declararia num rótulo, onde só a fração indicada pelo número DE conta como açúcar.</p>
-  <p>O ponto de congelamento soma duas contribuições: os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A água congelada sai repetindo essa conta com a água que ainda resta líquida, porque o que sobra vai ficando mais concentrado conforme o gelo se forma.</p>
-  <p>Acima de 55 a 60% de água congelada, o cálculo passa a superestimar o gelo: as medições em laboratório ficam abaixo da curva teórica. Ficam de fora também os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun, que deixa o creme mais fácil de servir. Use o número para comparar receitas, não como medida absoluta.</p>
+  <p>O ponto de congelamento soma duas contribuições: os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A faixa de −3,0 a −2,75 °C é a de um creme que serve bem entre −10 e −14 °C, como numa vitrine de gelateria. Num freezer doméstico a −18 °C nenhuma receita comum cai nessa faixa, e por isso o usual é tirar o pote alguns minutos antes de servir.</p>
+  <p>Ficam de fora da conta os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun, que deixa o creme mais fácil de servir. Use os números para comparar receitas, não como medida absoluta.</p>
   </details>
 </footer>
 
@@ -620,50 +599,11 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     return quedaSE(se * 100 / agua) + sais * 2.37 / agua;
   }
 
-  // Quanto de equivalente-sacarose a receita precisaria ter para cair num dado
-  // ponto de congelamento, mantendo água e sais como estão. Serve para traduzir
-  // a faixa ideal de ponto de congelamento em faixa de água congelada e em
-  // quantos pontos de PAC faltam ou sobram.
-  function seParaFP(alvo, sais, agua){
-    var lo = 0, hi = 200, m;
-    for (var i = 0; i < 60; i++){
-      m = (lo + hi) / 2;
-      if (queda(m, sais, agua) < -alvo) lo = m; else hi = m;
-    }
-    return (lo + hi) / 2;
-  }
-
-  function congelada(se, sais, agua, temp){
-    var lo = 0, hi = 0.995, m;
-    for (var i = 0; i < 60; i++){
-      m = (lo + hi) / 2;
-      if (queda(se, sais, agua * (1 - m)) < -temp) lo = m; else hi = m;
-    }
-    return (lo + hi) / 2 * 100;
-  }
-
-  function dureza(r, temp){
+  // Ponto de congelamento da receita: equivalentes de sacarose na água, lidos na
+  // curva de Leighton, mais a contribuição dos sais do leite.
+  function pontoCongelamento(r){
     if (!r.peso || r.agua <= 0) return null;
-    var se = r.pac / 10;              // PAC por kg em g de equivalente-sacarose por 100 g
-    var sais = r.slng + r.soro;       // sólidos lácteos e de soro trazem os sais
-    var fp = -queda(se, sais, r.agua);
-    var out = {se:se, fp:fp};
-
-    // Os dois extremos da faixa ideal, traduzidos para esta receita.
-    var seFirme = seParaFP(ALVO_FP[1], sais, r.agua);   // −2,75 °C
-    var seMacio = seParaFP(ALVO_FP[0], sais, r.agua);   // −3,0 °C
-    out.faltaPAC = (((seFirme + seMacio) / 2) - se) * 10;
-
-    if (temp < fp){
-      // Conforme a água congela, a que resta fica mais concentrada e o ponto de
-      // congelamento cai. Procura-se a fração congelada que equilibra a temperatura.
-      out.wf = congelada(se, sais, r.agua, temp);
-      if (temp < -ALVO_FP[0] * -1){
-        out.wfFaixa = [congelada(seFirme, sais, r.agua, temp),
-                       congelada(seMacio, sais, r.agua, temp)].sort(function(a,b){ return a-b; });
-      }
-    }
-    return out;
+    return -queda(r.pac / 10, r.slng + r.soro, r.agua);
   }
 
   var PRESETS = {
@@ -671,9 +611,13 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       {id:"leite", g:645},{id:"creme35", g:112},{id:"lpdesn", g:48},
       {id:"sacarose", g:132},{id:"dextrose", g:28},{id:"glucose", g:32},{id:"estab", g:3}
     ]},
+    icecream: {estilo:"icecream", linhas:[
+      {id:"leite", g:477},{id:"creme35", g:295},{id:"lpdesn", g:50},
+      {id:"sacarose", g:115},{id:"dextrose", g:34},{id:"glucose", g:26},{id:"estab", g:3}
+    ]},
     sorbet: {estilo:"sorbet", linhas:[
-      {id:"pureDoce", g:600},{id:"agua", g:192},{id:"sacarose", g:135},
-      {id:"dextrose", g:25},{id:"glucose", g:45},{id:"estab", g:3}
+      {id:"pureDoce", g:580},{id:"agua", g:187},{id:"sacarose", g:140},
+      {id:"dextrose", g:20},{id:"glucose", g:70},{id:"estab", g:3}
     ]}
   };
 
@@ -822,9 +766,6 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
   var elPeso = document.getElementById("peso");
   var elMetricas = document.getElementById("metricas");
   var elAvisos = document.getElementById("avisos");
-  var elTemp = document.getElementById("temp");
-  var elDureza = document.getElementById("metricasDureza");
-  var elSugestao = document.getElementById("sugestao");
 
   function acha(id){
     for (var i=0;i<ING.length;i++){ if (ING[i].id === id) return ING[i]; }
@@ -957,12 +898,24 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       {nome:"POD (doçura)", valor:r.pod, alvo:alvos.pod, unidade:"", casas:0,
        baixo:"A doçura pode ficar abaixo do esperado para o estilo.",
        alto:"Pode ficar doce demais; considere substituir parte do açúcar por glucose em pó."},
+      {nome:"Ponto de congelamento", valor:pontoCongelamento(r) || 0, alvo:ALVO_FP, unidade:" °C", casas:2,
+       baixo:"Tende a ficar mole na temperatura de servir; considere reduzir o PAC.",
+       alto:"Tende a sair firme demais do freezer; considere subir o PAC."},
       {nome:"PAC (maciez)", valor:r.pac, alvo:alvos.pac, unidade:"", casas:0,
        baixo:"Pode ficar firme demais; considere substituir parte da sacarose por dextrose.",
        alto:"Pode ficar mole demais; considere substituir parte da dextrose por sacarose."}
     ];
     var out = [];
+    // PAC alto derruba o ponto de congelamento e PAC baixo o sobe: quando os dois
+    // estão fora em lados opostos, é o mesmo problema, e basta avisar uma vez.
+    var fpAtual = pontoCongelamento(r);
+    var pacAlto = r.pac > alvos.pac[1], pacBaixo = r.pac < alvos.pac[0];
+    var fpAbaixo = fpAtual !== null && fpAtual < ALVO_FP[0];
+    var fpAcima = fpAtual !== null && fpAtual > ALVO_FP[1];
+    var mesmoProblema = (pacAlto && fpAbaixo) || (pacBaixo && fpAcima);
+
     itens.forEach(function(item){
+      if (item.nome === "Ponto de congelamento" && mesmoProblema) return;
       var abaixo = item.valor < item.alvo[0];
       var acima = item.valor > item.alvo[1];
       if (!abaixo && !acima) return;
@@ -972,7 +925,9 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       out.push({nivel:nivel, txt:item.nome + " " + direcao + " da faixa (" +
         n(item.valor, item.casas) + item.unidade + "; referência " +
         faixa(item.alvo[0], item.alvo[1], item.casas) + item.unidade + "). " +
-        (abaixo ? item.baixo : item.alto)});
+        (abaixo ? item.baixo : item.alto) +
+        (item.nome.indexOf("PAC") === 0 && mesmoProblema ?
+          " O ponto de congelamento também saiu da faixa, pelo mesmo motivo." : "")});
     });
     if (!out.length && r.peso > 0) out.push({nivel:"ok", txt:"Todos os parâmetros dentro das faixas de referência."});
     return out;
@@ -1107,6 +1062,10 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
         sel.appendChild(grupo);
       }
       opcao(acha("custom"), sel);
+      // O produto personalizado aparece pelo nome que a pessoa deu, não por "Personalizado…".
+      if (l.id === "custom" && l.comp && l.comp.nome){
+        sel.querySelector('option[value="custom"]').textContent = l.comp.nome;
+      }
       sel.title = (acha(l.id) || {}).longo || "Selecionar ingrediente";
       sel.addEventListener("change", function(){
         var era = l.id;
@@ -1188,7 +1147,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
           agua.classList.toggle("erro", resto < -0.5);
         }
 
-        [["gord","Gordura"],["ac","Açúcares"],["outros","Outros sólidos"]].forEach(function(cfg){
+        [["gord","Gordura"],["ac","Açúcares"],["outros","Outros"]].forEach(function(cfg){
           var wrap = document.createElement("label");
           wrap.className = "campo";
           var tit = document.createElement("span"); tit.textContent = cfg[1];
@@ -1215,7 +1174,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
             dados.nome = nome.value; delete dados.repo; salvaBiblioteca(); render();
           });
           var pronto = document.createElement("button");
-          pronto.type = "button"; pronto.className = "ghost";
+          pronto.type = "button"; pronto.className = "ghost destaque";
           pronto.textContent = "Concluir";
           pronto.addEventListener("click", function(){ l.editando = false; render(); });
           var remover = document.createElement("button");
@@ -1233,7 +1192,11 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
           });
           acoes.appendChild(pronto); acoes.appendChild(remover);
         } else {
-          nome.addEventListener("input", function(){ dados.nome = nome.value; salva(); });
+          nome.addEventListener("input", function(){
+            dados.nome = nome.value; salva();
+            var rot = row.querySelector(".lab-dropdown-label");
+            if (rot) rot.textContent = nome.value || "Personalizado…";
+          });
           var salvar = document.createElement("button");
           salvar.type = "button"; salvar.className = "ghost destaque";
           salvar.textContent = "Salvar na biblioteca";
@@ -1249,7 +1212,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 
         var ajuda = document.createElement("p");
         ajuda.className = "ajuda";
-        ajuda.textContent = "Valores por 100 g do rótulo. Outros sólidos = carboidratos menos açúcares, mais proteínas e fibras. O que faltar para 100 vira água.";
+        ajuda.textContent = "Valores por 100 g do rótulo. “Outros” são os sólidos que não são gordura nem açúcar: carboidratos menos açúcares, mais proteínas e fibras. O que faltar para 100 vira água.";
         box.appendChild(acoes); box.appendChild(ajuda);
         elLinhas.appendChild(box);
 
@@ -1283,6 +1246,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     var r = receita(estado.receitaAtual);
     if (r) return r.nome;
     if (estado.receitaAtual === "preset:gelato") return "Base branca de gelato";
+    if (estado.receitaAtual === "preset:icecream") return "Base branca de sorvete tradicional";
     if (estado.receitaAtual === "preset:sorbet") return "Sorbet de fruta";
     return "";
   }
@@ -1299,9 +1263,15 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     vazia.value = ""; vazia.textContent = "Abrir receita…";
     sel.appendChild(vazia);
 
+    var nova = document.createElement("option");
+    nova.value = "novo"; nova.textContent = "Nova receita";
+    sel.appendChild(nova);
+
     var gEx = document.createElement("optgroup");
     gEx.label = "Exemplos";
-    [["preset:gelato", "Base branca de gelato"], ["preset:sorbet", "Sorbet de fruta"]].forEach(function(cfg){
+    [["preset:gelato", "Base branca de gelato"],
+     ["preset:icecream", "Base branca de sorvete tradicional"],
+     ["preset:sorbet", "Sorbet de fruta"]].forEach(function(cfg){
       var o = document.createElement("option");
       o.value = cfg[0]; o.textContent = cfg[1];
       gEx.appendChild(o);
@@ -1405,6 +1375,12 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 
   function abreReceita(valor){
     if (!valor){ estado.receitaAtual = ""; desenhaReceitas(); salva(); return; }
+    if (valor === "novo"){
+      estado.linhas = [];
+      estado.receitaAtual = "";
+      render(); salva();
+      return;
+    }
     if (valor.indexOf("preset:") === 0){
       var pre = PRESETS[valor.slice(7)];
       if (!pre) return;
@@ -1419,7 +1395,6 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       estado.linhas = copiaLinhas(r.linhas);
       estado.receitaAtual = r.id;
     }
-    elTemp.value = estado.temp;
     aplicaEstilo();
     render(); salva();
   }
@@ -1505,22 +1480,6 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     elBib.appendChild(arquivo);
   }
 
-  // Traduz a diferença de PAC numa troca concreta de açúcar: cada grama de
-  // sacarose que vira dextrose soma cerca de 7,5 pontos de PAC por quilo.
-  function comoAjustar(d, direcao){
-    var pontos = Math.abs(Math.round(d.faltaPAC));
-    var gramas = Math.round(Math.abs(d.faltaPAC) / 7.5);
-    var verbo = direcao === "amaciar" ? "subir" : "reduzir";
-    if (pontos < 8){
-      return "Está quase lá: " + verbo + " uns <b>" + pontos + " pontos de PAC</b> já resolve.";
-    }
-    var troca = direcao === "amaciar"
-      ? "troque cerca de " + gramas + " g de sacarose por dextrose"
-      : "troque cerca de " + gramas + " g de dextrose por sacarose";
-    return "Para " + direcao + ", " + verbo + " o PAC em <b>" + pontos + " pontos</b>: " +
-           troca + ", ou mexa nos açúcares na mesma direção.";
-  }
-
   // Preserva a posição anterior dos marcadores mesmo quando os gráficos são recriados.
   var posicoesAnteriores = null;
   function capturaMarcadores(){
@@ -1574,16 +1533,15 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     var anteriores = capturaMarcadores();
     var faixasAnteriores = capturaFaixas();
     var r = calcula();
+    document.getElementById("cxPeso").classList.toggle("sem-peso", !r.peso);
     var alvo = ALVOS[estado.estilo];
     if (document.activeElement !== elPeso){
       elPeso.value = Math.round(r.peso * 10) / 10;
     }
 
     if (!r.peso){
-      elMetricas.innerHTML = '<p class="empty">A composição aparece aqui assim que a mistura tiver peso. Para reescalar pelo peso total, a receita precisa ter alguma quantidade.</p>';
+      elMetricas.innerHTML = '<p class="empty">A composição aparece aqui assim que a receita tiver algum ingrediente com quantidade.</p>';
       elAvisos.innerHTML = "";
-      elDureza.innerHTML = "";
-      elSugestao.textContent = "";
       salva(); return;
     }
 
@@ -1594,6 +1552,8 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       linhaMetrica("Sólidos totais", r.sol, alvo.sol, ESCALA.sol, "%") +
       linhaMetrica("POD (doçura)", r.pod, alvo.pod, ESCALA.pod, "", 0) +
       linhaMetrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0) +
+      (pontoCongelamento(r) === null ? "" :
+        linhaMetrica("Ponto de congelamento", pontoCongelamento(r), ALVO_FP, ESCALA.fp, " °C", 2)) +
       '<div class="water-summary" aria-label="Água na mistura">' +
       '<span class="water-summary-label">Água na mistura</span>' +
       '<span class="water-summary-value num">' + n(r.agua) + '%</span></div>';
@@ -1608,44 +1568,6 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       elAvisos.appendChild(li);
     });
 
-    var d = dureza(r, estado.temp);
-    if (!d){
-      elDureza.innerHTML = '<p class="empty">Sem água na mistura não há o que congelar.</p>';
-      elSugestao.textContent = "";
-    } else {
-      var veredito, conselho;
-
-      if (d.wf === undefined){
-        veredito = "Ainda líquida a " + n(estado.temp, 0) + " °C";
-        conselho = "A receita só começa a congelar a <b>" + n(d.fp) + " °C</b>.";
-      } else if (d.fp < ALVO_FP[0]){
-        veredito = "Mais mole que o ideal";
-        conselho = comoAjustar(d, "firmar");
-      } else if (d.fp > ALVO_FP[1]){
-        veredito = "Mais firme que o ideal";
-        conselho = comoAjustar(d, "amaciar");
-      } else {
-        veredito = "No ponto de servir";
-        conselho = "A receita está na faixa boa para essa temperatura: " + n(d.wf, 0) +
-          "% da água congelada é o que dá a textura de colher.";
-      }
-
-      var linhas = '<p class="veredito">' + veredito + '</p>' +
-        linhaMetrica("Ponto de congelamento", d.fp, ALVO_FP, ESCALA.fp, " °C");
-
-      if (d.wf === undefined){
-        linhas += '<div class="metric"><div class="head"><span class="name">Água congelada</span>' +
-          '<span class="val num">—</span><span class="alvo"></span></div></div>';
-      } else if (d.wfFaixa){
-        linhas += linhaMetrica("Água congelada", d.wf, d.wfFaixa, ESCALA.wf, "%", 0);
-      } else {
-        linhas += '<div class="metric"><div class="head"><span class="name">Água congelada</span>' +
-          '<span class="val num">' + n(d.wf, 0) + '%</span><span class="alvo"></span></div></div>';
-      }
-
-      elDureza.innerHTML = linhas;
-      elSugestao.innerHTML = conselho;
-    }
     salva();
   }
 
@@ -1701,6 +1623,14 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     });
     posicionaPill();
   }
+  function atualizaRolagem(){
+    var sobra = seletorEstilo.scrollWidth - seletorEstilo.clientWidth - seletorEstilo.scrollLeft;
+    seletorEstilo.classList.toggle('rola', sobra > 2);
+  }
+  seletorEstilo.addEventListener('scroll', atualizaRolagem, {passive:true});
+  window.addEventListener('resize', atualizaRolagem);
+  atualizaRolagem();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(atualizaRolagem);
   window.addEventListener('resize', posicionaPill);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(posicionaPill);
 
@@ -1750,19 +1680,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     atualiza();
   }, "o peso total"));
 
-  document.getElementById("cxTemp").appendChild(criaPasso(function(dir){
-    var nova = Math.min(-2, Math.max(-25, estado.temp + dir));
-    estado.temp = nova;
-    elTemp.value = nova;
-    atualiza();
-  }, "a temperatura"));
 
-  elTemp.addEventListener("input", function(){
-    var v = Number(elTemp.value);
-    if (elTemp.value === "" || !isFinite(v) || v >= 0) return;
-    estado.temp = v;
-    atualiza();
-  });
 
   document.getElementById("adicionar").addEventListener("click", function(){
     estado.linhas.push({id:"leite", g:0});
@@ -1779,7 +1697,6 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     estado.estilo = PRESETS.gelato.estilo;
     estado.linhas = PRESETS.gelato.linhas.map(function(l){ return {id:l.id, g:l.g}; });
   }
-  elTemp.value = estado.temp;
   aplicaEstilo();
   render();
 })();
