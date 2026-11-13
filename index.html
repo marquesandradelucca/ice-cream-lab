@@ -18,6 +18,7 @@
   --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper));
   --band:var(--muted);
   --signal:#1B1D1B;
+  --st-ok:#4D916A;
   --st-atencao:#B07F2C;
   --st-critico:#A94F45;
   /* Escala de espaçamento: só múltiplos de 4. Cada degrau tem um papel.
@@ -41,14 +42,14 @@
     color-scheme: dark;
     --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
     --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
-    --st-atencao:#D9A94F; --st-critico:#E08A7E;
+    --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
   --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
   --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
-    --st-atencao:#D9A94F; --st-critico:#E08A7E;
+    --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
 }
 *,*::before,*::after{box-sizing:inherit}
 html{-webkit-text-size-adjust:100%; scroll-padding-top: env(safe-area-inset-top, 0px)}
@@ -86,7 +87,7 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 .seg button:hover:not([aria-pressed="true"]){color:var(--ink)}
 
 /* Título da lista: o que está aberto agora. */
-.receita-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-2) var(--sp-4); margin-bottom:var(--esp-s)}
+.receita-head{display:flex; flex-wrap:nowrap; align-items:baseline; gap:var(--sp-2) var(--sp-4); margin-bottom:var(--esp-s)}
 .nome-receita{font-size:1rem; font-weight:500; color:var(--ink); margin:0; flex:0 1 auto}
 .nome-receita.sem-nome{color:var(--muted); font-weight:400}
 .nome-receita-edit{
@@ -269,20 +270,15 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 
 .notes{margin:var(--esp) 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--sp-2)}
 .notes li{font-size:.9rem; line-height:1.5; color:var(--muted); padding-left:var(--sp-4); position:relative; max-width:52ch}
-.notes li::before{content:""; position:absolute; left:0; top:.62em; width:5px; height:5px; background:var(--ink)}
-.notes li.ok::before{background:none; border:1px solid var(--muted)}
-/* Indicadores discretos de estado; o texto continua informativo sem cor. */
-.notes li.status-ok::before{background:var(--muted); border:0; border-radius:50%; width:7px; height:7px; top:.55em}
-.notes li.status-atencao::before{background:var(--st-atencao); border:0; border-radius:50%; width:7px; height:7px; top:.55em}
-.notes li.status-critico::before{background:var(--st-critico); border:0; border-radius:50%; width:7px; height:7px; top:.55em}
-/* Símbolos convencionais em vez de pontos coloridos. */
-.notes li.status-ok::before,.notes li.status-atencao::before,.notes li.status-critico::before{
-  width:12px;height:auto;top:0;background:none;border:0;border-radius:0;
-  font-size:13px;font-weight:500;line-height:1.5;
+/* Estado: uma bolinha que muda de cor (verde, amarelo ou vermelho). A frase ao lado diz
+   a mesma coisa em palavras, então a cor não é a única informação. */
+.notes li::before{
+  content:""; position:absolute; left:0; top:calc((1.5em - var(--sp-2)) / 2);
+  width:var(--sp-2); height:var(--sp-2); border-radius:50%; background:var(--muted);
 }
-.notes li.status-ok::before{content:"✓";color:var(--muted)}
-.notes li.status-atencao::before{content:"!";color:var(--st-atencao)}
-.notes li.status-critico::before{content:"×";color:var(--st-critico)}
+.notes li.status-ok::before{background:var(--st-ok)}
+.notes li.status-atencao::before{background:var(--st-atencao)}
+.notes li.status-critico::before{background:var(--st-critico)}
 /* O número acompanha o marcador e usa a mesma cor sem colorir a faixa de referência. */
 .metric .bar{margin-top:var(--sp-6)}
 .bar .mark{background:var(--ink)}
@@ -446,6 +442,10 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 #ingredientes .receita-head{gap:var(--sp-1) var(--sp-4);margin-bottom:var(--sp-2);align-items:center;min-height:var(--ctl)}
 #ingredientes .nome-receita,
 #ingredientes .nome-receita.sem-nome{margin:0;color:var(--ink);font-size:var(--type-body);font-weight:500}
+/* Uma linha só: se o nome não couber ao lado dos botões, ele é que encurta. */
+#ingredientes .nome-receita{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#ingredientes .receita-head .ghost{flex:none; white-space:nowrap}
+#ingredientes .nome-receita-edit{flex:1 1 auto; min-width:0; width:auto}
 #ingredientes .receita-head .ghost{color:var(--muted);text-decoration-color:var(--muted)}
 #ingredientes .receita-head .ghost:hover{color:var(--ink)}
 #ingredientes .row,
@@ -1285,7 +1285,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     var r = receita(estado.receitaAtual);
     if (r) return r.nome;
     if (estado.receitaAtual === "preset:gelato") return "Base branca de gelato";
-    if (estado.receitaAtual === "preset:icecream") return "Base branca de sorvete tradicional";
+    if (estado.receitaAtual === "preset:icecream") return "Base branca de sorvete";
     if (estado.receitaAtual === "preset:sorbet") return "Sorbet de fruta";
     return "";
   }
@@ -1309,7 +1309,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     var gEx = document.createElement("optgroup");
     gEx.label = "Exemplos";
     [["preset:gelato", "Base branca de gelato"],
-     ["preset:icecream", "Base branca de sorvete tradicional"],
+     ["preset:icecream", "Base branca de sorvete"],
      ["preset:sorbet", "Sorbet de fruta"]].forEach(function(cfg){
       var o = document.createElement("option");
       o.value = cfg[0]; o.textContent = cfg[1];
@@ -1342,6 +1342,7 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
     var h = document.createElement("h2");
     h.className = "nome-receita" + (nome ? "" : " sem-nome");
     h.textContent = nome || "Receita sem nome";
+    if (nome) h.title = nome;
     elCabecalho.appendChild(h);
 
     var salvar = document.createElement("button");
