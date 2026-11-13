@@ -28,8 +28,9 @@
      4  dentro de um bloco: título e conteúdo, partes de um cartão
      5  padding de cartão
      6  margem lateral da página
-     7  entre blocos: colunas, fileiras, cabeçalho e rodapé */
-  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px;
+     7  entre blocos dentro de uma coluna e entre o conteúdo e o rodapé
+     8  entre as grandes áreas: o topo e as colunas, e entre as duas colunas */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px; --sp-8:56px;
   --esp:var(--sp-7);
   --esp-s:var(--sp-4);
   --ctl:40px;        /* altura de todo controle: botão, pílula, linha de ingrediente */
@@ -63,10 +64,10 @@ body{
 .wrap{max-width:940px; margin:0 auto; padding:var(--sp-7) var(--sp-6) calc(var(--sp-7) * 2)}
 @media (max-width:620px){.wrap{padding:var(--sp-7) var(--sp-4) calc(var(--sp-7) * 2)}}
 
-header.top{margin-bottom:var(--esp)}
+header.top{margin-bottom:var(--sp-8)}
 h1{font-size:1.45rem; font-weight:600; letter-spacing:-.02em; margin:0}
 header.top .sub{font-size:1.05rem; font-weight:500; color:var(--ink); margin:var(--sp-3) 0 var(--sp-2)}
-header.top p{margin:0; color:var(--muted); max-width:56ch}
+header.top p{margin:0; color:var(--muted)}
 
 /* Estilos: seleção discreta em cinza, sem sublinhado. */
 .seg{display:inline-flex; position:relative; align-items:center; gap:var(--sp-1); isolation:isolate;
@@ -110,7 +111,7 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
   display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
   grid-template-areas:"abrir composicao" "ingredientes composicao" "apoio composicao";
   grid-template-rows:auto auto 1fr;
-  align-content:start; column-gap:var(--esp); row-gap:var(--esp); align-items:start;
+  align-content:start; column-gap:var(--sp-8); row-gap:var(--esp); align-items:start;
 }
 /* A coluna da direita corre de cima para baixo (título, estilos, barras) e não
    depende das fileiras da esquerda. */
@@ -134,7 +135,11 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 #ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
 @media(max-width:760px){#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}}
 @media(max-width:440px){#ingredientes{padding:var(--sp-4)}#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}}
+@media (max-width:900px){
+  .cols{column-gap:var(--esp)}
+}
 @media (max-width:760px){
+  header.top{margin-bottom:var(--esp)}
   .cols{grid-template-columns:minmax(0,1fr); grid-template-areas:"abrir" "ingredientes" "composicao" "apoio"; grid-template-rows:auto; row-gap:var(--esp)}
   .row,.linha-total{grid-template-columns:minmax(0,1fr) auto; gap:var(--sp-2)}
 }
@@ -301,7 +306,7 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .explica{margin:0 0 var(--esp-s); font-size:.8rem; line-height:1.5; color:var(--muted); max-width:52ch}
 
 .notas{
-  color:var(--muted); font-size:.8rem; line-height:1.65; max-width:76ch;
+  color:var(--muted); font-size:.8rem; line-height:1.65;
 }
 .notas summary{
   cursor:pointer; list-style:none; font-size:.9rem; color:var(--muted);
@@ -316,14 +321,14 @@ select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
 .notas summary:hover{color:var(--ink)}
 .notas p{margin:var(--sp-4) 0 0}
 /* Créditos: uma linha discreta no fim, com o espaço padrão entre blocos acima. */
+/* Créditos: os itens se distribuem de ponta a ponta, do canto esquerdo da coluna da esquerda
+   ao canto direito da coluna da direita. O espaço entre eles já separa, sem pontinhos. */
 .creditos{
-  margin-top:var(--esp); display:flex; flex-wrap:wrap; align-items:baseline;
-  gap:var(--sp-1) var(--sp-3); color:var(--muted);
+  margin-top:var(--sp-8); display:flex; justify-content:space-between; align-items:baseline;
+  gap:var(--sp-3); color:var(--muted);
 }
-/* Cada separador pertence ao item que ele introduz, para sumir junto com ele. */
-.creditos .marca::after{content:"·"; margin-left:var(--sp-3)}
-.creditos .ghost::before,.creditos .versao::before{content:"·"; margin-right:var(--sp-3); color:var(--muted); text-decoration:none; display:inline-block}
 .creditos .ghost{font-size:inherit; padding:0}
+@media(max-width:760px){.creditos{margin-top:var(--esp)}}
 @media(max-width:520px){.creditos .marca{display:none}}
 
 @media (max-width:760px){
@@ -552,11 +557,11 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 </div>
 
 <footer class="creditos">
-  <span class="marca">Ice Cream Lab</span>
-  <span class="autor">© 2026 Lucca Marques</span>
-  <button type="button" class="ghost" id="verFontes">fontes</button>
-  <span class="versao">v1.0</span>
-</footer>
+    <span class="marca">Ice Cream Lab</span>
+    <span class="autor">© 2026 Lucca Marques</span>
+    <button type="button" class="ghost" id="verFontes">fontes</button>
+    <span class="versao">v1.0</span>
+  </footer>
 
 </div>
 
