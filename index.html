@@ -12,9 +12,10 @@
   color-scheme: light;
   --paper:#FCFCFA;
   --ink:#1B1D1B;
-  --muted:#686E68; /* cinza único para textos secundários */
+  --muted:#686E68; /* cinza de texto */
   --line:#E5E5DE;
-  --band:#B9B9AC;
+  --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper));
+  --band:var(--muted);
   --signal:#1B1D1B;
   --esp:28px;        /* espaço entre blocos */
   --esp-s:14px;      /* espaço dentro de um bloco */
@@ -26,13 +27,13 @@
   :root:not([data-theme="light"]){
     color-scheme: dark;
     --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
-    --line:#282B27; --band:#565B52; --signal:#EAEBE7;
+    --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
   --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
-  --line:#282B27; --band:#565B52; --signal:#EAEBE7;
+  --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
 }
 *,*::before,*::after{box-sizing:inherit}
 html{-webkit-text-size-adjust:100%; scroll-padding-top: env(safe-area-inset-top, 0px)}
@@ -103,11 +104,19 @@ header.top p{margin:0; color:var(--muted); max-width:56ch}
 .ghost:hover{color:var(--ink); text-decoration:underline; text-decoration-color:var(--ink)}
 
 .cols{
-  display:grid; grid-template-columns:minmax(0,.88fr) minmax(0,1fr);
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
   grid-template-areas:"ingredientes composicao" "ingredientes dureza";
-  align-content:start; column-gap:calc(var(--esp) * 1.75); row-gap:var(--esp); align-items:start;
+  align-content:start; column-gap:var(--esp); row-gap:var(--esp); align-items:start;
 }
 #ingredientes{grid-area:ingredientes; align-self:start}
+/* Superfície de edição: cinza muito claro, sem sombra nem borda marcada.
+   Padding e grade calibrados para não comprimir os controles. */
+#ingredientes{border:1px solid transparent;border-radius:12px;padding:16px;background:var(--edit-surface);min-width:0}
+#ingredientes .row{grid-template-columns:minmax(0,1fr) 80px 12px 20px;gap:7px}
+#ingredientes .qtd{width:80px}
+#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 80px 12px 20px;gap:7px}
+@media(max-width:760px){#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 84px 12px 20px;gap:8px}#ingredientes .qtd{width:84px}}
+@media(max-width:440px){#ingredientes{padding:14px}#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 70px 10px 18px;gap:6px}#ingredientes .qtd{width:70px}}
 #resultado{grid-area:composicao}
 .dureza{grid-area:dureza}
 @media (max-width:760px){
@@ -400,6 +409,63 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
 #ingredientes .un,
 #ingredientes .rotulo-total,
 #ingredientes .total input[type="number"]{color:var(--muted)}
+
+/* Refinamento do frame: apenas dois cinzas-base (texto e estrutura).
+   Superfície e faixa são misturas dos mesmos tokens, não novas cores. */
+#ingredientes{
+  padding:20px;
+  border:0;
+  background:var(--edit-surface);
+}
+#ingredientes .receita-head{gap:4px 16px;margin-bottom:0;align-items:baseline}
+#ingredientes .nome-receita,
+#ingredientes .nome-receita.sem-nome{color:var(--ink);font-size:var(--type-body);font-weight:500}
+#ingredientes .receita-head .ghost{color:var(--muted);text-decoration-color:var(--muted)}
+#ingredientes .receita-head .ghost:hover{color:var(--ink)}
+#ingredientes .row,
+#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 88px 12px 18px;gap:8px}
+#ingredientes .qtd{width:88px;min-width:0}
+#ingredientes .row .lab-dropdown{min-width:0}
+#ingredientes .rows{gap:2px}
+#ingredientes .add{margin-top:12px}
+#ingredientes .linha-total{margin-top:12px}
+/* Faixas sem uma terceira cor de cinza: transparência do cinza tipográfico. */
+.bar .band{background:color-mix(in srgb, var(--muted) 43%, var(--line))}
+/* Mesma densidade relativa entre os indicadores, sem comprimir a altura geral. */
+#resultado .metric{padding-bottom:6px}
+/* Água é um dado-resumo, deliberadamente sem faixa nem status. */
+.water-summary{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  margin-top:18px;padding-top:0;border-top:0;
+}
+.water-summary-label{color:var(--muted);font-size:var(--type-body);font-weight:400}
+.water-summary-value{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:4px 13px;border-radius:999px;background:var(--edit-surface);color:var(--ink);font-size:var(--type-body);font-weight:500;line-height:1.4}
+@media(max-width:760px){
+  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 88px 12px 18px;gap:8px}
+}
+@media(max-width:440px){
+  #ingredientes{padding:16px}
+  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) 70px 10px 16px;gap:6px}
+  #ingredientes .qtd{width:70px}
+}
+
+
+/* Campos de edição sem sublinhado: a hierarquia fica por conta do espaçamento
+   e o foco continua visível pelo outline de acessibilidade. */
+#ingredientes .lab-dropdown-trigger,
+#ingredientes .lab-dropdown-trigger:hover,
+#ingredientes .lab-dropdown.open .lab-dropdown-trigger,
+#ingredientes select,
+#ingredientes select:hover,
+#ingredientes input[type="number"],
+#ingredientes input[type="number"]:hover,
+#ingredientes .qtd,
+#ingredientes .qtd:hover,
+#ingredientes .qtd:focus-within,
+#ingredientes .row:focus-within select {
+  border-bottom: 0;
+}
+
 </style>
 </head>
 <body>
@@ -1528,8 +1594,9 @@ html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) 
       linhaMetrica("Sólidos totais", r.sol, alvo.sol, ESCALA.sol, "%") +
       linhaMetrica("POD (doçura)", r.pod, alvo.pod, ESCALA.pod, "", 0) +
       linhaMetrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0) +
-      '<div class="metric"><div class="head"><span class="name">Água</span>' +
-      '<span class="val num">' + n(r.agua) + '%</span><span class="alvo"></span></div></div>';
+      '<div class="water-summary" aria-label="Água na mistura">' +
+      '<span class="water-summary-label">Água na mistura</span>' +
+      '<span class="water-summary-value num">' + n(r.agua) + '%</span></div>';
     animaMarcadores(anteriores);
     animaFaixas(faixasAnteriores);
 
