@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="author" content="Lucca Marques" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍦%3C/text%3E%3C/svg%3E" />
+<title>Ice Cream Lab — Calculadora de Mistura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#FCFCFA;
+  --ink:#1B1D1B;
+  --muted:#686E68; /* cinza de texto */
+  --line:#E5E5DE;
+  --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper));
+  --band:var(--muted);
+  --signal:#1B1D1B;
+  --st-ok:#4D916A;
+  --st-atencao:#B07F2C;
+  --st-critico:#A94F45;
+  /* Escala de espaçamento: só múltiplos de 4. Cada degrau tem um papel.
+     1  micro: ícone e texto, setas, rótulo sobre campo
+     2  entre controles do mesmo grupo, itens de lista
+     3  padding horizontal de botões e pílulas, ações em linha
+     4  dentro de um bloco: título e conteúdo, partes de um cartão
+     5  padding de cartão
+     6  margem lateral da página
+     7  entre blocos dentro de uma coluna e entre o conteúdo e o rodapé
+     8  entre as grandes áreas: o topo e as colunas, e entre as duas colunas */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px; --sp-8:56px;
+  --esp:var(--sp-7);
+  --esp-s:var(--sp-4);
+  --ctl:40px;        /* altura de todo controle: botão, pílula, linha de ingrediente */
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
+    --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
+    --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6;
+  --line:#282B27; --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper)); --band:var(--muted); --signal:#EAEBE7;
+    --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%; scroll-padding-top: env(safe-area-inset-top, 0px)}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:14px; line-height:1.6; letter-spacing:-.005em;
+  -webkit-font-smoothing:antialiased;
+}
+.num, input[type="number"]{font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1}
+.wrap{max-width:940px; margin:0 auto; padding:var(--sp-7) var(--sp-6) calc(var(--sp-7) * 2)}
+@media (max-width:620px){.wrap{padding:var(--sp-7) var(--sp-4) calc(var(--sp-7) * 2)}}
+
+header.top{margin-bottom:var(--sp-8)}
+h1{font-size:1.45rem; font-weight:600; letter-spacing:-.02em; margin:0}
+header.top .sub{font-size:1.05rem; font-weight:500; color:var(--ink); margin:var(--sp-3) 0 var(--sp-2)}
+header.top p{margin:0; color:var(--muted)}
+
+/* Estilos: seleção discreta em cinza, sem sublinhado. */
+.seg{display:inline-flex; position:relative; align-items:center; gap:var(--sp-1); isolation:isolate;
+  flex-wrap:nowrap; max-width:100%; min-width:0; overflow-x:auto; scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg.rola{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);
+  mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent)}
+.seg button{white-space:nowrap}
+.seg .pill-indicator{position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--line); z-index:-1; pointer-events:none; transition:transform 360ms cubic-bezier(.22,1,.36,1),width 360ms cubic-bezier(.22,1,.36,1)}
+.seg button{
+  font:inherit; font-size:.92rem; color:var(--muted); background:transparent;
+  border:0; border-radius:999px; padding:0 var(--sp-3); cursor:pointer;
+  position:relative; transition:color 225ms ease;
+  display:inline-flex; align-items:center; min-height:var(--ctl);
+}
+.seg button[aria-pressed="true"]{color:var(--ink)}
+.seg:not(.pill-ready) button[aria-pressed="true"]{background:var(--line)}
+.seg button:hover:not([aria-pressed="true"]){color:var(--ink)}
+
+/* Título da lista: o que está aberto agora. */
+.receita-head{display:flex; flex-wrap:nowrap; align-items:baseline; gap:var(--sp-2) var(--sp-4); margin-bottom:var(--esp-s)}
+.nome-receita{font-size:1rem; font-weight:500; color:var(--ink); margin:0; flex:0 1 auto}
+.nome-receita.sem-nome{color:var(--muted); font-weight:400}
+.nome-receita-edit{
+  font:inherit; font-size:1rem; color:var(--ink); background:transparent;
+  border:0; border-bottom:1px solid var(--line); padding:var(--sp-1) 0; width:220px;
+}
+.receita-head .ghost{font-size:.85rem; color:var(--ink); font-weight:400; text-decoration-color:var(--muted)}
+
+/* Ação destrutiva: menor e mais apagada que o resto. */
+.grupo{display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-1) var(--sp-3); min-width:0; max-width:100%}
+
+.ghost{
+  font:inherit; font-size:.92rem; background:none; color:var(--muted);
+  border:0; padding:var(--sp-1) 0; cursor:pointer; text-underline-offset:3px;
+  text-decoration:underline; text-decoration-color:var(--line);
+}
+.ghost:hover{color:var(--ink); text-decoration:underline; text-decoration-color:var(--ink)}
+
+.cols{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-areas:"abrir composicao" "ingredientes composicao" "apoio composicao";
+  grid-template-rows:auto auto 1fr;
+  align-content:start; column-gap:var(--sp-8); row-gap:var(--esp); align-items:start;
+}
+/* A coluna da direita corre de cima para baixo (título, estilos, barras) e não
+   depende das fileiras da esquerda. */
+#grupoReceitas{grid-area:abrir; justify-self:start; min-width:0}
+#resultado{grid-area:composicao; align-self:start; min-width:0}
+/* Salvos e notas: logo abaixo do cartão, na mesma coluna, com o espaço padrão entre blocos.
+   Entre os dois itens, que são do mesmo assunto, vale o espaço de dentro de um bloco. */
+.apoio{grid-area:apoio; align-self:start; min-width:0; display:flex; flex-direction:column; gap:var(--sp-4)}
+#resultado .comp-titulo{font-size:var(--type-heading,1.14rem); font-weight:500; color:var(--ink); margin:0 0 var(--sp-4); letter-spacing:0}
+/* Os três estilos se distribuem pela largura da coluna, e a pílula da esquerda avança
+   um pouco além da borda para que o texto dela fique visualmente alinhado ao título. */
+#resultado .seg{
+  display:flex; width:100%; justify-content:space-between;
+  margin:0 0 var(--sp-7) -6px;
+}
+#ingredientes{grid-area:ingredientes; align-self:start}
+/* Superfície de edição: cinza muito claro, sem sombra nem borda marcada.
+   Padding e grade calibrados para não comprimir os controles. */
+#ingredientes{--card-pad:var(--sp-5);border:1px solid transparent;border-radius:12px;padding:var(--sp-4);background:var(--edit-surface);min-width:0}
+#ingredientes .row{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+@media(max-width:760px){#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}}
+@media(max-width:440px){#ingredientes{padding:var(--sp-4)}#ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}}
+@media (max-width:900px){
+  .cols{column-gap:var(--esp)}
+}
+@media (max-width:760px){
+  header.top{margin-bottom:var(--esp)}
+  .cols{grid-template-columns:minmax(0,1fr); grid-template-areas:"abrir" "ingredientes" "composicao" "apoio"; grid-template-rows:auto; row-gap:var(--esp)}
+  .row,.linha-total{grid-template-columns:minmax(0,1fr) auto; gap:var(--sp-2)}
+}
+#resultado{padding-top:0}
+@media (min-width:761px){
+  #resultado{padding-top:0; border-top:0}
+}
+
+.panel h2{
+  font-size:.95rem; font-weight:500; color:var(--ink);
+  margin:0 0 var(--esp-s); letter-spacing:0;
+}
+
+.rows{display:flex; flex-direction:column; gap:0}
+.row{position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--sp-3); align-items:center}
+.passo{position:relative; z-index:1; display:flex; flex-direction:column; gap:var(--sp-1); padding-bottom:0; margin-right:-6px}
+.passo button{
+  width:15px; height:11px; padding:0; border:0; background:none; cursor:pointer;
+  color:var(--muted); display:flex; align-items:center; justify-content:center; line-height:1;
+}
+.passo button::before{content:""; border-left:4px solid transparent; border-right:4px solid transparent}
+.passo button.mais::before{border-bottom:5px solid currentColor}
+.passo button.menos::before{border-top:5px solid currentColor}
+/* Área clicável maior sem aumentar a altura das linhas. */
+.passo button{width:20px; height:16px; margin:-2px 0; touch-action:manipulation}
+.passo button:hover,.passo button:focus-visible{color:var(--ink)}
+.passo button:active{opacity:.55}
+select,input[type="number"]{
+  font:inherit; line-height:24px; color:var(--ink); background:transparent;
+  border:0; border-bottom:1px solid var(--line); border-radius:0;
+  padding:var(--sp-2) 0; width:100%; min-width:0;
+}
+select{appearance:none; -webkit-appearance:none; padding-right:var(--sp-4);
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:right 5px center, right 1px center; background-size:4px 4px, 4px 4px;
+  background-repeat:no-repeat; color:var(--ink);
+}
+input[type="number"]{text-align:right; -moz-appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+select:hover,input[type="number"]:hover{border-bottom-color:var(--muted)}
+.qtd{display:flex; align-items:center; gap:var(--sp-1); border-bottom:1px solid var(--line); width:94px}
+.qtd:hover{border-bottom-color:var(--muted)}
+.qtd:focus-within{border-bottom-color:var(--ink)}
+.row:focus-within select{border-bottom-color:var(--muted)}
+.qtd input[type="number"]{border-bottom:0; flex:1; min-width:0}
+.qtd input[type="number"]:hover{border-bottom-color:transparent}
+/* O × mora na folga lateral do cartão, não numa coluna da linha: assim a coluna
+   da direita termina na mesma distância da borda que a da esquerda começa. */
+.row .del{
+  position:absolute; top:0; bottom:0; right:calc(var(--card-pad, var(--sp-5)) * -1 + 2px);
+  width:calc(var(--card-pad, var(--sp-5)) - 4px);
+  display:flex; align-items:center; justify-content:center;
+  border:0; background:none; color:transparent; font-size:1.05rem; line-height:1; cursor:pointer; padding:0;
+}
+.row:hover .del,.row:focus-within .del{color:var(--muted)}
+.row .del:hover{color:var(--ink)}
+
+.custom{
+  margin:var(--sp-2) 0 var(--esp-s); padding:var(--sp-4); border-radius:12px; background:var(--paper);
+}
+.custom .nome{
+  font:inherit; color:var(--ink); background:var(--edit-surface); width:100%;
+  border:0; border-radius:8px; padding:var(--sp-2) var(--sp-3);
+}
+.custom .nome:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+.sem-peso .passo{visibility:hidden}
+.custom .campos{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--sp-3); margin-top:var(--sp-3)}
+.custom .campo{display:flex; flex-direction:column; gap:var(--sp-1); min-width:0}
+.custom .campo span{font-size:.73rem; color:var(--muted); white-space:nowrap}
+.custom .campo input{width:100%; background:var(--edit-surface); border-radius:8px; padding:var(--sp-2) var(--sp-3); text-align:right}
+.custom .agua-calc{grid-column:1 / -1; font-size:.78rem; color:var(--muted)}
+.custom .agua-calc.erro{color:var(--st-critico)}
+.custom .acoes{display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-3) var(--sp-4); margin-top:var(--sp-4)}
+.custom .ghost.destaque{
+  color:var(--ink); border:1px solid var(--ink); border-radius:999px;
+  padding:var(--sp-2) var(--sp-3); text-decoration:none; font-weight:500;
+}
+.custom .ghost.destaque:hover{background:var(--ink); color:var(--paper)}
+.resumo{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-3);
+  margin:0 0 var(--sp-3); padding-left:0;
+  font-size:.78rem; color:var(--muted);
+}
+.resumo .ghost{font-size:.78rem}
+.bib{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-3);
+  font-size:.8rem; color:var(--muted);
+}
+.bib .ghost{font-size:.78rem}
+.custom .ajuda{margin:var(--sp-3) 0 0; font-size:.75rem; line-height:1.5; color:var(--muted); max-width:46ch}
+/* O botão e o total seguem a mesma grade das linhas, para o número do total
+   cair exatamente embaixo das quantidades. */
+/* Ação primária compacta, sem ocupar toda a largura da coluna. */
+.add{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:auto; min-height:var(--ctl); margin-top:var(--sp-4); margin-bottom:0;
+  font:inherit; font-size:.92rem; font-weight:500;
+  background:var(--ink); color:var(--paper);
+  border:1px solid var(--ink); border-radius:999px;
+  padding:0 var(--sp-3); cursor:pointer;
+  transition:opacity .15s ease;
+}
+.add:hover{opacity:.86}
+.add:active{opacity:.7}
+
+.linha-total{
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:var(--sp-3);
+  align-items:center; margin-top:var(--sp-7);
+}
+.rotulo-total{color:var(--muted); font-size:.92rem}
+.un{flex:none; color:var(--muted); font-size:.82rem}
+.total{display:inline-flex; align-items:center; gap:var(--sp-2); color:var(--muted); font-size:.92rem}
+.total .qtd{width:auto}
+.qtd-min{width:94px}
+.qtd-temp{width:68px}
+.empty{color:var(--muted); font-size:.92rem; margin:var(--sp-2) 0 0; max-width:46ch}
+
+.metric{padding:0 0 var(--sp-2)}
+.metric .head{display:flex; align-items:baseline; gap:var(--sp-3)}
+.metric .name{flex:1; color:var(--muted); font-size:.92rem; font-weight:400}
+.metric .val{font-size:.92rem; font-weight:500}
+.metric .alvo{color:var(--muted); font-size:.76rem; font-weight:400; min-width:72px; text-align:right}
+.metric.out .val{font-weight:600}
+.metric.out .alvo{color:var(--ink)}
+/* Estado fora da faixa: sinalização textual, sem alterar as barras originais. */
+.metric .situacao{font-size:.72rem; font-weight:400; color:var(--muted); margin-left:var(--sp-2); white-space:nowrap}
+.metric.out .situacao{color:var(--ink)}
+.bar{position:relative; height:3px; margin-top:var(--sp-2); background:var(--line)}
+.bar .band{position:absolute; inset:0 auto; top:0; bottom:0; background:var(--band)}
+.bar .mark{position:absolute; top:-3px; width:2px; height:9px; background:var(--ink)}
+.metric.out .bar .mark{width:3px; height:11px; top:-4px}
+
+.aviso-estab{margin:var(--sp-4) 0 0; font-size:var(--type-small, .857rem); line-height:1.5; color:var(--muted)}
+.notes{margin:var(--esp) 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--sp-2)}
+.notes li{font-size:.9rem; line-height:1.5; color:var(--muted); padding-left:var(--sp-4); position:relative; max-width:52ch}
+/* Estado: uma bolinha que muda de cor (verde, amarelo ou vermelho). A frase ao lado diz
+   a mesma coisa em palavras, então a cor não é a única informação. */
+.notes li::before{
+  content:""; position:absolute; left:0; top:calc((1.5em - var(--sp-2)) / 2);
+  width:var(--sp-2); height:var(--sp-2); border-radius:50%; background:var(--muted);
+}
+.notes li.status-ok::before{background:var(--st-ok)}
+.notes li.status-atencao::before{background:var(--st-atencao)}
+.notes li.status-critico::before{background:var(--st-critico)}
+/* O número acompanha o marcador e usa a mesma cor sem colorir a faixa de referência. */
+.metric .bar{margin-top:var(--sp-6)}
+.bar .mark{background:var(--ink)}
+.bar .mark.status-ok{background:var(--ink)}
+.bar .mark.status-atencao{background:var(--st-atencao)}
+.bar .mark.status-critico{background:var(--st-critico)}
+.bar .mark-label{
+  position:absolute;left:50%;bottom:10px;transform:translateX(-50%);
+  color:inherit;white-space:nowrap;font-size:var(--type-body, 1rem);
+  font-weight:400;line-height:1.3;pointer-events:none;
+}
+.bar .mark.status-ok{color:var(--ink)}
+.bar .mark.status-atencao{color:var(--st-atencao)}
+.bar .mark.status-critico{color:var(--st-critico)}
+.bar .mark.inicio .mark-label{left:0;transform:none}
+.bar .mark.fim .mark-label{left:0;transform:translateX(-100%)}
+
+
+
+.explica{margin:0 0 var(--esp-s); font-size:.8rem; line-height:1.5; color:var(--muted); max-width:52ch}
+
+.notas{
+  color:var(--muted); font-size:.8rem; line-height:1.65;
+}
+.notas summary{
+  cursor:pointer; list-style:none; font-size:.9rem; color:var(--muted);
+  display:inline-flex; align-items:center; gap:var(--sp-2); padding:var(--sp-1) 0;
+}
+.notas summary::-webkit-details-marker{display:none}
+.notas summary::before{
+  content:""; border-top:4px solid transparent; border-bottom:4px solid transparent;
+  border-left:5px solid currentColor; transition:transform .15s;
+}
+.notas details[open] summary::before{transform:rotate(90deg)}
+.notas summary:hover{color:var(--ink)}
+.notas p{margin:var(--sp-4) 0 0}
+/* Créditos: uma linha discreta no fim, com o espaço padrão entre blocos acima. */
+/* Créditos: os itens se distribuem de ponta a ponta, do canto esquerdo da coluna da esquerda
+   ao canto direito da coluna da direita. O espaço entre eles já separa, sem pontinhos. */
+.creditos{
+  margin-top:var(--sp-8); display:flex; justify-content:space-between; align-items:baseline;
+  gap:var(--sp-3); color:var(--muted);
+}
+.creditos .ghost{font-size:inherit; padding:0}
+@media(max-width:760px){.creditos{margin-top:var(--esp)}}
+@media(max-width:520px){.creditos .marca{display:none}}
+
+@media (max-width:760px){
+  .rowfoot{flex-direction:column; align-items:flex-start; gap:var(--sp-4)}
+  .metric .head{flex-wrap:wrap}
+  .metric .alvo{flex-basis:100%; text-align:left; min-width:0; margin-top:var(--sp-1)}
+}
+@media (prefers-reduced-motion: reduce){.notas summary::before,.seg .pill-indicator{transition:none}}
+
+/* Etapa 4B — escala tipográfica única para todas as seções.
+   14px: leitura e dados | 12px: referências | 16px: títulos | 21px: marca. */
+:root{
+  --type-brand:1.5rem;
+  --type-heading:1.142857rem;
+  --type-body:1rem;
+  --type-small:.857143rem;
+  --weight-regular:400;
+  --weight-medium:500;
+}
+/* A marca é a única exceção de tamanho; semibold reservado ao logotipo. */
+h1{font-size:var(--type-brand);font-weight:600;letter-spacing:-.02em}
+header.top .sub,.panel h2,.nome-receita{
+  font-size:var(--type-heading);font-weight:var(--weight-medium);
+  color:var(--ink);letter-spacing:0;
+}
+header.top p{font-size:var(--type-body);font-weight:var(--weight-regular);color:var(--muted)}
+/* Ingredientes, valores, rótulos dos gráficos e total: mesma escala. */
+.row select,.row input[type="number"],.metric .name,.metric .val,
+.rotulo-total,.total,.total input[type="number"]{
+  font-size:var(--type-body);font-weight:var(--weight-regular);
+}
+.row select,.row input[type="number"],.metric .val,
+.total input[type="number"]{color:var(--ink)}
+.metric .name,.rotulo-total,.total{color:var(--muted)}
+/* Destaque dos desvios é transmitido pelo símbolo e feedback, não por negrito. */
+.metric.out .val{font-weight:var(--weight-regular)}
+/* Referências e textos auxiliares compartilham tamanho e cor. */
+.metric .alvo,.metric .situacao,.un,
+.custom .campo span,.custom .agua-calc,.custom .ajuda,
+.resumo,.resumo .ghost,.bib,.bib .ghost,
+.explica,.notas,.notas summary,.creditos{
+  font-size:var(--type-small);font-weight:var(--weight-regular);color:var(--muted);
+}
+.metric .alvo{min-width:72px}
+.notes li,.empty{font-size:var(--type-body);font-weight:var(--weight-regular);color:var(--muted)}
+/* Ações: peso consistente e cor dependente da importância. */
+.seg button,.sel-receita,.add{font-size:var(--type-body);font-weight:var(--weight-medium)}
+.ghost,.receita-head .ghost{font-size:var(--type-small);font-weight:var(--weight-regular)}
+.receita-head .ghost{color:var(--ink)}
+.nome-receita-edit{font-size:var(--type-heading);font-weight:var(--weight-medium)}
+
+/* Menus próprios: preservam o select como fonte de dados, sem usar o popup do sistema. */
+.native-select-hidden{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;clip-path:inset(50%)}
+.lab-dropdown{position:relative;min-width:0;font-size:var(--type-body);font-weight:400;color:var(--ink)}
+.lab-dropdown-trigger{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);width:100%;min-width:0;min-height:var(--ctl);padding:0 var(--sp-1) 0 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.lab-dropdown-trigger:hover,.lab-dropdown.open .lab-dropdown-trigger{border-bottom-color:var(--muted)}
+.lab-dropdown-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lab-dropdown-chevron{flex:none;width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg) translateY(-2px);margin-right:var(--sp-1)}
+.lab-dropdown.open .lab-dropdown-chevron{transform:rotate(225deg) translate(-2px,-1px)}
+.lab-dropdown-menu{position:absolute;z-index:1000;top:calc(100% + 5px);left:0;width:max(100%,220px);max-width:min(340px,calc(100vw - 32px));max-height:260px;overflow:hidden;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:var(--sp-2) var(--sp-2) var(--sp-2) 0;box-shadow:0 9px 24px rgba(0,0,0,.09);opacity:0;transform:translateY(-5px);visibility:hidden;pointer-events:none;transition:opacity 210ms ease,transform 210ms ease,visibility 210ms}
+.lab-dropdown.open .lab-dropdown-menu{opacity:1;transform:translateY(0);visibility:visible;pointer-events:auto}
+/* Rolagem como os gráficos: linha reta de 3px, sem cantos arredondados. */
+/* Firefox usa a espessura "thin"; Chromium/Safari usam a largura exata abaixo.
+   Evitamos scrollbar-width:thin no Chromium porque ele substitui ::-webkit-scrollbar. */
+html,body,.lab-dropdown-scroll{scrollbar-width:thin;scrollbar-color:var(--band) transparent}
+.lab-dropdown-scroll{max-height:244px;overflow-y:auto;overscroll-behavior:contain;padding:0 var(--sp-1) 0 var(--sp-2);scrollbar-gutter:stable}
+@supports selector(::-webkit-scrollbar){
+  html,body,.lab-dropdown-scroll{scrollbar-width:auto;scrollbar-color:auto}
+  html::-webkit-scrollbar,body::-webkit-scrollbar,.lab-dropdown-scroll::-webkit-scrollbar{width:3px;height:3px}
+  html::-webkit-scrollbar-track,body::-webkit-scrollbar-track,.lab-dropdown-scroll::-webkit-scrollbar-track{background:transparent;border:0}
+  html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb,.lab-dropdown-scroll::-webkit-scrollbar-thumb{background:var(--band);border:0;border-radius:0}
+  html::-webkit-scrollbar-thumb:hover,body::-webkit-scrollbar-thumb:hover,.lab-dropdown-scroll::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+}
+
+.lab-dropdown-group{padding:var(--sp-3) var(--sp-2) var(--sp-1);color:var(--muted);font-size:var(--type-small);font-weight:400}
+.lab-dropdown-option{display:block;width:100%;border:0;border-radius:10px;background:transparent;color:var(--ink);font:inherit;font-size:var(--type-body);font-weight:400;text-align:left;padding:var(--sp-2) var(--sp-2);cursor:pointer;white-space:normal;overflow-wrap:anywhere}
+.lab-dropdown-option:hover,.lab-dropdown-option.active{background:var(--line)}
+.lab-dropdown-option[aria-selected="true"]{background:var(--line)}
+.lab-dropdown-option:focus-visible,.lab-dropdown-trigger:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.lab-dropdown.recipe{width:auto;max-width:210px;font-weight:500}
+.lab-dropdown.recipe .lab-dropdown-trigger{min-height:var(--ctl);padding:0 var(--sp-3);border:1px solid var(--ink);border-radius:999px;background:var(--ink);color:var(--paper);font-weight:500}
+.lab-dropdown.recipe .lab-dropdown-menu{min-width:240px;left:0}
+.lab-dropdown.recipe .lab-dropdown-trigger:hover{opacity:.88}
+@media(prefers-reduced-motion:reduce){.lab-dropdown-menu{transition:none}}
+/* Limites separados, alinhados às extremidades da faixa cinza. */
+.metric .bar{margin-bottom:var(--sp-6)}
+.bar .range-label{
+  position:absolute;top:9px;color:var(--muted);
+  font-size:var(--type-small);font-weight:400;line-height:1.3;
+  white-space:nowrap;pointer-events:none;
+}
+.bar .range-label.min{transform:translateX(-50%)}
+.bar .range-label.max{transform:translateX(-50%)}
+/* Faixas estreitas: ambos os limites ficam na mesma linha, voltados para fora.
+   Mantemos a escala matemática da barra, inclusive na seção Dureza. */
+.bar .range-label.min.compact{transform:translateX(calc(-100% - 4px))}
+.bar .range-label.max.compact{transform:translateX(4px)}
+.bar .range-label.edge-start{transform:translateX(0)}
+.bar .range-label.edge-end{transform:translateX(-100%)}
+/* Tipografia dos ingredientes na mesma cor dos nomes dos gráficos. */
+#ingredientes .lab-dropdown-trigger,
+#ingredientes .row input[type="number"],
+#ingredientes .un,
+#ingredientes .rotulo-total,
+#ingredientes .total input[type="number"]{color:var(--muted)}
+
+/* Refinamento do frame: apenas dois cinzas-base (texto e estrutura).
+   Superfície e faixa são misturas dos mesmos tokens, não novas cores. */
+/* Lateral: --card-pad. Em cima e embaixo o padding é menor, porque a primeira e a última
+   linha têm 40 px com o texto centralizado, e esse ar já conta como margem. */
+#ingredientes{
+  padding:var(--sp-2) var(--card-pad) calc(var(--sp-3) - 2px); /* −2px: o texto do total assenta 2px mais baixo que o do título */
+  border:0;
+  background:var(--edit-surface);
+}
+#ingredientes .receita-head{gap:var(--sp-1) var(--sp-4);margin-bottom:var(--sp-2);align-items:center;min-height:var(--ctl)}
+#ingredientes .nome-receita,
+#ingredientes .nome-receita.sem-nome{margin:0;color:var(--ink);font-size:var(--type-body);font-weight:500}
+/* Uma linha só: se o nome não couber ao lado dos botões, ele é que encurta. */
+#ingredientes .nome-receita{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#ingredientes .receita-head .ghost{flex:none; white-space:nowrap}
+#ingredientes .nome-receita-edit{flex:1 1 auto; min-width:0; width:auto}
+#ingredientes .receita-head .ghost{color:var(--muted);text-decoration-color:var(--muted)}
+#ingredientes .receita-head .ghost:hover{color:var(--ink)}
+#ingredientes .row,
+#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+#ingredientes .qtd{width:100px;min-width:0}
+#ingredientes .row .lab-dropdown{min-width:0}
+#ingredientes .rows{gap:0}
+#ingredientes .add{margin-top:var(--sp-3)}
+#ingredientes .linha-total{margin-top:var(--sp-3); min-height:var(--ctl)}
+/* Faixas sem uma terceira cor de cinza: transparência do cinza tipográfico. */
+.bar .band{background:color-mix(in srgb, var(--muted) 43%, var(--line))}
+/* Mesma densidade relativa entre os indicadores, sem comprimir a altura geral. */
+#resultado .metric{padding-bottom:var(--sp-1)}
+/* Água é um dado-resumo, deliberadamente sem faixa nem status. */
+.water-summary{
+  display:flex;align-items:baseline;justify-content:space-between;gap:var(--sp-3);
+  margin-top:var(--sp-4);padding-top:0;border-top:0;
+}
+.water-summary-label{color:var(--muted);font-size:var(--type-body);font-weight:400}
+.water-summary-value{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:var(--sp-1) var(--sp-3);border-radius:999px;background:var(--edit-surface);color:var(--ink);font-size:var(--type-body);font-weight:500;line-height:1.4}
+@media(max-width:760px){
+  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+}
+@media(max-width:440px){
+  #ingredientes{--card-pad:var(--sp-4);padding:var(--sp-1) var(--card-pad) calc(var(--sp-2) - 1px)}
+  #ingredientes .row,#ingredientes .linha-total{grid-template-columns:minmax(0,1fr) auto;gap:var(--sp-2)}
+  #ingredientes .qtd{width:92px}
+}
+
+
+/* Campos de edição sem sublinhado: a hierarquia fica por conta do espaçamento
+   e o foco continua visível pelo outline de acessibilidade. */
+#ingredientes .lab-dropdown-trigger,
+#ingredientes .lab-dropdown-trigger:hover,
+#ingredientes .lab-dropdown.open .lab-dropdown-trigger,
+#ingredientes select,
+#ingredientes select:hover,
+#ingredientes input[type="number"],
+#ingredientes input[type="number"]:hover,
+#ingredientes .qtd,
+#ingredientes .qtd:hover,
+#ingredientes .qtd:focus-within,
+#ingredientes .row:focus-within select {
+  border-bottom: 0;
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>Ice Cream Lab</h1>
+  <h2 class="sub">Calculadora de Mistura</h2>
+  <p>Monte a receita em gramas e acompanhe onde ela cai nas faixas de balanceamento.</p>
+</header>
+
+<div class="cols">
+  <div class="grupo" id="grupoReceitas"></div>
+
+  <section class="panel" id="ingredientes">
+    <div class="receita-head" id="cabecalhoReceita"></div>
+    <div class="rows" id="linhas"></div>
+    <p class="empty" id="vazio" hidden>Nenhum ingrediente ainda. Adicione o primeiro ou carregue uma base.</p>
+    <button class="add" type="button" id="adicionar">+ ingrediente</button>
+
+    <div class="linha-total">
+      <label class="rotulo-total" for="peso">Mistura total</label>
+      <span class="qtd qtd-min" id="cxPeso"><input type="number" id="peso" min="0" step="10" value="0" inputmode="decimal" /><span class="un">g</span></span>
+    </div>
+  </section>
+
+  <section class="panel" id="resultado">
+    <h2 class="comp-titulo">Composição</h2>
+    <div class="seg" id="estilo" role="group" aria-label="Faixas de referência por estilo">
+      <button type="button" data-estilo="gelato" aria-pressed="true">Gelato</button>
+      <button type="button" data-estilo="icecream" aria-pressed="false">Sorvete tradicional</button>
+      <button type="button" data-estilo="sorbet" aria-pressed="false">Sorbet</button>
+    </div>
+    <div id="metricas"></div>
+    <ul class="notes" id="avisos" aria-live="polite"></ul>
+    <p class="aviso-estab" id="avisoEstab" hidden>O intervalo referente aos estabilizantes é apenas uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>
+
+  </section>
+
+  <div class="apoio">
+    <div class="bib" id="bib"></div>
+    
+    <div class="notas">
+      <details>
+        <summary>Notas sobre o cálculo</summary>
+        <p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>
+      <p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>
+      <p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos. É o que dá o PAC mais fiel. Em troca, o percentual de açúcares sai um pouco acima do que você declararia num rótulo, onde só a fração indicada pelo número DE conta como açúcar.</p>
+      <p>O ponto de congelamento soma duas contribuições: os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A faixa de −3,0 a −2,75 °C é a de um creme que serve bem entre −10 e −14 °C, como numa vitrine de gelateria. Num freezer doméstico a −18 °C nenhuma receita comum cai nessa faixa, e por isso o usual é tirar o pote alguns minutos antes de servir.</p>
+      <p>Ficam de fora da conta os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun, que deixa o creme mais fácil de servir. Use os números para comparar receitas, não como medida absoluta.</p>
+      <p>A barra de estabilizantes soma os gramas das gomas como se valessem o mesmo, e a faixa de 0,2 a 0,5% é a do blend de gomas clássicas (Goff e Hartel, p. 76), que o próprio livro manda ajustar com o fornecedor. As gomas diferem em potência e em como hidratam. O amido fica fora da soma, porque a faixa não se aplica a ele. Estabilizantes aumentam a viscosidade, mas quase não mexem no ponto de congelamento, e por isso não entram no PAC.</p>
+      <p>Esta calculadora avalia o equilíbrio da formulação, não a segurança alimentar. Pasteurização, higiene e armazenamento seguem as boas práticas e a legislação sanitária que se aplicam a você.</p>
+      <p id="fontes"><b>Fontes</b><br>
+      Método de cálculo: Goff, H. D.; Hartel, R. W. <i>Ice Cream</i>, 7ª ed. Springer, 2013 (ponto de congelamento, equivalentes de sacarose e sais do leite).<br>
+      Conceitos e regras práticas: Gelatologist, série de artigos sobre PAC, dureza e produção de gelato (Medium).<br>
+      Para aprofundar: Clarke, C.; Cox, A. <i>The Science of Ice Cream</i>, Royal Society of Chemistry; Caviezel, L. <i>Scienza e tecnologia del gelato artigianale</i>, Chiriotti Editori.</p>
+      </details>
+    </div>
+  </div>
+</div>
+
+<footer class="creditos">
+    <span class="marca">Ice Cream Lab</span>
+    <span class="autor">© 2026 Lucca Marques</span>
+    <button type="button" class="ghost" id="verFontes">fontes</button>
+    <span class="versao">v1.1</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // POD = poder adoçante, PAC = poder anticongelante (sacarose = 100)
+  var COEF = {
+    sacarose:   {pod:100, pac:100},
+    dextrose:   {pod:70,  pac:190},
+    frutose:    {pod:170, pac:190},
+    invertido:  {pod:125, pac:190},
+    glucose:    {pod:23,  pac:70},
+    malto:      {pod:12,  pac:33},
+    lactose:    {pod:16,  pac:100}
+  };
+
+  // Composição por 100 g. O que falta para 100 é água.
+  var ING = [
+    {id:"leite",      nome:"Leite integral",            gord:3.5, slng:8.5},
+    {id:"desnatado",  nome:"Leite desnatado",           gord:0.1, slng:9.0},
+    {id:"creme35",    nome:"Creme fresco 35%", longo:"Creme de leite fresco 35%", gord:35,  slng:5.5},
+    {id:"creme20",    nome:"Creme UHT 20%",             gord:20,  slng:7.0},
+    {id:"lpdesn",     nome:"Leite em pó desnat.", longo:"Leite em pó desnatado",     gord:1,   slng:96},
+    {id:"lpint",      nome:"Leite em pó integral",      gord:26,  slng:70},
+    {id:"soro",       nome:"Soro em pó", longo:"Soro de leite em pó",        gord:1,   soro:96},
+    {id:"condensado", nome:"Leite condensado",          gord:8,   slng:22, ac:{sacarose:44}},
+    {id:"manteiga",   nome:"Manteiga",                  gord:82,  slng:1.5},
+    {id:"iogurte",    nome:"Iogurte natural", longo:"Iogurte natural integral",  gord:3.5, slng:9},
+    {id:"gema",       nome:"Gema de ovo",               gord:31,  outros:17},
+    {id:"agua",       nome:"Água"},
+    {id:"sacarose",   nome:"Açúcar (sacarose)",         ac:{sacarose:100}},
+    {id:"dextrose",   nome:"Dextrose", longo:"Dextrose (mono-hidratada)", ac:{dextrose:92}},
+    {id:"glucose",    nome:"Glucose pó 38 DE", longo:"Glucose em pó DE 38–40",    ac:{glucose:96}},
+    {id:"invertido",  nome:"Açúcar invertido",          ac:{invertido:75}},
+    {id:"mel",        nome:"Mel",                       ac:{frutose:40, dextrose:40}},
+    {id:"malto",      nome:"Maltodextrina 18 DE", longo:"Maltodextrina DE 18",       ac:{malto:95}},
+    {id:"mascavo",    nome:"Açúcar mascavo",            ac:{sacarose:96}, outros:2},
+    {id:"cacau",      nome:"Cacau em pó",               gord:11,  outros:85},
+    {id:"choco70",    nome:"Chocolate 70%",             gord:40,  outros:30, ac:{sacarose:29}},
+    {id:"pasta",      nome:"Pasta de castanha", longo:"Pasta de castanha pura",    gord:55,  outros:43},
+    {id:"pureDoce",   nome:"Purê fruta doce", longo:"Purê de fruta doce",        ac:{frutose:6, sacarose:6}, outros:2},
+    {id:"pureAcida",  nome:"Purê fruta ácida", longo:"Purê de fruta ácida",       ac:{frutose:4, sacarose:4}, outros:2},
+    {id:"estab", nome:"Estabilizante (liga)", outros:100, estab:true, longo:"Estabilizante (liga pronta)",
+      nota:"Siga o fornecedor: a liga define a temperatura de hidratação e a dose."},
+    {id:"guar", nome:"Goma guar", outros:100, estab:true,
+      nota:"Hidrata a frio (10–30 °C). Mistura muito viscosa em baixa dose, em cerca de 2 h."},
+    {id:"alfarroba", nome:"Goma alfarroba (LBG)", outros:100, estab:true,
+      nota:"Precisa da temperatura de pasteurização para hidratar. Pode gelificar ao congelar; a guar não."},
+    {id:"cmc", nome:"CMC (goma celulose)", outros:100, estab:true, longo:"Carboximetilcelulose sódica (CMC, goma de celulose)",
+      nota:"Dissolve fácil na mistura e retém muita água; considerada muito boa para sorvete."},
+    {id:"carragena", nome:"Carragena", outros:100, estab:true,
+      nota:"Em blends, 0,01–0,015%, só para evitar a separação da mistura. Acima disso, gelifica."},
+    {id:"xantana", nome:"Goma xantana", outros:100, estab:true,
+      nota:"Hidrata a frio (10–30 °C). Muito viscosa em dose baixa; pouco usada em sorvete."},
+    {id:"gelatina", nome:"Gelatina", outros:100, estab:true,
+      nota:"Gel fraco que derrete fácil na boca, sem sensação de goma."},
+    {id:"alginato", nome:"Alginato de sódio", outros:100, estab:true,
+      nota:"Dissolve a frio ou a quente, mas degrada se ficar quente demais. Reage com o cálcio do leite; pouco usado."},
+    {id:"pectina", nome:"Pectina", outros:100, estab:true, longo:"Pectina de alto e de baixo metoxilo",
+      nota:"Citada no livro como estabilizante; sem dados de uso."},
+    {id:"agar", nome:"Ágar", outros:100, estab:true,
+      nota:"Citada no livro como estabilizante; sem dados de uso."},
+    {id:"amido", nome:"Amido de milho", outros:100, estab:true, contaTotal:false,
+      nota:"Precisa de calor: dissolvido em água e aquecido, forma um creme espesso. Fora da soma de estabilizantes."},
+    {id:"amidomod", nome:"Amido modificado", outros:100, estab:true, contaTotal:false,
+      nota:"Citado no livro como estabilizante; sem dados de uso. Fora da soma de estabilizantes."},
+    {id:"custom",     nome:"Personalizado…",            custom:true}
+  ];
+
+  var ALVOS = {
+    gelato:   {gord:[4,9],   slng:[7,11],  ac:[16,22], sol:[36,42], pod:[160,210], pac:[240,280]},
+    icecream: {gord:[10,16], slng:[9,12],  ac:[14,18], sol:[36,42], pod:[150,200], pac:[240,280]},
+    sorbet:   {gord:[0,1],   slng:[0,1],   ac:[25,32], sol:[28,35], pod:[230,280], pac:[300,360]}
+  };
+
+  var ESCALA = {
+    gord:[0,20], slng:[0,14], ac:[0,36], sol:[20,50], pod:[80,320], pac:[120,420],
+    fp:[-4.5,-1], wf:[55,95]
+  };
+
+  var ALVO_FP = [-3.0, -2.75];
+  var ALVO_ESTAB = [0.2, 0.5];   // Goff e Hartel, 7ª ed., p. 76: 0,2–0,5% de blend na mistura
+
+  // Ponto de congelamento de soluções de sacarose (Leighton/Pickering), como
+  // curva ajustada aos valores tabelados: erro de até 0,08 °C até 180 g/100 g,
+  // daí para cima segue reta. c = gramas de equivalente-sacarose por 100 g de água.
+  var K = [0.0587289852, 1.09367e-5, 1.9583e-6, -8.3e-9];
+
+  function quedaSE(c){
+    if (c <= 180){
+      return K[0]*c + K[1]*c*c + K[2]*c*c*c + K[3]*c*c*c*c;
+    }
+    var fim = K[0]*180 + K[1]*32400 + K[2]*5832000 + K[3]*1049760000;
+    var incl = K[0] + 2*K[1]*180 + 3*K[2]*32400 + 4*K[3]*5832000;
+    return fim + incl * (c - 180);
+  }
+
+  // Queda total: equivalentes de sacarose mais os sais do leite.
+  // se e sais em g/100 g de mistura; agua em % da mistura.
+  function queda(se, sais, agua){
+    return quedaSE(se * 100 / agua) + sais * 2.37 / agua;
+  }
+
+  // Ponto de congelamento da receita: equivalentes de sacarose na água, lidos na
+  // curva de Leighton, mais a contribuição dos sais do leite.
+  function pontoCongelamento(r){
+    if (!r.peso || r.agua <= 0) return null;
+    return -queda(r.pac / 10, r.slng + r.soro, r.agua);
+  }
+
+  var PRESETS = {
+    gelato: {estilo:"gelato", linhas:[
+      {id:"leite", g:597},{id:"creme35", g:160},{id:"lpdesn", g:40},
+      {id:"sacarose", g:150},{id:"dextrose", g:20},{id:"glucose", g:30},{id:"estab", g:3}
+    ]},
+    icecream: {estilo:"icecream", linhas:[
+      {id:"leite", g:477},{id:"creme35", g:295},{id:"lpdesn", g:50},
+      {id:"sacarose", g:115},{id:"dextrose", g:34},{id:"glucose", g:26},{id:"estab", g:3}
+    ]},
+    sorbet: {estilo:"sorbet", linhas:[
+      {id:"pureDoce", g:580},{id:"agua", g:187},{id:"sacarose", g:140},
+      {id:"dextrose", g:20},{id:"glucose", g:70},{id:"estab", g:3}
+    ]}
+  };
+
+  var CHAVE = "mistura-v1";
+  var CHAVE_BIB = "mistura-produtos-v1";
+  var CHAVE_REC = "mistura-receitas-v1";
+
+  // Receitas salvas pela pessoa. Como os produtos, vivem à parte da receita aberta.
+  var receitas = [];
+
+  function normalizaReceita(r){
+    if (!r || !r.nome || !Array.isArray(r.linhas)) return null;
+    var linhas = r.linhas.map(function(l){
+      if (!l || !l.id) return null;
+      var o = {id:String(l.id), g:Number(l.g) || 0};
+      if (l.id === "custom" && l.comp){
+        o.comp = {nome:String(l.comp.nome || ""), gord:Number(l.comp.gord) || 0,
+                  ac:Number(l.comp.ac) || 0, outros:Number(l.comp.outros) || 0};
+      }
+      return o;
+    }).filter(Boolean);
+    if (!linhas.length) return null;
+    return {
+      id: String(r.id || novoId()),
+      nome: String(r.nome).slice(0, 60),
+      estilo: ALVOS[r.estilo] ? r.estilo : "gelato",
+      temp: (isFinite(r.temp) && r.temp < 0) ? Number(r.temp) : -12,
+      linhas: linhas
+    };
+  }
+
+  function carregaReceitas(){
+    try {
+      var r = JSON.parse(localStorage.getItem(CHAVE_REC));
+      if (Array.isArray(r)) receitas = r.map(normalizaReceita).filter(Boolean);
+    } catch (e) { receitas = []; }
+  }
+
+  function salvaReceitas(){
+    var minhas = receitas.filter(function(r){ return !r.repo; })
+      .map(function(r){ return {id:r.id, nome:r.nome, estilo:r.estilo, temp:r.temp, linhas:r.linhas}; });
+    try { localStorage.setItem(CHAVE_REC, JSON.stringify(minhas)); } catch (e) {}
+  }
+
+  function receita(id){
+    for (var i = 0; i < receitas.length; i++){ if (receitas[i].id === id) return receitas[i]; }
+    return null;
+  }
+
+  function copiaLinhas(linhas){
+    return linhas.map(function(l){
+      var o = {id:l.id, g:Number(l.g) || 0};
+      if (l.comp) o.comp = {nome:l.comp.nome, gord:l.comp.gord, ac:l.comp.ac, outros:l.comp.outros};
+      return o;
+    });
+  }
+
+  // Produtos que a pessoa cadastrou. Ficam guardados à parte da receita, para
+  // sobreviverem a "Limpar tudo" e aparecerem em qualquer receita futura.
+  var biblioteca = [];
+
+  function normalizaProduto(p){
+    if (!p || !p.id || !p.nome) return null;
+    return {
+      id: String(p.id),
+      nome: String(p.nome).slice(0, 60),
+      gord: Number(p.gord) || 0,
+      ac: Number(p.ac) || 0,
+      outros: Number(p.outros) || 0
+    };
+  }
+
+  function carregaBiblioteca(){
+    try {
+      var b = JSON.parse(localStorage.getItem(CHAVE_BIB));
+      if (Array.isArray(b)) biblioteca = b.map(normalizaProduto).filter(Boolean);
+    } catch (e) { biblioteca = []; }
+  }
+
+  function salvaBiblioteca(){
+    // Os produtos vindos do repositório não são gravados aqui: o arquivo no
+    // GitHub é a fonte deles, e o navegador guarda só o que foi criado nele.
+    var meus = biblioteca.filter(function(p){ return !p.repo; })
+      .map(function(p){ return {id:p.id, nome:p.nome, gord:p.gord, ac:p.ac, outros:p.outros}; });
+    try { localStorage.setItem(CHAVE_BIB, JSON.stringify(meus)); } catch (e) {}
+  }
+
+  function carregaReceitasDoRepositorio(){
+    if (!window.fetch) return;
+    fetch("receitas.json", {cache:"no-store"}).then(function(resp){
+      if (!resp.ok) throw 0;
+      return resp.json();
+    }).then(function(lista){
+      if (!Array.isArray(lista)) return;
+      var mudou = false;
+      lista.map(normalizaReceita).filter(Boolean).forEach(function(r){
+        var existe = false;
+        receitas.forEach(function(x){ if (x.nome === r.nome) existe = true; });
+        if (!existe){ r.repo = true; receitas.push(r); mudou = true; }
+      });
+      if (mudou) render();
+    }).catch(function(){});
+  }
+
+  // Lista publicada junto com a página (produtos.json na mesma pasta). Serve como
+  // biblioteca compartilhada entre aparelhos; um produto local de mesmo nome vence.
+  function carregaDoRepositorio(){
+    if (!window.fetch) return;
+    fetch("produtos.json", {cache:"no-store"}).then(function(resp){
+      if (!resp.ok) throw 0;
+      return resp.json();
+    }).then(function(lista){
+      if (!Array.isArray(lista)) return;
+      var mudou = false;
+      lista.map(function(p){
+        // O arquivo publicado pode vir sem id: ele é gerado na hora.
+        if (p && !p.id) p.id = novoId();
+        return normalizaProduto(p);
+      }).filter(Boolean).forEach(function(pr){
+        var existe = false;
+        biblioteca.forEach(function(x){ if (x.nome === pr.nome) existe = true; });
+        if (!existe){
+          pr.repo = true;
+          biblioteca.push(pr);
+          mudou = true;
+        }
+      });
+      if (mudou) render();
+    }).catch(function(){});
+  }
+
+  function produto(id){
+    for (var i = 0; i < biblioteca.length; i++){ if (biblioteca[i].id === id) return biblioteca[i]; }
+    return null;
+  }
+
+  function novoId(){
+    return "p:" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+  var estado = {estilo:"gelato", temp:-12, receitaAtual:"", linhas:[]};
+  var seq = 0;
+
+  var elLinhas = document.getElementById("linhas");
+  var elVazio = document.getElementById("vazio");
+  var elBib = document.getElementById("bib");
+  var elPeso = document.getElementById("peso");
+  var elMetricas = document.getElementById("metricas");
+  var elAvisos = document.getElementById("avisos");
+
+  function acha(id){
+    for (var i=0;i<ING.length;i++){ if (ING[i].id === id) return ING[i]; }
+    return produto(id);
+  }
+
+  // Para a linha personalizada, a composição vem dos campos preenchidos a partir
+  // do rótulo do produto, e não da lista fixa de ingredientes.
+  function composicao(l){
+    if (l.id === "custom"){
+      var c = l.comp || {};
+      return {gord:Number(c.gord)||0, outros:Number(c.outros)||0, ac:{sacarose:Number(c.ac)||0}};
+    }
+    var pr = produto(l.id);
+    if (pr) return {gord:pr.gord, outros:pr.outros, ac:{sacarose:pr.ac}};
+    return acha(l.id);
+  }
+
+  function limpaComp(l){
+    var c = l.comp || {};
+    return {nome: c.nome || "", gord: Number(c.gord) || 0,
+            ac: Number(c.ac) || 0, outros: Number(c.outros) || 0};
+  }
+
+  function calcula(){
+    var t = {peso:0, gord:0, slng:0, soro:0, ac:0, outros:0, pod:0, pac:0, estab:0};
+    estado.linhas.forEach(function(l){
+      var ing = composicao(l); if (!ing) return;
+      var g = Number(l.g) || 0;
+      t.peso += g;
+      if (ing.estab && ing.contaTotal !== false) t.estab += g;
+      t.gord += g * (ing.gord || 0) / 100;
+      t.slng += g * (ing.slng || 0) / 100;
+      t.soro += g * (ing.soro || 0) / 100;
+      t.outros += g * (ing.outros || 0) / 100;
+      if (ing.ac){
+        Object.keys(ing.ac).forEach(function(tipo){
+          var gr = g * ing.ac[tipo] / 100;
+          t.ac += gr;
+          t.pod += gr * COEF[tipo].pod / 100;
+          t.pac += gr * COEF[tipo].pac / 100;
+        });
+      }
+      // 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro são lactose
+      var lactose = g * (ing.slng || 0) / 100 * 0.545 + g * (ing.soro || 0) / 100 * 0.765;
+      t.pod += lactose * COEF.lactose.pod / 100;
+      t.pac += lactose * COEF.lactose.pac / 100;
+    });
+    t.sol = t.gord + t.slng + t.soro + t.ac + t.outros;
+    t.agua = t.peso - t.sol;
+    var p = t.peso || 1;
+    return {
+      peso: t.peso,
+      gord: t.gord / p * 100,
+      estab: t.estab / p * 100,
+      slng: t.slng / p * 100,
+      soro: t.soro / p * 100,
+      ac: t.ac / p * 100,
+      outros: t.outros / p * 100,
+      sol: t.sol / p * 100,
+      agua: t.agua / p * 100,
+      pod: t.pod / p * 1000,
+      pac: t.pac / p * 1000
+    };
+  }
+
+  function n(v, casas){
+    var txt = v.toFixed(casas === undefined ? 1 : casas);
+    // Remove somente decimais finais sem informação: 8,0 → 8; 2,75 permanece 2,75.
+    txt = txt.replace(/\.0+$/, "").replace(/(\.\d*?[1-9])0+$/, "$1");
+    return txt.replace(".", ",").replace("-", "\u2212");
+  }
+
+  // Faixa-alvo: sem casas decimais quando não acrescentam nada, e com "a" no lugar
+  // do travessão quando os números são negativos, para não virar uma fila de traços.
+  function faixa(a, b, casas){
+    var inteiros = (casas === 0) || (a === Math.round(a) && b === Math.round(b));
+    var ca = inteiros ? 0 : casas;
+    var txt = n(a, ca) + (a < 0 || b < 0 ? " a " : "–") + n(b, ca);
+    return txt;
+  }
+
+  // Classificação visual compartilhada entre gráficos e avisos.
+  // 20% da largura do intervalo é um limiar de interface, não um limite técnico de segurança.
+  function nivelFaixa(valor, alvo){
+    if (valor >= alvo[0] && valor <= alvo[1]) return "ok";
+    var distancia = valor < alvo[0] ? alvo[0] - valor : valor - alvo[1];
+    var largura = alvo[1] - alvo[0];
+    return largura > 0 && distancia / largura >= 0.2 ? "critico" : "atencao";
+  }
+
+  function barra(valor, alvo, escala, texto, casas){
+    var min = escala[0], max = escala[1], span = max - min;
+    function pos(v){ return Math.max(0, Math.min(100, (v - min) / span * 100)); }
+    var a = pos(alvo[0]), b = pos(alvo[1]), p = pos(valor);
+    var borda = p < 12 ? " inicio" : p > 88 ? " fim" : "";
+    var nivel = nivelFaixa(valor, alvo);
+    // Escalas estreitas usam linhas alternadas, preservando cada número na extremidade real.
+    var ocultarZero = estado.estilo === "sorbet" && alvo[0] === 0;
+    var compact = b - a < 18 && !ocultarZero ? " compact" : "";
+    return '<div class="bar"><span class="band" style="left:' + a + '%;width:' + Math.max(b - a, 1) + '%"></span>' +
+           '<span class="range-label min num' + compact + (a < 7 && !compact ? ' edge-start' : '') + '" style="left:' + a + '%">' + (ocultarZero ? '' : n(alvo[0], casas)) + '</span>' +
+           '<span class="range-label max num' + compact + (b > 93 && !compact ? ' edge-end' : '') + '" style="left:' + b + '%">' + n(alvo[1], casas) + '</span>' +
+           '<span class="mark status-' + nivel + borda + '" style="left:calc(' + p + '% - 1.5px)">' +
+           '<span class="mark-label num">' + texto + '</span></span></div>';
+  }
+
+  function linhaMetrica(nome, valor, alvo, escala, sufixo, casas){
+    var fora = valor < alvo[0] || valor > alvo[1];
+    var texto = n(valor, casas) + sufixo;
+    return '<div class="metric' + (fora ? " out" : "") + '">' +
+      '<div class="head"><span class="name">' + nome + '</span>' +
+      '</div>' +
+      barra(valor, alvo, escala, texto, casas) + '</div>';
+  }
+
+  function avisos(r){
+    var alvos = ALVOS[estado.estilo];
+    var itens = [
+      {nome:"Gordura", valor:r.gord, alvo:alvos.gord, unidade:"%", casas:1,
+       baixo:"Pode reduzir a cremosidade; considere aumentar a gordura.",
+       alto:"Pode deixar a textura amanteigada e abafar o sabor."},
+      {nome:"Sólidos lácteos (SLNG)", valor:r.slng+r.soro, alvo:alvos.slng, unidade:"%", casas:1,
+       baixo:"Considere ajustar a quantidade de sólidos lácteos.",
+       alto:"O excesso de lactose pode favorecer uma textura arenosa; revise os sólidos lácteos."},
+      {nome:"Açúcares", valor:r.ac, alvo:alvos.ac, unidade:"%", casas:1,
+       baixo:"Revise a proporção de açúcares da receita.",
+       alto:"Revise a proporção de açúcares da receita."},
+      {nome:"Sólidos totais", valor:r.sol, alvo:alvos.sol, unidade:"%", casas:1,
+       baixo:"Pode favorecer cristais de gelo; considere aumentar os sólidos.",
+       alto:"A mistura pode ficar pesada e pastosa; considere reduzir os sólidos."},
+      {nome:"POD (doçura)", valor:r.pod, alvo:alvos.pod, unidade:"", casas:0,
+       baixo:"A doçura pode ficar abaixo do esperado para o estilo.",
+       alto:"Pode ficar doce demais; considere substituir parte do açúcar por glucose em pó."},
+      {nome:"Ponto de congelamento", valor:pontoCongelamento(r) || 0, alvo:ALVO_FP, unidade:" °C", casas:2,
+       baixo:"Tende a ficar mole na temperatura de servir; considere reduzir o PAC.",
+       alto:"Tende a sair firme demais do freezer; considere subir o PAC."},
+      {nome:"PAC (maciez)", valor:r.pac, alvo:alvos.pac, unidade:"", casas:0,
+       baixo:"Pode ficar firme demais; considere substituir parte da sacarose por dextrose.",
+       alto:"Pode ficar mole demais; considere substituir parte da dextrose por sacarose."}
+    ];
+    var out = [];
+    if (r.estab > 0){
+      itens.push({nome:"Estabilizantes", valor:r.estab, alvo:ALVO_ESTAB, unidade:"%", casas:2,
+        baixo:"Pouco estabilizante: os cristais de gelo crescem com mais facilidade durante o armazenamento.",
+        alto:"Excesso de estabilizante dá sensação de goma: o sorvete derrete devagar demais na boca."});
+    }
+    // PAC alto derruba o ponto de congelamento e PAC baixo o sobe: quando os dois
+    // estão fora em lados opostos, é o mesmo problema, e basta avisar uma vez.
+    var fpAtual = pontoCongelamento(r);
+    var pacAlto = r.pac > alvos.pac[1], pacBaixo = r.pac < alvos.pac[0];
+    var fpAbaixo = fpAtual !== null && fpAtual < ALVO_FP[0];
+    var fpAcima = fpAtual !== null && fpAtual > ALVO_FP[1];
+    var mesmoProblema = (pacAlto && fpAbaixo) || (pacBaixo && fpAcima);
+
+    itens.forEach(function(item){
+      if (item.nome === "Ponto de congelamento" && mesmoProblema) return;
+      var abaixo = item.valor < item.alvo[0];
+      var acima = item.valor > item.alvo[1];
+      if (!abaixo && !acima) return;
+      var distancia = abaixo ? item.alvo[0] - item.valor : item.valor - item.alvo[1];
+      var nivel = nivelFaixa(item.valor, item.alvo);
+      var direcao = abaixo ? "abaixo" : "acima";
+      out.push({nivel:nivel, txt:item.nome + " " + direcao + " da faixa (" +
+        n(item.valor, item.casas) + item.unidade + "; referência " +
+        faixa(item.alvo[0], item.alvo[1], item.casas) + item.unidade + "). " +
+        (abaixo ? item.baixo : item.alto) +
+        (item.nome.indexOf("PAC") === 0 && mesmoProblema ?
+          " O ponto de congelamento também saiu da faixa, pelo mesmo motivo." : "")});
+    });
+    if (!out.length && r.peso > 0) out.push({nivel:"ok", txt:"Todos os parâmetros dentro das faixas de referência."});
+    return out;
+  }
+
+  // Par de setas reutilizável: recebe quem aplica o passo e o nome para leitores de tela.
+  function criaPasso(aoAjustar, rotulo){
+    var passo = document.createElement("div");
+    passo.className = "passo";
+    [["mais", 1, "Aumentar"], ["menos", -1, "Diminuir"]].forEach(function(cfg){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = cfg[0];
+      b.setAttribute("aria-label", cfg[2] + " " + rotulo);
+      b.title = cfg[2] + " " + rotulo + " (Shift: ajuste maior)";
+      b.addEventListener("click", function(ev){ aoAjustar(cfg[1], ev); });
+      passo.appendChild(b);
+    });
+    return passo;
+  }
+
+
+  // Dropdown acessível compartilhado entre ingredientes e receitas.
+  // O select original continua sendo a fonte de opções e dispara os eventos existentes.
+  function criaDropdown(select, tipo){
+    select.classList.add("native-select-hidden");
+    select.tabIndex = -1;
+    var wrap = document.createElement("div");
+    wrap.className = "lab-dropdown" + (tipo === "recipe" ? " recipe" : "");
+    var trigger = document.createElement("button");
+    trigger.type = "button"; trigger.className = "lab-dropdown-trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-label", select.getAttribute("aria-label") || "Selecionar opção");
+    var label = document.createElement("span"); label.className = "lab-dropdown-label";
+    var chevron = document.createElement("span"); chevron.className = "lab-dropdown-chevron"; chevron.setAttribute("aria-hidden", "true");
+    trigger.appendChild(label); trigger.appendChild(chevron);
+    var menu = document.createElement("div"); menu.className = "lab-dropdown-menu";
+    menu.setAttribute("role", "listbox"); menu.setAttribute("aria-label", select.getAttribute("aria-label") || "Opções");
+    var scroll = document.createElement("div"); scroll.className = "lab-dropdown-scroll";
+    menu.appendChild(scroll);
+    var options = [];
+    var current = -1;
+    function close(focus){
+      wrap.classList.remove("open"); trigger.setAttribute("aria-expanded", "false");
+      options.forEach(function(b){b.tabIndex=-1; b.classList.remove("active")});
+      if(focus) trigger.focus();
+    }
+    function highlight(i, focus){
+      if(!options.length) return;
+      current = (i + options.length) % options.length;
+      options.forEach(function(b,j){b.classList.toggle("active",j===current);b.tabIndex=j===current?0:-1});
+      if(focus){options[current].focus();options[current].scrollIntoView({block:"nearest"})}
+    }
+    function open(){
+      document.querySelectorAll(".lab-dropdown.open").forEach(function(other){
+        if(other!==wrap) other.dispatchEvent(new CustomEvent("lab-close"));
+      });
+      wrap.classList.add("open");trigger.setAttribute("aria-expanded","true");
+      var selected = options.findIndex(function(b){return b.dataset.value===select.value});
+      highlight(Math.max(0,selected),false);
+    }
+    function choose(value){
+      select.value=value;
+      label.textContent=select.selectedOptions[0] ? select.selectedOptions[0].textContent : "";
+      close(true);
+      select.dispatchEvent(new Event("change",{bubbles:true}));
+    }
+    function addOption(opt){
+      if(opt.disabled) return;
+      var b=document.createElement("button");b.type="button";b.className="lab-dropdown-option";
+      b.setAttribute("role","option");b.dataset.value=opt.value;b.textContent=opt.textContent;
+      b.setAttribute("aria-selected",String(opt.value===select.value));b.tabIndex=-1;
+      b.addEventListener("click",function(){choose(opt.value)});
+      b.addEventListener("keydown",function(ev){
+        if(ev.key==="ArrowDown"||ev.key==="ArrowUp"){ev.preventDefault();highlight(current+(ev.key==="ArrowDown"?1:-1),true)}
+        else if(ev.key==="Home"){ev.preventDefault();highlight(0,true)}
+        else if(ev.key==="End"){ev.preventDefault();highlight(options.length-1,true)}
+        else if(ev.key==="Escape"){ev.preventDefault();close(true)}
+        else if(ev.key==="Tab"){close(false)}
+      });
+      options.push(b);scroll.appendChild(b);
+    }
+    Array.from(select.children).forEach(function(child){
+      if(child.tagName==="OPTGROUP"){
+        var heading=document.createElement("div");heading.className="lab-dropdown-group";
+        heading.textContent=child.label;scroll.appendChild(heading);
+        Array.from(child.children).forEach(addOption);
+      }else if(child.tagName==="OPTION") addOption(child);
+    });
+    label.textContent=select.selectedOptions[0] ? select.selectedOptions[0].textContent : "";
+    trigger.addEventListener("click",function(){wrap.classList.contains("open")?close(false):open()});
+    trigger.addEventListener("keydown",function(ev){
+      if(ev.key==="ArrowDown"||ev.key==="ArrowUp"||ev.key==="Enter"||ev.key===" "){
+        ev.preventDefault();if(!wrap.classList.contains("open"))open();
+        highlight(ev.key==="ArrowUp"?Math.max(0,current-1):current,true);
+      }else if(ev.key==="Escape")close(false);
+    });
+    wrap.addEventListener("lab-close",function(){close(false)});
+    wrap.appendChild(select);wrap.appendChild(trigger);wrap.appendChild(menu);
+    return wrap;
+  }
+  document.addEventListener("pointerdown",function(ev){
+    document.querySelectorAll(".lab-dropdown.open").forEach(function(el){
+      if(!el.contains(ev.target))el.dispatchEvent(new CustomEvent("lab-close"));
+    });
+  });
+  document.addEventListener("keydown",function(ev){
+    if(ev.key==="Escape")document.querySelectorAll(".lab-dropdown.open").forEach(function(el){el.dispatchEvent(new CustomEvent("lab-close"))});
+  });
+
+  function render(){
+    // linhas
+    elLinhas.innerHTML = "";
+    estado.linhas.forEach(function(l){
+      var row = document.createElement("div");
+      row.className = "row";
+      var sel = document.createElement("select");
+      sel.setAttribute("aria-label", "Selecionar ingrediente");
+      sel.title = "Selecionar ingrediente";
+      function opcao(ing, pai){
+        var o = document.createElement("option");
+        o.value = ing.id; o.textContent = ing.nome;
+        if (ing.longo) o.title = ing.longo;
+        if (ing.id === l.id) o.selected = true;
+        pai.appendChild(o);
+      }
+      ING.forEach(function(ing){ if (!ing.custom && !ing.estab) opcao(ing, sel); });
+      var gEst = document.createElement("optgroup");
+      gEst.label = "Estabilizantes";
+      ING.forEach(function(ing){ if (ing.estab) opcao(ing, gEst); });
+      sel.appendChild(gEst);
+      if (biblioteca.length){
+        var grupo = document.createElement("optgroup");
+        grupo.label = "Meus produtos";
+        biblioteca.forEach(function(pr){ opcao(pr, grupo); });
+        sel.appendChild(grupo);
+      }
+      opcao(acha("custom"), sel);
+      // O produto personalizado aparece pelo nome que a pessoa deu, não por "Personalizado…".
+      if (l.id === "custom" && l.comp && l.comp.nome){
+        sel.querySelector('option[value="custom"]').textContent = l.comp.nome;
+      }
+      sel.title = (acha(l.id) || {}).longo || "Selecionar ingrediente";
+      sel.addEventListener("change", function(){
+        var era = l.id;
+        l.id = sel.value;
+        sel.title = (acha(l.id) || {}).longo || "Selecionar ingrediente";
+        inp.setAttribute("aria-label", "Quantidade em gramas de " + ((acha(l.id) || {}).nome || "ingrediente"));
+        // Personalizados e produtos da biblioteca trazem um bloco extra embaixo da
+        // linha, então entrar ou sair deles muda a estrutura, não só os números.
+        function temExtra(id){
+          var ing = acha(id);
+          return id === "custom" || !!produto(id) || !!(ing && ing.nota);
+        }
+        if (temExtra(era) || temExtra(l.id)){ l.editando = false; render(); salva(); }
+        else { atualiza(); }
+      });
+
+      var inp = document.createElement("input");
+      inp.type = "number"; inp.min = "0"; inp.step = "1"; inp.value = l.g;
+      inp.inputMode = "decimal";
+      inp.setAttribute("aria-label", "Quantidade em gramas de " + ((acha(l.id) || {}).nome || "ingrediente"));
+      inp.title = "Editar quantidade em gramas";
+      inp.addEventListener("input", function(){ l.g = inp.value === "" ? 0 : Number(inp.value); atualiza(); });
+      l.input = inp;
+
+      // O passo acompanha a ordem de grandeza do valor, para que 3 g de
+      // estabilizante e 600 g de leite andem bem com a mesma seta.
+      function passoDe(v){
+        if (v < 10) return 0.5;
+        if (v < 50) return 1;
+        return 5;
+      }
+      function ajusta(dir, ev){
+        var atual = Number(l.g) || 0;
+        var passo = passoDe(dir > 0 ? atual + 0.01 : atual - 0.01);
+        if (ev && (ev.shiftKey || ev.metaKey)) passo *= 10;
+        var novo = Math.max(0, Math.round((atual + dir * passo) * 10) / 10);
+        l.g = novo;
+        inp.value = novo;
+        atualiza();
+      }
+
+      var passo = criaPasso(ajusta, "a quantidade de " + ((acha(l.id) || {}).nome || "ingrediente"));
+
+      var del = document.createElement("button");
+      del.type = "button"; del.className = "del"; del.innerHTML = "&times;";
+      del.setAttribute("aria-label", "Remover " + ((acha(l.id) || {}).nome || "ingrediente"));
+      del.addEventListener("click", function(){
+        estado.linhas = estado.linhas.filter(function(x){ return x !== l; });
+        render(); salva();
+      });
+
+      var qtd = document.createElement("div");
+      qtd.className = "qtd";
+      var un = document.createElement("span");
+      un.className = "un"; un.textContent = "g";
+      qtd.appendChild(inp); qtd.appendChild(un); qtd.appendChild(passo);
+      row.appendChild(criaDropdown(sel, "ingredient")); row.appendChild(qtd); row.appendChild(del);
+      elLinhas.appendChild(row);
+      var ingNota = acha(l.id);
+      if (ingNota && ingNota.nota){
+        var nota = document.createElement("div");
+        nota.className = "resumo"; nota.textContent = ingNota.nota;
+        elLinhas.appendChild(nota);
+      }
+
+      var prSel = produto(l.id);
+
+      if (l.id === "custom" || (prSel && l.editando)){
+        var dados = prSel ? prSel : (l.comp = limpaComp(l));
+        var box = document.createElement("div");
+        box.className = "custom";
+
+        var nome = document.createElement("input");
+        nome.type = "text"; nome.className = "nome";
+        nome.placeholder = "Nome do produto";
+        nome.value = dados.nome;
+        nome.setAttribute("aria-label", "Nome do produto");
+        box.appendChild(nome);
+
+        var campos = document.createElement("div");
+        campos.className = "campos";
+        var agua = document.createElement("span");
+        agua.className = "agua-calc";
+
+        function mostraAgua(){
+          var resto = 100 - ((Number(dados.gord)||0) + (Number(dados.ac)||0) + (Number(dados.outros)||0));
+          agua.textContent = "água " + n(Math.max(0, resto), 0) + "%";
+          agua.classList.toggle("erro", resto < -0.5);
+        }
+
+        [["gord","Gordura"],["ac","Açúcares"],["outros","Outros"]].forEach(function(cfg){
+          var wrap = document.createElement("label");
+          wrap.className = "campo";
+          var tit = document.createElement("span"); tit.textContent = cfg[1];
+          var c = document.createElement("input");
+          c.type = "number"; c.min = "0"; c.max = "100"; c.step = "0.1";
+          c.inputMode = "decimal"; c.value = dados[cfg[0]];
+          c.addEventListener("input", function(){
+            dados[cfg[0]] = c.value === "" ? 0 : Number(c.value);
+            mostraAgua();
+            if (prSel){ delete prSel.repo; salvaBiblioteca(); }
+            atualiza();
+          });
+          wrap.appendChild(tit); wrap.appendChild(c);
+          campos.appendChild(wrap);
+        });
+        campos.appendChild(agua); mostraAgua();
+        box.appendChild(campos);
+
+        var acoes = document.createElement("div");
+        acoes.className = "acoes";
+
+        if (prSel){
+          nome.addEventListener("input", function(){
+            dados.nome = nome.value; delete dados.repo; salvaBiblioteca(); render();
+          });
+          var pronto = document.createElement("button");
+          pronto.type = "button"; pronto.className = "ghost destaque";
+          pronto.textContent = "Concluir";
+          pronto.addEventListener("click", function(){ l.editando = false; render(); });
+          var remover = document.createElement("button");
+          remover.type = "button"; remover.className = "ghost";
+          remover.textContent = "Remover da biblioteca";
+          remover.addEventListener("click", function(){
+            var copia = {nome:dados.nome, gord:dados.gord, ac:dados.ac, outros:dados.outros};
+            biblioteca = biblioteca.filter(function(x){ return x.id !== prSel.id; });
+            salvaBiblioteca();
+            // As linhas que usavam o produto viram personalizadas, para não perder a receita.
+            estado.linhas.forEach(function(x){
+              if (x.id === prSel.id){ x.id = "custom"; x.comp = copia; x.editando = false; }
+            });
+            render(); salva();
+          });
+          acoes.appendChild(pronto); acoes.appendChild(remover);
+        } else {
+          nome.addEventListener("input", function(){
+            dados.nome = nome.value; salva();
+            var rot = row.querySelector(".lab-dropdown-label");
+            if (rot) rot.textContent = nome.value || "Personalizado…";
+          });
+          var salvar = document.createElement("button");
+          salvar.type = "button"; salvar.className = "ghost destaque";
+          salvar.textContent = "Salvar na biblioteca";
+          salvar.addEventListener("click", function(){
+            var limpo = normalizaProduto({id:novoId(), nome:(dados.nome||"").trim(), gord:dados.gord, ac:dados.ac, outros:dados.outros});
+            if (!limpo){ nome.focus(); return; }
+            biblioteca.push(limpo); salvaBiblioteca();
+            l.id = limpo.id; l.comp = null;
+            render(); salva();
+          });
+          acoes.appendChild(salvar);
+        }
+
+        var ajuda = document.createElement("p");
+        ajuda.className = "ajuda";
+        ajuda.textContent = "Valores por 100 g do rótulo. “Outros” são os sólidos que não são gordura nem açúcar: carboidratos menos açúcares, mais proteínas e fibras. O que faltar para 100 vira água.";
+        box.appendChild(acoes); box.appendChild(ajuda);
+        elLinhas.appendChild(box);
+
+      } else if (prSel){
+        // Produto da biblioteca: resumo discreto com atalho para editar.
+        var resumo = document.createElement("div");
+        resumo.className = "resumo";
+        var txt = document.createElement("span");
+        txt.textContent = "gordura " + n(prSel.gord, 0) + "% · açúcares " + n(prSel.ac, 0) +
+                          "% · outros " + n(prSel.outros, 0) + "%";
+        var editar = document.createElement("button");
+        editar.type = "button"; editar.className = "ghost";
+        editar.textContent = "Editar";
+        editar.addEventListener("click", function(){ l.editando = true; render(); });
+        resumo.appendChild(txt); resumo.appendChild(editar);
+        elLinhas.appendChild(resumo);
+      }
+    });
+    elVazio.hidden = estado.linhas.length > 0;
+    desenhaReceitas();
+    desenhaBib();
+    atualiza();
+  }
+
+  // Seletor de receitas: exemplos embutidos, as salvas pela pessoa e as ações
+  // de salvar e excluir. Fica na barra de cima, ao lado dos estilos.
+  var elGrupoRec = document.getElementById("grupoReceitas");
+  var elCabecalho = document.getElementById("cabecalhoReceita");
+
+  function nomeAtual(){
+    var r = receita(estado.receitaAtual);
+    if (r) return r.nome;
+    if (estado.receitaAtual === "preset:gelato") return "Base branca de gelato";
+    if (estado.receitaAtual === "preset:icecream") return "Base branca de sorvete";
+    if (estado.receitaAtual === "preset:sorbet") return "Sorbet de fruta";
+    return "";
+  }
+
+  // No menu fica só o que se pode abrir. O que está aberto aparece como título da lista.
+  function desenhaReceitas(){
+    elGrupoRec.innerHTML = "";
+
+    var sel = document.createElement("select");
+    sel.className = "sel-receita";
+    sel.setAttribute("aria-label", "Abrir receita");
+
+    var vazia = document.createElement("option");
+    vazia.value = ""; vazia.textContent = "Abrir receita…";
+    sel.appendChild(vazia);
+
+    var nova = document.createElement("option");
+    nova.value = "novo"; nova.textContent = "Nova receita";
+    sel.appendChild(nova);
+
+    var gEx = document.createElement("optgroup");
+    gEx.label = "Exemplos";
+    [["preset:gelato", "Base branca de gelato"],
+     ["preset:icecream", "Base branca de sorvete"],
+     ["preset:sorbet", "Sorbet de fruta"]].forEach(function(cfg){
+      var o = document.createElement("option");
+      o.value = cfg[0]; o.textContent = cfg[1];
+      gEx.appendChild(o);
+    });
+    sel.appendChild(gEx);
+
+    if (receitas.length){
+      var gMinhas = document.createElement("optgroup");
+      gMinhas.label = "Minhas receitas";
+      receitas.forEach(function(r){
+        var o = document.createElement("option");
+        o.value = r.id; o.textContent = r.nome;
+        gMinhas.appendChild(o);
+      });
+      sel.appendChild(gMinhas);
+    }
+
+    sel.value = "";
+    sel.addEventListener("change", function(){ abreReceita(sel.value); });
+    elGrupoRec.appendChild(criaDropdown(sel, "recipe"));
+
+    desenhaCabecalho();
+  }
+
+  function desenhaCabecalho(){
+    elCabecalho.innerHTML = "";
+    var nome = nomeAtual();
+
+    var h = document.createElement("h2");
+    h.className = "nome-receita" + (nome ? "" : " sem-nome");
+    h.textContent = nome || "Receita sem nome";
+    if (nome) h.title = nome;
+    elCabecalho.appendChild(h);
+
+    var salvar = document.createElement("button");
+    salvar.type = "button"; salvar.className = "ghost";
+    salvar.textContent = receita(estado.receitaAtual) ? "Salvar" : "Salvar como…";
+    salvar.addEventListener("click", abreCampoNome);
+    elCabecalho.appendChild(salvar);
+
+    var atual = receita(estado.receitaAtual);
+    if (atual){
+      var excluir = document.createElement("button");
+      excluir.type = "button"; excluir.className = "ghost";
+      excluir.textContent = "Excluir";
+      excluir.addEventListener("click", function(){
+        receitas = receitas.filter(function(r){ return r.id !== atual.id; });
+        salvaReceitas();
+        estado.receitaAtual = "";
+        render(); salva();
+      });
+      elCabecalho.appendChild(excluir);
+    }
+  }
+
+  function abreCampoNome(){
+    var atual = receita(estado.receitaAtual);
+    var inp = document.createElement("input");
+    inp.type = "text"; inp.className = "nome-receita-edit";
+    inp.placeholder = "Nome da receita";
+    inp.value = atual ? atual.nome : nomeAtual();
+    inp.setAttribute("aria-label", "Nome da receita");
+    var ok = document.createElement("button");
+    ok.type = "button"; ok.className = "ghost"; ok.textContent = "ok";
+    var cancelar = document.createElement("button");
+    cancelar.type = "button"; cancelar.className = "ghost"; cancelar.textContent = "cancelar";
+    cancelar.addEventListener("click", desenhaCabecalho);
+
+    function confirma(){
+      var nome = inp.value.trim();
+      if (!nome){ inp.focus(); return; }
+      var existente = null;
+      receitas.forEach(function(r){ if (r.nome === nome) existente = r; });
+      var nova = normalizaReceita({
+        id: existente ? existente.id : novoId(),
+        nome: nome, estilo: estado.estilo, temp: estado.temp,
+        linhas: copiaLinhas(estado.linhas)
+      });
+      if (!nova) return;
+      if (existente){
+        receitas = receitas.map(function(r){ return r.id === existente.id ? nova : r; });
+      } else {
+        receitas.push(nova);
+      }
+      salvaReceitas();
+      estado.receitaAtual = nova.id;
+      render(); salva();
+    }
+
+    ok.addEventListener("click", confirma);
+    inp.addEventListener("keydown", function(ev){
+      if (ev.key === "Enter"){ ev.preventDefault(); confirma(); }
+      if (ev.key === "Escape"){ desenhaCabecalho(); }
+    });
+
+    elCabecalho.innerHTML = "";
+    elCabecalho.appendChild(inp);
+    elCabecalho.appendChild(ok);
+    elCabecalho.appendChild(cancelar);
+    inp.focus(); inp.select();
+  }
+
+  function abreReceita(valor){
+    if (!valor){ estado.receitaAtual = ""; desenhaReceitas(); salva(); return; }
+    if (valor === "novo"){
+      estado.linhas = [];
+      estado.receitaAtual = "";
+      render(); salva();
+      return;
+    }
+    if (valor.indexOf("preset:") === 0){
+      var pre = PRESETS[valor.slice(7)];
+      if (!pre) return;
+      estado.estilo = pre.estilo;
+      estado.linhas = copiaLinhas(pre.linhas);
+      estado.receitaAtual = valor;
+    } else {
+      var r = receita(valor);
+      if (!r) return;
+      estado.estilo = r.estilo;
+      estado.temp = r.temp;
+      estado.linhas = copiaLinhas(r.linhas);
+      estado.receitaAtual = r.id;
+    }
+    aplicaEstilo();
+    render(); salva();
+  }
+
+  // Barra da biblioteca: quantos produtos existem e como levá-los para outro aparelho.
+  function desenhaBib(){
+    elBib.innerHTML = "";
+    var doRepo = biblioteca.filter(function(p){ return p.repo; }).length +
+                 receitas.filter(function(r){ return r.repo; }).length;
+    var partes = [];
+    if (biblioteca.length) partes.push(biblioteca.length + (biblioteca.length === 1 ? " produto" : " produtos"));
+    if (receitas.length) partes.push(receitas.length + (receitas.length === 1 ? " receita" : " receitas"));
+    var txt = document.createElement("span");
+    txt.textContent = "Salvos neste navegador: " +
+      (partes.length ? partes.join(" · ") : "nada ainda");
+    if (doRepo) txt.textContent += " (" + doRepo + " do arquivo publicado)";
+    elBib.appendChild(txt);
+
+    if (biblioteca.length || receitas.length){
+      var exp = document.createElement("button");
+      exp.type = "button"; exp.className = "ghost"; exp.textContent = "exportar";
+      exp.title = "Baixar um arquivo com os seus produtos";
+      exp.addEventListener("click", function(){
+        var pacote = {
+          produtos: biblioteca.map(function(p){
+            return {id:p.id, nome:p.nome, gord:p.gord, ac:p.ac, outros:p.outros};
+          }),
+          receitas: receitas.map(function(r){
+            return {id:r.id, nome:r.nome, estilo:r.estilo, temp:r.temp, linhas:r.linhas};
+          })
+        };
+        var blob = new Blob([JSON.stringify(pacote, null, 2)], {type:"application/json"});
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "meus-dados.json";
+        a.click();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+      });
+      elBib.appendChild(exp);
+    }
+
+    var imp = document.createElement("button");
+    imp.type = "button"; imp.className = "ghost"; imp.textContent = "importar";
+    imp.title = "Carregar produtos de um arquivo exportado";
+    imp.addEventListener("click", function(){ arquivo.click(); });
+    elBib.appendChild(imp);
+
+    var arquivo = document.createElement("input");
+    arquivo.type = "file"; arquivo.accept = "application/json,.json"; arquivo.hidden = true;
+    arquivo.addEventListener("change", function(){
+      var f = arquivo.files && arquivo.files[0];
+      if (!f) return;
+      var leitor = new FileReader();
+      leitor.onload = function(){
+        try {
+          var bruto = JSON.parse(leitor.result);
+          // Aceita tanto o pacote novo quanto um arquivo antigo só de produtos.
+          var lista = Array.isArray(bruto) ? bruto : (bruto.produtos || []);
+          var recs = Array.isArray(bruto) ? [] : (bruto.receitas || []);
+          recs.map(normalizaReceita).filter(Boolean).forEach(function(r){
+            var igual = null;
+            receitas.forEach(function(x){ if (x.nome === r.nome) igual = x; });
+            if (igual){ receitas = receitas.map(function(x){ return x === igual ? r : x; }); }
+            else { receitas.push(r); }
+          });
+          salvaReceitas();
+          lista.map(function(p){
+            if (p && !p.id) p.id = novoId();
+            return normalizaProduto(p);
+          }).filter(Boolean).forEach(function(pr){
+            // Não duplica: o mesmo nome substitui o produto existente.
+            var igual = null;
+            biblioteca.forEach(function(x){ if (x.nome === pr.nome) igual = x; });
+            if (igual){ igual.gord = pr.gord; igual.ac = pr.ac; igual.outros = pr.outros; }
+            else { pr.id = novoId(); biblioteca.push(pr); }
+          });
+          salvaBiblioteca(); render();
+        } catch (e) {}
+      };
+      leitor.readAsText(f);
+      arquivo.value = "";
+    });
+    elBib.appendChild(arquivo);
+  }
+
+  // Preserva a posição anterior dos marcadores mesmo quando os gráficos são recriados.
+  var posicoesAnteriores = null;
+  function capturaMarcadores(){
+    return Array.prototype.map.call(elMetricas.querySelectorAll('.bar .mark'), function(mark){
+      return parseFloat(mark.style.left.replace('calc(', '')) || 0;
+    });
+  }
+  function capturaFaixas(){
+    return Array.prototype.map.call(elMetricas.querySelectorAll('.bar .band'), function(band){
+      return {left:parseFloat(band.style.left) || 0, width:parseFloat(band.style.width) || 0};
+    });
+  }
+  function animaFaixas(anteriores){
+    if (!anteriores || !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    Array.prototype.forEach.call(elMetricas.querySelectorAll('.bar .band'), function(band, i){
+      var anterior = anteriores[i];
+      if (!anterior || !band.animate) return;
+      var novoLeft = parseFloat(band.style.left) || 0;
+      var novaWidth = parseFloat(band.style.width) || 0;
+      if (Math.abs(novoLeft - anterior.left) < .02 && Math.abs(novaWidth - anterior.width) < .02) return;
+      band.animate([
+        {left:anterior.left + '%', width:anterior.width + '%'},
+        {left:novoLeft + '%', width:novaWidth + '%'}
+      ], {duration:420, easing:'cubic-bezier(.22,1,.36,1)'});
+      var limites = band.parentElement.querySelectorAll('.range-label');
+      Array.prototype.forEach.call(limites, function(legenda, idx){
+        if (!legenda.animate) return;
+        var antigo = anterior.left + (idx === 0 ? 0 : anterior.width);
+        var novo = novoLeft + (idx === 0 ? 0 : novaWidth);
+        legenda.animate([{left:antigo + '%'}, {left:novo + '%'}],
+          {duration:420, easing:'cubic-bezier(.22,1,.36,1)'});
+      });
+    });
+  }
+
+  function animaMarcadores(anteriores){
+    if (!anteriores || !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    Array.prototype.forEach.call(elMetricas.querySelectorAll('.bar .mark'), function(mark, i){
+      var nova = parseFloat(mark.style.left.replace('calc(', '')) || 0;
+      var antiga = anteriores[i];
+      if (!Number.isFinite(antiga) || Math.abs(nova - antiga) < .02) return;
+      var largura = mark.parentElement.getBoundingClientRect().width;
+      if (!largura || !mark.animate) return;
+      var delta = (antiga - nova) / 100 * largura;
+      mark.animate([{transform:'translateX(' + delta + 'px)'},{transform:'translateX(0)'}],
+        {duration:420, easing:'cubic-bezier(.22,1,.36,1)'});
+    });
+  }
+
+  function atualiza(){
+    var anteriores = capturaMarcadores();
+    var faixasAnteriores = capturaFaixas();
+    var r = calcula();
+    document.getElementById("cxPeso").classList.toggle("sem-peso", !r.peso);
+    var alvo = ALVOS[estado.estilo];
+    if (document.activeElement !== elPeso){
+      elPeso.value = Math.round(r.peso * 10) / 10;
+    }
+
+    if (!r.peso){
+      elMetricas.innerHTML = '<p class="empty">A composição aparece aqui assim que a receita tiver algum ingrediente com quantidade.</p>';
+      elAvisos.innerHTML = "";
+      document.getElementById("avisoEstab").hidden = true;
+      salva(); return;
+    }
+
+    elMetricas.innerHTML =
+      linhaMetrica("Gordura", r.gord, alvo.gord, ESCALA.gord, "%") +
+      linhaMetrica("Sólidos lácteos (SLNG)", r.slng + r.soro, alvo.slng, ESCALA.slng, "%") +
+      linhaMetrica("Açúcares", r.ac, alvo.ac, ESCALA.ac, "%") +
+      linhaMetrica("Sólidos totais", r.sol, alvo.sol, ESCALA.sol, "%") +
+      linhaMetrica("POD (doçura)", r.pod, alvo.pod, ESCALA.pod, "", 0) +
+      linhaMetrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0) +
+      (r.estab > 0 ? linhaMetrica("Estabilizantes", r.estab, ALVO_ESTAB, [0, 1], "%", 2) : "") +
+      (pontoCongelamento(r) === null ? "" :
+        linhaMetrica("Ponto de congelamento", pontoCongelamento(r), ALVO_FP, ESCALA.fp, " °C", 2)) +
+      '<div class="water-summary" aria-label="Água na mistura">' +
+      '<span class="water-summary-label">Água na mistura</span>' +
+      '<span class="water-summary-value num">' + n(r.agua) + '%</span></div>';
+    animaMarcadores(anteriores);
+    animaFaixas(faixasAnteriores);
+
+    elAvisos.innerHTML = "";
+    document.getElementById("avisoEstab").hidden = !(r.estab > 0);
+    avisos(r).forEach(function(a){
+      var li = document.createElement("li");
+      li.className = "status-" + a.nivel;
+      li.textContent = a.txt;
+      elAvisos.appendChild(li);
+    });
+
+    salva();
+  }
+
+  function salva(){
+    try {
+      localStorage.setItem(CHAVE, JSON.stringify({
+        estilo: estado.estilo,
+        temp: estado.temp,
+        receitaAtual: estado.receitaAtual,
+        linhas: estado.linhas.map(function(l){
+          var o = {id:l.id, g:l.g};
+          if (l.id === "custom") o.comp = limpaComp(l);
+          return o;
+        })
+      }));
+    } catch (e) {}
+  }
+
+  function carrega(){
+    try {
+      var bruto = localStorage.getItem(CHAVE);
+      if (!bruto) return false;
+      var dado = JSON.parse(bruto);
+      if (!dado || !Array.isArray(dado.linhas)) return false;
+      estado.estilo = ALVOS[dado.estilo] ? dado.estilo : "gelato";
+      if (isFinite(dado.temp) && dado.temp < 0) estado.temp = Number(dado.temp);
+      estado.receitaAtual = typeof dado.receitaAtual === "string" ? dado.receitaAtual : "";
+      estado.linhas = dado.linhas.filter(function(l){ return acha(l.id); })
+        .map(function(l){
+          var o = {id:l.id, g:Number(l.g) || 0};
+          if (l.id === "custom") o.comp = limpaComp(l);
+          return o;
+        });
+      return true;
+    } catch (e) { return false; }
+  }
+
+  document.getElementById('verFontes').addEventListener('click', function(){
+    var detalhes = document.querySelector('.notas details');
+    detalhes.open = true;
+    var alvo = document.getElementById('fontes');
+    var reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    alvo.scrollIntoView({behavior: reduz ? 'auto' : 'smooth', block: 'center'});
+  });
+
+  var seletorEstilo = document.getElementById('estilo');
+  var pillEstilo = document.createElement('span');
+  pillEstilo.className = 'pill-indicator';
+  pillEstilo.setAttribute('aria-hidden', 'true');
+  seletorEstilo.insertBefore(pillEstilo, seletorEstilo.firstChild);
+  function posicionaPill(){
+    var ativo = seletorEstilo.querySelector('button[aria-pressed="true"]');
+    if (!ativo) return;
+    pillEstilo.style.width = ativo.offsetWidth + 'px';
+    pillEstilo.style.transform = 'translateX(' + ativo.offsetLeft + 'px)';
+    seletorEstilo.classList.add('pill-ready');
+  }
+  function aplicaEstilo(){
+    Array.prototype.forEach.call(document.querySelectorAll("#estilo button"), function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.estilo === estado.estilo));
+    });
+    posicionaPill();
+  }
+  function atualizaRolagem(){
+    var sobra = seletorEstilo.scrollWidth - seletorEstilo.clientWidth - seletorEstilo.scrollLeft;
+    seletorEstilo.classList.toggle('rola', sobra > 2);
+  }
+  seletorEstilo.addEventListener('scroll', atualizaRolagem, {passive:true});
+  window.addEventListener('resize', atualizaRolagem);
+  atualizaRolagem();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(atualizaRolagem);
+  window.addEventListener('resize', posicionaPill);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(posicionaPill);
+
+  document.getElementById("estilo").addEventListener("click", function(ev){
+    var b = ev.target.closest("button"); if (!b) return;
+    estado.estilo = b.dataset.estilo;
+    aplicaEstilo(); atualiza();
+  });
+
+  // Reescala a receita inteira a partir de um peso total novo.
+  // A base é congelada no foco para que os arredondamentos não se acumulem a cada tecla.
+  var base = null;
+
+  elPeso.addEventListener("focus", function(){
+    var total = calcula().peso;
+    base = total > 0 ? {total:total, g:estado.linhas.map(function(l){ return l.g; })} : null;
+  });
+
+  elPeso.addEventListener("input", function(){
+    if (!base) return;
+    var alvo = Number(elPeso.value);
+    if (!isFinite(alvo) || alvo <= 0 || elPeso.value === "") return;
+    var fator = alvo / base.total;
+    estado.linhas.forEach(function(l, i){
+      l.g = Math.round(base.g[i] * fator * 10) / 10;
+      if (l.input) l.input.value = l.g;
+    });
+    atualiza();
+  });
+
+  elPeso.addEventListener("blur", function(){
+    base = null;
+    atualiza();
+  });
+
+  document.getElementById("cxPeso").appendChild(criaPasso(function(dir, ev){
+    var total = calcula().peso;
+    if (!total) return;
+    var passo = (ev && (ev.shiftKey || ev.metaKey)) ? 100 : 10;
+    var alvo = Math.max(0, Math.round((total + dir * passo) / passo) * passo);
+    if (!alvo) return;
+    var fator = alvo / total;
+    estado.linhas.forEach(function(l){
+      l.g = Math.round((Number(l.g) || 0) * fator * 10) / 10;
+      if (l.input) l.input.value = l.g;
+    });
+    atualiza();
+  }, "o peso total"));
+
+
+
+  document.getElementById("adicionar").addEventListener("click", function(){
+    estado.linhas.push({id:"leite", g:0});
+    render();
+    var inputs = elLinhas.querySelectorAll('input[type="number"]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  carregaBiblioteca();
+  carregaReceitas();
+  carregaDoRepositorio();
+  carregaReceitasDoRepositorio();
+  if (!carrega()){
+    estado.estilo = PRESETS.gelato.estilo;
+    estado.linhas = PRESETS.gelato.linhas.map(function(l){ return {id:l.id, g:l.g}; });
+  }
+  aplicaEstilo();
+  render();
+})();
+</script>
+</body>
+</html>

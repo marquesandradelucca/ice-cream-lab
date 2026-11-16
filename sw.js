@@ -1,0 +1,38 @@
+// Service worker: guarda o app no aparelho para funcionar sem internet.
+// Ao mudar qualquer arquivo do app, aumente VERSAO para o celular baixar a versão nova.
+const VERSAO = "icelab-12";
+const ARQUIVOS = [
+  "./", "index.html", "manifest.json", "css/estilo.css",
+  "js/app.js", "js/dados.js", "js/calculo.js", "js/ingredientes-base.js",
+  "js/telas/inicio.js", "js/telas/calculadora.js", "js/telas/ingredientes.js", "js/telas/embreve.js",
+  "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"
+];
+
+self.addEventListener("install", function(ev){
+  ev.waitUntil(caches.open(VERSAO).then(function(c){ return c.addAll(ARQUIVOS); }).then(function(){ return self.skipWaiting(); }));
+});
+
+self.addEventListener("activate", function(ev){
+  ev.waitUntil(caches.keys().then(function(chaves){
+    return Promise.all(chaves.filter(function(k){ return k !== VERSAO; }).map(function(k){ return caches.delete(k); }));
+  }).then(function(){ return self.clients.claim(); }));
+});
+
+// Rede primeiro (para pegar atualizações), com o cache como reserva quando estiver offline.
+self.addEventListener("fetch", function(ev){
+  if (ev.request.method !== "GET") return;
+  ev.respondWith(
+    // "no-cache": sempre confere com o servidor se há versão nova do arquivo.
+    (new URL(ev.request.url).origin === location.origin ? fetch(ev.request.url, {cache:"no-cache"}) : fetch(ev.request)).then(function(resp){
+      if (resp && (resp.ok || resp.type === "opaque")){
+        const copia = resp.clone();
+        caches.open(VERSAO).then(function(c){ c.put(ev.request, copia); });
+      }
+      return resp;
+    }).catch(function(){
+      return caches.match(ev.request, {ignoreSearch:true}).then(function(r){
+        return r || (ev.request.mode === "navigate" ? caches.match("index.html") : undefined);
+      });
+    })
+  );
+});

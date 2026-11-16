@@ -1,0 +1,342 @@
+// Calculadora: editor de mistura com balanço ao vivo.
+// Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
+import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js";
+import { dados, salva, ingrediente } from "../dados.js";
+
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function barra(valor, alvo, escala, texto, casas, estilo){
+  const min = escala[0], span = escala[1] - escala[0];
+  function pos(v){ return Math.max(0, Math.min(100, (v - min) / span * 100)); }
+  const a = pos(alvo[0]), b = pos(alvo[1]), p = pos(valor);
+  const borda = p < 12 ? " inicio" : p > 88 ? " fim" : "";
+  const nivel = nivelFaixa(valor, alvo);
+  const ocultarZero = estilo === "sorbet" && alvo[0] === 0;
+  const compact = b - a < 18 && !ocultarZero ? " compact" : "";
+  return '<div class="bar"><span class="band" style="left:' + a + '%;width:' + Math.max(b - a, 1) + '%"></span>' +
+    '<span class="range-label min num' + compact + (a < 7 && !compact ? ' edge-start' : '') + '" style="left:' + a + '%">' + (ocultarZero ? '' : n(alvo[0], casas)) + '</span>' +
+    '<span class="range-label max num' + compact + (b > 93 && !compact ? ' edge-end' : '') + '" style="left:' + b + '%">' + n(alvo[1], casas) + '</span>' +
+    '<span class="mark status-' + nivel + borda + '" style="left:calc(' + p + '% - 1.5px)">' +
+    '<span class="mark-label num">' + texto + '</span></span></div>';
+}
+
+function metrica(nome, valor, alvo, escala, sufixo, casas, estilo){
+  return '<div class="metric"><div class="name">' + nome + '</div>' +
+    barra(valor, alvo, escala, n(valor, casas) + sufixo, casas, estilo) + '</div>';
+}
+
+function passoDe(v){ return v < 10 ? 0.5 : v < 50 ? 1 : 5; }
+
+export function render(el){
+  const db = dados();
+  const calc = db.calc;
+
+  function comp(id){ return ingrediente(id); }
+
+  function registraUltima(){
+    db.ultima = {rota:"#/calculadora", rotulo:"Calculadora · " + (calc.nome || "receita sem nome")};
+  }
+  function persiste(){ registraUltima(); salva(); }
+
+  el.innerHTML =
+    '<div class="cabeca-calc">' +
+      '<input id="nome" class="nome-rascunho" type="text" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome do rascunho">' +
+      '<div class="menu-abrir" id="menuAbrir">' +
+        '<button type="button" class="pilula-abrir" id="abrir" aria-haspopup="listbox" aria-expanded="false">Abrir<span class="chevron" aria-hidden="true"></span></button>' +
+        '<div class="menu-lista" role="listbox" aria-label="Abrir receita"><div class="menu-rolagem"></div></div>' +
+      '</div>' +
+    '</div>' +
+    '<section class="cartao" id="ingredientes">' +
+      '<div id="linhas"></div>' +
+      '<p class="muted" id="vazio" hidden>Nenhum ingrediente ainda. Adicione o primeiro ou abra uma base.</p>' +
+      '<div class="linha-total">' +
+        '<button class="botao pequeno-botao" type="button" id="adicionar">+ ingrediente</button>' +
+        '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir o peso total">−</button>' +
+        '<input type="number" id="peso" inputmode="decimal" min="0" step="10" aria-label="Mistura total em gramas (reescala a receita)">' +
+        '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o peso total">+</button></div>' +
+        '<span class="rotulo-total">total g</span>' +
+      '</div>' +
+      '<div class="rodape-ing"><button type="button" class="link-acao" id="modoExcluir">remover ingredientes</button></div>' +
+    '</section>' +
+    '<section class="resultado">' +
+      '<div class="resultado-topo"><h2>Composição</h2><span class="muted pequeno">faixas de referência</span></div>' +
+      '<div class="seg seg-faixas" id="estilo" role="group" aria-label="Faixas de referência dos gráficos">' +
+      Object.keys(NOMES_ESTILO).map(function(k){
+        return '<button type="button" data-estilo="' + k + '">' + (k === "icecream" ? "Sorvete" : NOMES_ESTILO[k]) + '</button>';
+      }).join("") + '</div>' +
+      '<div id="metricas"></div>' +
+      '<ul class="notes" id="avisos" aria-live="polite"></ul>' +
+      '<p class="muted pequeno" id="avisoEstab" hidden>O intervalo referente aos estabilizantes é apenas uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>' +
+    '</section>' +
+    '<details class="notas"><summary>Notas sobre o cálculo</summary>' +
+      '<p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>' +
+      '<p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>' +
+      '<p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos.</p>' +
+      '<p>O ponto de congelamento soma os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A faixa de −3,0 a −2,75 °C é a de um creme que serve bem entre −10 e −14 °C. Num freezer doméstico a −18 °C nenhuma receita comum cai nessa faixa; tire o pote alguns minutos antes de servir.</p>' +
+      '<p>Ficam de fora os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun. Use os números para comparar receitas, não como medida absoluta.</p>' +
+      '<p>A barra de estabilizantes soma os gramas das gomas como se valessem o mesmo; a faixa de 0,2 a 0,5% é a do blend de gomas clássicas (Goff e Hartel, p. 76). O amido fica fora da soma.</p>' +
+      '<p>Esta calculadora avalia o equilíbrio da formulação, não a segurança alimentar.</p>' +
+      '<p><b>Fontes</b><br>Goff, H. D.; Hartel, R. W. <i>Ice Cream</i>, 7ª ed. Springer, 2013.<br>Gelatologist, série de artigos sobre PAC, dureza e produção de gelato (Medium).<br>Clarke, C.; Cox, A. <i>The Science of Ice Cream</i>; Caviezel, L. <i>Scienza e tecnologia del gelato artigianale</i>.</p>' +
+    '</details>';
+
+  const elLinhas = el.querySelector("#linhas");
+  let inputs = [];
+  const elPeso = el.querySelector("#peso");
+  const elNome = el.querySelector("#nome");
+  const elAbrir = el.querySelector("#abrir");
+
+  // ----- Abrir: exemplos e receitas da calculadora antiga -----
+  // Menu próprio (como na v1.1), no lugar do seletor do sistema.
+  const elMenu = el.querySelector("#menuAbrir");
+  function desenhaAbrir(){
+    function op(v, t){ return '<button type="button" class="menu-opcao" role="option" data-v="' + esc(v) + '">' + esc(t) + '</button>'; }
+    let h = op("novo", "Rascunho vazio") + '<div class="menu-grupo">Exemplos</div>';
+    Object.keys(PRESETS).forEach(function(k){ h += op("preset:" + k, PRESETS[k].nome); });
+    if (db.receitasLegado.length){
+      h += '<div class="menu-grupo">Da calculadora antiga</div>';
+      db.receitasLegado.forEach(function(r){ h += op("leg:" + r.id, r.nome); });
+    }
+    elMenu.querySelector(".menu-rolagem").innerHTML = h;
+  }
+  function fechaMenu(){ elMenu.classList.remove("aberto"); elAbrir.setAttribute("aria-expanded", "false"); }
+  elAbrir.addEventListener("click", function(){
+    const ab = elMenu.classList.toggle("aberto");
+    elAbrir.setAttribute("aria-expanded", String(ab));
+  });
+  function foraDoMenu(ev){ if (!elMenu.contains(ev.target)) fechaMenu(); }
+  function escMenu(ev){ if (ev.key === "Escape") fechaMenu(); }
+  document.addEventListener("pointerdown", foraDoMenu);
+  document.addEventListener("keydown", escMenu);
+  elMenu.querySelector(".menu-lista").addEventListener("click", function(ev){
+    const b = ev.target.closest(".menu-opcao"); if (!b) return;
+    fechaMenu();
+    const v = b.dataset.v;
+    if (calc.linhas.length && !confirm("Substituir o rascunho aberto? (Ele não fica salvo em outro lugar.)")) return;
+    if (v === "novo"){ calc.linhas = []; calc.nome = ""; }
+    else if (v.indexOf("preset:") === 0){
+      const p = PRESETS[v.slice(7)];
+      calc.estilo = p.estilo; calc.nome = p.nome; calc.linhas = JSON.parse(JSON.stringify(p.linhas));
+    } else {
+      const r = db.receitasLegado.find(function(x){ return "leg:" + x.id === v; });
+      if (!r) return;
+      calc.estilo = ALVOS[r.estilo] ? r.estilo : "gelato"; calc.nome = r.nome;
+      calc.linhas = JSON.parse(JSON.stringify(r.linhas));
+    }
+    persiste(); desenhaTudo();
+  });
+
+  elNome.addEventListener("input", function(){ calc.nome = elNome.value; persiste(); });
+
+  // ----- Estilo -----
+  el.querySelector("#estilo").addEventListener("click", function(ev){
+    const b = ev.target.closest("button"); if (!b) return;
+    calc.estilo = b.dataset.estilo; persiste(); desenhaEstilo(); atualiza();
+  });
+  const elSeg = el.querySelector("#estilo");
+  const pill = document.createElement("span");
+  pill.className = "pill-indicator"; pill.setAttribute("aria-hidden", "true");
+  elSeg.insertBefore(pill, elSeg.firstChild);
+  function posicionaPill(){
+    const ativo = elSeg.querySelector('button[aria-pressed="true"]');
+    if (!ativo || !ativo.offsetWidth) return;
+    pill.style.width = ativo.offsetWidth + "px";
+    pill.style.transform = "translateX(" + ativo.offsetLeft + "px)";
+    elSeg.classList.add("pill-ready");
+  }
+  window.addEventListener("resize", posicionaPill);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(posicionaPill);
+  function desenhaEstilo(){
+    el.querySelectorAll("#estilo button").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.estilo === calc.estilo));
+    });
+    posicionaPill();
+  }
+
+  // ----- Linhas de ingrediente -----
+  function desenhaLinhas(){
+    elLinhas.innerHTML = ""; inputs = [];
+    calc.linhas.forEach(function(l, idx){
+      const ing = ingrediente(l.id);
+      const row = document.createElement("div");
+      row.className = "linha";
+      row.innerHTML =
+        '<span class="nome-ing' + (ing ? '' : ' removido') + '">' + esc(ing ? ing.nome : "(ingrediente removido)") + '</span>' +
+        '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir">−</button>' +
+        '<input type="number" inputmode="decimal" min="0" step="1" aria-label="Gramas">' +
+        '<button type="button" class="passo" data-dir="1" aria-label="Aumentar">+</button></div>' +
+        '<button type="button" class="remover" aria-label="Remover ingrediente">×</button>' +
+        (ing && ing.nota ? '<p class="nota-ing muted pequeno">' + esc(ing.nota) + '</p>' : "");
+      const inp = row.querySelector("input");
+      inp.value = l.g;
+      inp.setAttribute("aria-label", "Gramas de " + (ing ? ing.nome : "ingrediente"));
+      inp.addEventListener("input", function(){ l.g = inp.value === "" ? 0 : Number(inp.value); atualiza(); });
+      row.querySelector(".remover").addEventListener("click", function(){ calc.linhas.splice(idx, 1); desenhaLinhas(); atualiza(); });
+      row.querySelectorAll(".passo").forEach(function(b){
+        b.addEventListener("click", function(){
+          const dir = Number(b.dataset.dir), atual = Number(l.g) || 0;
+          const passo = passoDe(dir > 0 ? atual + 0.01 : atual - 0.01);
+          l.g = Math.max(0, Math.round((atual + dir * passo) * 10) / 10);
+          inp.value = l.g; atualiza();
+        });
+      });
+      inputs[idx] = inp;
+      elLinhas.appendChild(row);
+    });
+    el.querySelector("#vazio").hidden = calc.linhas.length > 0;
+  }
+
+  // O × de remover só aparece quando se pede: "remover ingredientes" liga, "concluir" desliga.
+  const elCartao = el.querySelector("#ingredientes");
+  const elModo = el.querySelector("#modoExcluir");
+  elModo.addEventListener("click", function(){
+    const ligado = elCartao.classList.toggle("modo-excluir");
+    elModo.textContent = ligado ? "concluir" : "remover ingredientes";
+  });
+
+  // "+ ingrediente" abre uma lista para escolher, com busca. O escolhido entra com 0 g
+  // e o campo de gramas já fica pronto para digitar.
+  const elEscolha = document.createElement("div");
+  elEscolha.className = "escolha"; elEscolha.hidden = true;
+  elEscolha.setAttribute("role", "dialog"); elEscolha.setAttribute("aria-label", "Escolher ingrediente");
+  elEscolha.innerHTML =
+    '<div class="escolha-topo"><input type="search" class="campo-texto" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente">' +
+    '<button type="button" class="link-acao" data-fechar>cancelar</button></div>' +
+    '<div class="escolha-lista"></div>' +
+    '<a class="link-acao escolha-novo" href="#/ingredientes/novo">criar ingrediente novo</a>';
+  document.body.appendChild(elEscolha);
+  const elBusca = elEscolha.querySelector("input");
+  function semAcento(t){ return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+  function desenhaEscolha(){
+    const q = semAcento(elBusca.value.trim());
+    const usados = calc.linhas.map(function(l){ return l.id; });
+    const lista = db.ingredientes.filter(function(i){ return !q || semAcento(i.nome + " " + (i.longo || "")).indexOf(q) >= 0; });
+    function item(i){
+      return '<button type="button" class="escolha-item" data-id="' + esc(i.id) + '">' + esc(i.nome) +
+        (usados.indexOf(i.id) >= 0 ? '<span class="muted pequeno">na receita</span>' : '') + '</button>';
+    }
+    const comuns = lista.filter(function(i){ return !i.estab; }), est = lista.filter(function(i){ return i.estab; });
+    elEscolha.querySelector(".escolha-lista").innerHTML =
+      comuns.map(item).join("") +
+      (est.length ? '<p class="escolha-grupo muted pequeno">Estabilizantes</p>' + est.map(item).join("") : "") +
+      (lista.length ? "" : '<p class="muted">Nenhum ingrediente com esse nome.</p>');
+  }
+  function abreEscolha(){ elBusca.value = ""; desenhaEscolha(); elEscolha.hidden = false; document.body.classList.add("travado"); }
+  function fechaEscolha(){ elEscolha.hidden = true; document.body.classList.remove("travado"); }
+  elBusca.addEventListener("input", desenhaEscolha);
+  elEscolha.addEventListener("click", function(ev){
+    if (ev.target.closest("[data-fechar]")) return fechaEscolha();
+    const b = ev.target.closest(".escolha-item"); if (!b) return;
+    fechaEscolha();
+    calc.linhas.push({id:b.dataset.id, g:0});
+    desenhaLinhas(); atualiza();
+    const ult = inputs[inputs.length - 1];
+    if (ult){ ult.focus(); ult.select(); }
+  });
+  el.querySelector("#adicionar").addEventListener("click", abreEscolha);
+
+  // ----- Peso total: reescala a receita -----
+  let base = null;
+  elPeso.addEventListener("focus", function(){
+    const total = calcula(calc.linhas, comp).peso;
+    base = total > 0 ? {total:total, g:calc.linhas.map(function(l){ return l.g; })} : null;
+  });
+  elPeso.addEventListener("input", function(){
+    if (!base) return;
+    const alvo = Number(elPeso.value);
+    if (!isFinite(alvo) || alvo <= 0 || elPeso.value === "") return;
+    const fator = alvo / base.total;
+    calc.linhas.forEach(function(l, i){ l.g = Math.round(base.g[i] * fator * 10) / 10; if (inputs[i]) inputs[i].value = l.g; });
+    atualiza();
+  });
+  elPeso.addEventListener("blur", function(){ base = null; atualiza(); });
+  el.querySelectorAll(".linha-total .passo").forEach(function(b){
+    b.addEventListener("click", function(){
+      const total = calcula(calc.linhas, comp).peso; if (!total) return;
+      const alvo = Math.max(0, Math.round((total + Number(b.dataset.dir) * 10) / 10) * 10);
+      if (!alvo) return;
+      const fator = alvo / total;
+      calc.linhas.forEach(function(l, i){ l.g = Math.round((Number(l.g) || 0) * fator * 10) / 10; if (inputs[i]) inputs[i].value = l.g; });
+      atualiza();
+    });
+  });
+
+  // Animações da v1.1: marcadores e faixas deslizam da posição anterior para a nova.
+  function reduzMov(){ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+  const CURVA = {duration:420, easing:"cubic-bezier(.22,1,.36,1)"};
+  function capturaMarcadores(elM){
+    return Array.prototype.map.call(elM.querySelectorAll(".bar .mark"), function(m){
+      return parseFloat(m.style.left.replace("calc(", "")) || 0;
+    });
+  }
+  function capturaFaixas(elM){
+    return Array.prototype.map.call(elM.querySelectorAll(".bar .band"), function(b){
+      return {left:parseFloat(b.style.left) || 0, width:parseFloat(b.style.width) || 0};
+    });
+  }
+  function animaMarcadores(elM, ant){
+    if (!ant || reduzMov()) return;
+    Array.prototype.forEach.call(elM.querySelectorAll(".bar .mark"), function(m, i){
+      const nova = parseFloat(m.style.left.replace("calc(", "")) || 0, antiga = ant[i];
+      if (!Number.isFinite(antiga) || Math.abs(nova - antiga) < .02 || !m.animate) return;
+      const largura = m.parentElement.getBoundingClientRect().width; if (!largura) return;
+      const delta = (antiga - nova) / 100 * largura;
+      m.animate([{transform:"translateX(" + delta + "px)"}, {transform:"translateX(0)"}], CURVA);
+    });
+  }
+  function animaFaixas(elM, ant){
+    if (!ant || reduzMov()) return;
+    Array.prototype.forEach.call(elM.querySelectorAll(".bar .band"), function(b, i){
+      const a = ant[i]; if (!a || !b.animate) return;
+      const nl = parseFloat(b.style.left) || 0, nw = parseFloat(b.style.width) || 0;
+      if (Math.abs(nl - a.left) < .02 && Math.abs(nw - a.width) < .02) return;
+      b.animate([{left:a.left + "%", width:a.width + "%"}, {left:nl + "%", width:nw + "%"}], CURVA);
+      Array.prototype.forEach.call(b.parentElement.querySelectorAll(".range-label"), function(lg, idx){
+        if (!lg.animate) return;
+        lg.animate([{left:(a.left + (idx ? a.width : 0)) + "%"}, {left:(nl + (idx ? nw : 0)) + "%"}], CURVA);
+      });
+    });
+  }
+
+  // ----- Resultado -----
+  function atualiza(){
+    const r = calcula(calc.linhas, comp);
+    const alvo = ALVOS[calc.estilo], est = calc.estilo;
+    if (document.activeElement !== elPeso) elPeso.value = Math.round(r.peso * 10) / 10;
+    const elM = el.querySelector("#metricas"), elA = el.querySelector("#avisos");
+    if (!r.peso){
+      elM.innerHTML = '<p class="muted">A composição aparece aqui assim que a receita tiver algum ingrediente com quantidade.</p>';
+      elA.innerHTML = ""; el.querySelector("#avisoEstab").hidden = true;
+      persiste(); return;
+    }
+    const fp = pontoCongelamento(r);
+    const antM = capturaMarcadores(elM), antF = capturaFaixas(elM);
+    elM.innerHTML =
+      metrica("Gordura", r.gord, alvo.gord, ESCALA.gord, "%", 1, est) +
+      metrica("Sólidos lácteos (SLNG)", r.slng + r.soro, alvo.slng, ESCALA.slng, "%", 1, est) +
+      metrica("Açúcares", r.ac, alvo.ac, ESCALA.ac, "%", 1, est) +
+      metrica("Sólidos totais", r.sol, alvo.sol, ESCALA.sol, "%", 1, est) +
+      metrica("POD (doçura)", r.pod, alvo.pod, ESCALA.pod, "", 0, est) +
+      metrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0, est) +
+      (r.estab > 0 ? metrica("Estabilizantes", r.estab, ALVO_ESTAB, [0, 1], "%", 2, est) : "") +
+      (fp === null ? "" : metrica("Ponto de congelamento", fp, ALVO_FP, ESCALA.fp, " °C", 2, est)) +
+      '<div class="water-summary"><span>Água na mistura</span><span class="pilula num">' + n(r.agua) + '%</span></div>';
+    animaMarcadores(elM, antM); animaFaixas(elM, antF);
+    el.querySelector("#avisoEstab").hidden = !(r.estab > 0);
+    elA.innerHTML = "";
+    avisos(r, est).forEach(function(a){
+      const li = document.createElement("li");
+      li.className = "status-" + a.nivel; li.textContent = a.txt;
+      elA.appendChild(li);
+    });
+    persiste();
+  }
+
+  function desenhaTudo(){
+    elNome.value = calc.nome || "";
+    desenhaAbrir(); desenhaEstilo(); desenhaLinhas(); atualiza();
+  }
+  desenhaTudo();
+
+  return {titulo:"Calculadora", limpa:function(){ salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); window.removeEventListener("resize", posicionaPill); elEscolha.remove(); document.body.classList.remove("travado"); }};
+}

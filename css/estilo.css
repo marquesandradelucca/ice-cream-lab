@@ -1,0 +1,267 @@
+/* Ice Cream Lab — visual herdado da calculadora v1.1, adaptado para o celular na bancada:
+   controles de 48 px, uma coluna, botões grandes. */
+:root{
+  color-scheme: light;
+  --paper:#FCFCFA; --ink:#1B1D1B; --muted:#686E68; --line:#E5E5DE;
+  --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper));
+  --st-ok:#4D916A; --st-atencao:#B07F2C; --st-critico:#A94F45;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px; --sp-8:48px;
+  --ctl:48px;
+  --type-small:.857rem;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6; --line:#282B27;
+    --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6; --line:#282B27;
+  --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+}
+.num,input[type="number"]{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.pequeno{font-size:var(--type-small)}
+a{color:inherit}
+button,input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+
+/* Topo fixo com voltar */
+.barra-topo{
+  position:sticky; top:0; z-index:10; background:var(--paper);
+  display:flex; align-items:center; gap:var(--sp-2);
+  padding:calc(env(safe-area-inset-top,0px) + var(--sp-2)) var(--sp-4) var(--sp-2);
+  border-bottom:1px solid var(--line); min-height:56px;
+}
+.barra-topo h1{font-size:1.15rem; font-weight:600; letter-spacing:-.02em; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.voltar{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:var(--ctl); height:var(--ctl); margin-left:calc(var(--sp-3) * -1);
+  font-size:2rem; line-height:1; text-decoration:none;
+}
+.wrap{max-width:640px; margin:0 auto; padding:var(--sp-5) var(--sp-4) calc(env(safe-area-inset-bottom,0px) + var(--sp-8))}
+
+/* Botões */
+.botao{
+  display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2);
+  min-height:var(--ctl); padding:0 var(--sp-5); border-radius:999px;
+  background:var(--ink); color:var(--paper); border:1px solid var(--ink);
+  font-weight:500; text-decoration:none; cursor:pointer; touch-action:manipulation;
+}
+.botao:active{opacity:.7}
+.botao.secundario{background:transparent; color:var(--ink)}
+.botao.perigo{background:transparent; color:var(--st-critico); border-color:var(--st-critico)}
+.acoes-linha{display:flex; flex-wrap:wrap; gap:var(--sp-3); margin:var(--sp-5) 0 var(--sp-3)}
+
+.cartao{background:var(--edit-surface); border-radius:16px; padding:var(--sp-4); margin-bottom:var(--sp-5)}
+.etiqueta{font-size:var(--type-small); color:var(--muted); margin:0}
+.toast{
+  position:fixed; left:var(--sp-4); right:var(--sp-4); bottom:calc(env(safe-area-inset-bottom,0px) + var(--sp-4));
+  background:var(--ink); color:var(--paper); padding:var(--sp-3) var(--sp-4); border-radius:12px; z-index:20;
+  max-width:600px; margin:0 auto;
+}
+
+/* Início */
+.continuar{
+  display:flex; flex-direction:column; gap:var(--sp-1); text-decoration:none;
+  background:var(--ink); color:var(--paper); border-radius:16px; padding:var(--sp-4) var(--sp-5); margin-bottom:var(--sp-7);
+}
+.continuar .etiqueta{color:color-mix(in srgb, var(--paper) 70%, var(--ink))}
+.continuar-nome{font-weight:500; font-size:1.05rem}
+.grupo-areas{margin-bottom:var(--sp-7)}
+.grupo-areas h2,.subtitulo,.resultado h2{font-size:1rem; font-weight:500; margin:0 0 var(--sp-3)}
+.grade{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3)}
+.area{
+  display:flex; flex-direction:column; justify-content:space-between; gap:var(--sp-2);
+  min-height:104px; padding:var(--sp-4); border-radius:16px; background:var(--edit-surface);
+  text-decoration:none; touch-action:manipulation;
+}
+.area:active{opacity:.7}
+.area-nome{font-weight:500}
+.area-desc{font-size:var(--type-small); color:var(--muted)}
+.area.embreve .area-nome{color:var(--muted)}
+.creditos{font-size:var(--type-small); text-align:center; margin-top:var(--sp-8)}
+.embreve p{margin:0 0 var(--sp-3)}
+
+/* Campos */
+.rotulo{display:block; font-size:var(--type-small); color:var(--muted); margin:var(--sp-2) 0 var(--sp-1)}
+.rotulo:first-child{margin-top:0}
+select,.campo-texto,input[type="number"]{
+  width:100%; min-height:var(--ctl); border:0; border-radius:10px;
+  background:var(--paper); padding:0 var(--sp-3); font-size:16px; /* 16px evita zoom no iPhone */
+}
+textarea.campo-texto{padding:var(--sp-3); min-height:auto; resize:vertical}
+select{appearance:none; -webkit-appearance:none; padding-right:var(--sp-6);
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:right 14px center, right 10px center; background-size:4px 4px; background-repeat:no-repeat}
+input[type="number"]{text-align:right; -moz-appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+
+/* Estilo */
+.seg{display:flex; gap:var(--sp-1); background:var(--edit-surface); border-radius:999px; padding:var(--sp-1); margin-bottom:var(--sp-5)}
+.seg button{flex:1; min-height:44px; border:0; border-radius:999px; background:transparent; color:var(--muted); font-weight:500; cursor:pointer; touch-action:manipulation}
+.seg button[aria-pressed="true"]{background:var(--paper); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* Linhas de ingrediente */
+.linha{padding:var(--sp-3) 0; border-bottom:1px solid var(--line)}
+.linha:first-child{padding-top:0}
+.linha-topo{display:flex; gap:var(--sp-2); margin-bottom:var(--sp-2)}
+.linha-topo select{flex:1; min-width:0}
+.remover{flex:none; width:var(--ctl); height:var(--ctl); border:0; background:transparent; color:var(--muted); font-size:1.4rem; cursor:pointer}
+.qtd{display:flex; align-items:center; gap:var(--sp-2)}
+.qtd input{flex:1; min-width:0; text-align:center}
+.qtd .un{color:var(--muted); width:1ch}
+.passo{
+  flex:none; width:var(--ctl); height:var(--ctl); border-radius:999px; border:1px solid var(--line);
+  background:var(--paper); font-size:1.3rem; line-height:1; cursor:pointer; touch-action:manipulation;
+}
+.passo:active{background:var(--line)}
+.nota-ing{margin:var(--sp-2) 0 0}
+#ingredientes > .botao{margin-top:var(--sp-4)}
+.linha-total{margin-top:var(--sp-5)}
+.linha-total .rotulo{margin-bottom:var(--sp-2)}
+.dica{font-size:var(--type-small); margin:var(--sp-2) 0 0}
+
+/* Composição: barras herdadas da v1.1 */
+.resultado{margin-bottom:var(--sp-5)}
+.metric{padding-bottom:var(--sp-1)}
+.metric .name{color:var(--muted)}
+.bar{position:relative; height:3px; margin:var(--sp-7) 0 var(--sp-6); background:var(--line)}
+.bar .band{position:absolute; top:0; bottom:0; background:color-mix(in srgb, var(--muted) 43%, var(--line))}
+.bar .mark{position:absolute; top:-4px; width:3px; height:11px; background:var(--ink); color:var(--ink)}
+.bar .mark.status-atencao{background:var(--st-atencao); color:var(--st-atencao)}
+.bar .mark.status-critico{background:var(--st-critico); color:var(--st-critico)}
+.bar .mark-label{position:absolute; left:50%; bottom:12px; transform:translateX(-50%); white-space:nowrap; line-height:1.3}
+.bar .mark.inicio .mark-label{left:0; transform:none}
+.bar .mark.fim .mark-label{left:0; transform:translateX(-100%)}
+.bar .range-label{position:absolute; top:9px; color:var(--muted); font-size:var(--type-small); line-height:1.3; white-space:nowrap; transform:translateX(-50%)}
+.bar .range-label.min.compact{transform:translateX(calc(-100% - 4px))}
+.bar .range-label.max.compact{transform:translateX(4px)}
+.bar .range-label.edge-start{transform:translateX(0)}
+.bar .range-label.edge-end{transform:translateX(-100%)}
+.water-summary{display:flex; align-items:center; justify-content:space-between; color:var(--muted); margin-top:var(--sp-2)}
+.pilula{padding:var(--sp-1) var(--sp-3); border-radius:999px; background:var(--edit-surface); color:var(--ink); font-weight:500}
+.notes{margin:var(--sp-5) 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--sp-2)}
+.notes li{color:var(--muted); padding-left:var(--sp-4); position:relative}
+.notes li::before{content:""; position:absolute; left:0; top:.55em; width:8px; height:8px; border-radius:50%; background:var(--muted)}
+.notes li.status-ok::before{background:var(--st-ok)}
+.notes li.status-atencao::before{background:var(--st-atencao)}
+.notes li.status-critico::before{background:var(--st-critico)}
+.notas{color:var(--muted); font-size:var(--type-small)}
+.notas summary{cursor:pointer; min-height:var(--ctl); display:flex; align-items:center; font-size:.95rem}
+
+/* Ingredientes */
+.lista{display:flex; flex-direction:column; margin:var(--sp-3) 0 var(--sp-6)}
+.item-lista{display:flex; flex-direction:column; justify-content:center; min-height:60px; padding:var(--sp-2) 0; border-bottom:1px solid var(--line); text-decoration:none}
+.item-nome{font-weight:500}
+.item-desc{font-size:var(--type-small)}
+.form h3{font-size:.95rem; font-weight:500; margin:var(--sp-5) 0 var(--sp-1)}
+.campos{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3)}
+.campo{display:flex; flex-direction:column; gap:var(--sp-1); min-width:0}
+.campo span{font-size:var(--type-small); color:var(--muted)}
+.campo.largo{margin-bottom:var(--sp-3)}
+.agua{font-weight:500; margin:var(--sp-4) 0}
+.agua.erro{color:var(--st-critico)}
+.check{display:flex; align-items:center; gap:var(--sp-3); min-height:var(--ctl)}
+.check input{width:22px; height:22px; accent-color:var(--ink)}
+
+
+/* Calculadora compacta */
+.cabeca-calc{display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-3)}
+.nome-rascunho{flex:1; min-width:0; border:0; background:transparent; font-size:16px; font-weight:500; padding:var(--sp-2) 0; border-bottom:1px solid transparent}
+.nome-rascunho:focus{border-bottom-color:var(--line); outline:none}
+select.pilula-abrir{flex:none; width:92px; min-height:36px; border-radius:999px; background-color:var(--ink); color:var(--paper); font-size:14px; font-weight:500; padding:0 28px 0 var(--sp-4)}
+#ingredientes{padding:var(--sp-2) var(--sp-3)}
+#ingredientes .linha{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--sp-1); padding:var(--sp-1) 0; border-bottom:1px solid var(--line)}
+#ingredientes .linha:first-child{padding-top:var(--sp-1)}
+#ingredientes .sel-ing{min-height:40px; background-color:transparent; padding:0 20px 0 var(--sp-1); font-size:15px; text-overflow:ellipsis; background-position:right 10px center, right 6px center}
+#ingredientes .qtd{gap:2px}
+#ingredientes .qtd input{width:58px; flex:none; min-height:36px; padding:0 var(--sp-1); font-size:16px}
+#ingredientes .passo{width:32px; height:32px; font-size:1.05rem; border:0; background:transparent; color:var(--muted)}
+#ingredientes .passo:active{background:var(--line)}
+#ingredientes .remover{width:28px; height:36px; font-size:1.1rem}
+#ingredientes .nota-ing{grid-column:1 / -1; margin:0 0 var(--sp-1) var(--sp-1); line-height:1.4}
+#ingredientes .linha-total{display:grid; grid-template-columns:minmax(0,1fr) auto 30px; align-items:center; gap:var(--sp-1); margin-top:var(--sp-2)}
+#ingredientes .linha-total .rotulo-total{font-size:.7rem; color:var(--muted); line-height:1.1; text-align:center}
+.pequeno-botao{min-height:36px; padding:0 var(--sp-3); font-size:14px; justify-self:start}
+#ingredientes .remover{display:none; color:var(--st-critico)}
+#ingredientes.modo-excluir .linha{grid-template-columns:minmax(0,1fr) auto 32px}
+#ingredientes.modo-excluir .remover{display:block}
+#ingredientes.modo-excluir .linha-total{display:none}
+.rodape-ing{display:flex; justify-content:flex-end}
+.link-acao{border:0; background:transparent; color:var(--muted); font-size:var(--type-small); min-height:36px; padding:0 var(--sp-1); text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px; cursor:pointer}
+#ingredientes.modo-excluir .link-acao{color:var(--ink); font-weight:500}
+
+/* Seletor de faixas como controle dos gráficos */
+.resultado-topo{display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-2)}
+.resultado-topo h2{margin-bottom:var(--sp-2)}
+/* Pílula animada da v1.1: um fundo cinza desliza até a opção escolhida */
+.seg.seg-faixas{position:relative; isolation:isolate; background:transparent; padding:0; gap:var(--sp-1); margin:0 0 var(--sp-2) -6px}
+.seg-faixas .pill-indicator{position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--line); z-index:-1; pointer-events:none;
+  transition:transform 360ms cubic-bezier(.22,1,.36,1), width 360ms cubic-bezier(.22,1,.36,1)}
+.seg-faixas button{min-height:40px; transition:color 225ms ease}
+.seg-faixas button[aria-pressed="true"]{background:transparent; box-shadow:none; color:var(--ink)}
+.seg-faixas:not(.pill-ready) button[aria-pressed="true"]{background:var(--line)}
+@media (prefers-reduced-motion: reduce){ .seg-faixas .pill-indicator{transition:none} }
+
+/* Nome fixo do ingrediente na linha */
+#ingredientes .nome-ing{min-width:0; padding:0 var(--sp-1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#ingredientes .nome-ing.removido{color:var(--st-critico)}
+
+/* Lista para escolher ingrediente */
+body.travado{overflow:hidden}
+.escolha{position:fixed; inset:0; z-index:30; background:var(--paper); display:flex; flex-direction:column;
+  padding:calc(env(safe-area-inset-top,0px) + var(--sp-3)) var(--sp-4) calc(env(safe-area-inset-bottom,0px) + var(--sp-3))}
+.escolha[hidden]{display:none}
+.escolha-topo{display:flex; gap:var(--sp-2); align-items:center; max-width:640px; width:100%; margin:0 auto}
+.escolha-topo input{background:var(--edit-surface)}
+.escolha-lista{flex:1; overflow-y:auto; max-width:640px; width:100%; margin:var(--sp-2) auto 0; -webkit-overflow-scrolling:touch}
+.escolha-item{display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2); width:100%; min-height:48px; padding:0 var(--sp-1);
+  border:0; border-bottom:1px solid var(--line); background:transparent; text-align:left; cursor:pointer}
+.escolha-item:active{background:var(--edit-surface)}
+.escolha-grupo{margin:var(--sp-4) 0 0 var(--sp-1)}
+.escolha-novo{align-self:center; margin-top:var(--sp-2)}
+
+/* Espaçamento padronizado da calculadora:
+   título → conteúdo: 12px (--sp-3) | entre blocos: 32px */
+:root{--entre-blocos:32px; --titulo-conteudo:var(--sp-3)}
+.cabeca-calc{margin-bottom:var(--titulo-conteudo)}
+#ingredientes.cartao{margin-bottom:var(--entre-blocos)}
+.resultado-topo{margin-bottom:var(--titulo-conteudo)}
+.resultado-topo h2{margin:0}
+.seg.seg-faixas{margin-bottom:var(--titulo-conteudo)}
+.resultado{margin-bottom:var(--entre-blocos)}
+
+/* Seletor de faixas: pílula escolhida preta, as outras cinza */
+.seg.seg-faixas{gap:var(--sp-2); margin-left:0}
+.seg-faixas button{background:var(--line); color:var(--muted)}
+.seg-faixas button[aria-pressed="true"]{background:transparent; color:var(--paper)}
+.seg-faixas .pill-indicator{background:var(--ink)}
+.seg-faixas:not(.pill-ready) button[aria-pressed="true"]{background:var(--ink)}
+
+/* Menu "Abrir" próprio, no visual da v1.1 */
+.menu-abrir{position:relative; flex:none}
+.pilula-abrir{display:inline-flex; align-items:center; gap:var(--sp-2); min-height:36px; padding:0 var(--sp-4); border:1px solid var(--ink);
+  border-radius:999px; background:var(--ink); color:var(--paper); font-size:14px; font-weight:500; cursor:pointer}
+.pilula-abrir .chevron{width:6px; height:6px; border-right:1px solid currentColor; border-bottom:1px solid currentColor; transform:rotate(45deg) translateY(-2px); transition:transform 210ms ease}
+.menu-abrir.aberto .chevron{transform:rotate(225deg) translate(-2px,-1px)}
+.menu-lista{position:absolute; z-index:40; top:calc(100% + 6px); right:0; width:240px; max-width:calc(100vw - 32px);
+  background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:var(--sp-2) var(--sp-2) var(--sp-2) 0;
+  box-shadow:0 9px 24px rgba(0,0,0,.09); opacity:0; transform:translateY(-5px); visibility:hidden; pointer-events:none;
+  transition:opacity 210ms ease, transform 210ms ease, visibility 210ms}
+.menu-abrir.aberto .menu-lista{opacity:1; transform:translateY(0); visibility:visible; pointer-events:auto}
+.menu-rolagem{max-height:320px; overflow-y:auto; overscroll-behavior:contain; padding:0 var(--sp-1) 0 var(--sp-2)}
+.menu-grupo{padding:var(--sp-3) var(--sp-2) var(--sp-1); color:var(--muted); font-size:var(--type-small)}
+.menu-opcao{display:block; width:100%; min-height:44px; border:0; border-radius:10px; background:transparent; text-align:left; padding:var(--sp-2); cursor:pointer}
+.menu-opcao:hover,.menu-opcao:active{background:var(--line)}
+@media (prefers-reduced-motion: reduce){ .menu-lista,.pilula-abrir .chevron{transition:none} }

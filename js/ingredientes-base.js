@@ -1,0 +1,58 @@
+// Lista inicial de ingredientes, copiada de legado/calculadora-v1.html (ING).
+// Composição por 100 g. O que falta para 100 é água.
+// ac = parte do ingrediente que é açúcar, por tipo (a lactose do leite entra sozinha pelo SLNG e pelo soro).
+export const ING_BASE = [
+  {id:"leite",      nome:"Leite integral",            gord:3.5, slng:8.5},
+  {id:"desnatado",  nome:"Leite desnatado",           gord:0.1, slng:9.0},
+  {id:"creme35",    nome:"Creme fresco 35%", longo:"Creme de leite fresco 35%", gord:35,  slng:5.5},
+  {id:"creme20",    nome:"Creme UHT 20%",             gord:20,  slng:7.0},
+  {id:"lpdesn",     nome:"Leite em pó desnat.", longo:"Leite em pó desnatado",     gord:1,   slng:96},
+  {id:"lpint",      nome:"Leite em pó integral",      gord:26,  slng:70},
+  {id:"soro",       nome:"Soro em pó", longo:"Soro de leite em pó",        gord:1,   soro:96},
+  {id:"condensado", nome:"Leite condensado",          gord:8,   slng:22, ac:{sacarose:44}},
+  {id:"manteiga",   nome:"Manteiga",                  gord:82,  slng:1.5},
+  {id:"iogurte",    nome:"Iogurte natural", longo:"Iogurte natural integral",  gord:3.5, slng:9},
+  {id:"gema",       nome:"Gema de ovo",               gord:31,  outros:17},
+  {id:"agua",       nome:"Água"},
+  {id:"sacarose",   nome:"Açúcar (sacarose)",         ac:{sacarose:100}},
+  {id:"dextrose",   nome:"Dextrose", longo:"Dextrose (mono-hidratada)", ac:{dextrose:92}},
+  {id:"glucose",    nome:"Glucose pó 38 DE", longo:"Glucose em pó DE 38–40",    ac:{glucose:96}},
+  {id:"invertido",  nome:"Açúcar invertido",          ac:{invertido:75}},
+  {id:"mel",        nome:"Mel",                       ac:{frutose:40, dextrose:40}},
+  {id:"malto",      nome:"Maltodextrina 18 DE", longo:"Maltodextrina DE 18",       ac:{malto:95}},
+  {id:"mascavo",    nome:"Açúcar mascavo",            ac:{sacarose:96}, outros:2},
+  {id:"cacau",      nome:"Cacau em pó",               gord:11,  outros:85},
+  {id:"choco70",    nome:"Chocolate 70%",             gord:40,  outros:30, ac:{sacarose:29}},
+  {id:"pasta",      nome:"Pasta de castanha", longo:"Pasta de castanha pura",    gord:55,  outros:43},
+  {id:"pureDoce",   nome:"Purê fruta doce", longo:"Purê de fruta doce",        ac:{frutose:6, sacarose:6}, outros:2},
+  {id:"pureAcida",  nome:"Purê fruta ácida", longo:"Purê de fruta ácida",       ac:{frutose:4, sacarose:4}, outros:2},
+  {id:"estab", nome:"Estabilizante (liga)", outros:100, estab:true, longo:"Estabilizante (liga pronta)",
+    nota:"Siga o fornecedor: a liga define a temperatura de hidratação e a dose."},
+  {id:"guar", nome:"Goma guar", outros:100, estab:true,
+    nota:"Hidrata a frio (10–30 °C). Mistura muito viscosa em baixa dose, em cerca de 2 h."},
+  {id:"alfarroba", nome:"Goma alfarroba (LBG)", outros:100, estab:true,
+    nota:"Precisa da temperatura de pasteurização para hidratar. Pode gelificar ao congelar; a guar não."},
+  {id:"cmc", nome:"CMC (goma celulose)", outros:100, estab:true, longo:"Carboximetilcelulose sódica (CMC, goma de celulose)",
+    nota:"Dissolve fácil na mistura e retém muita água; considerada muito boa para sorvete."},
+  {id:"carragena", nome:"Carragena", outros:100, estab:true,
+    nota:"Em blends, 0,01–0,015%, só para evitar a separação da mistura. Acima disso, gelifica."},
+  {id:"xantana", nome:"Goma xantana", outros:100, estab:true,
+    nota:"Hidrata a frio (10–30 °C). Muito viscosa em dose baixa; pouco usada em sorvete."},
+  {id:"gelatina", nome:"Gelatina", outros:100, estab:true,
+    nota:"Gel fraco que derrete fácil na boca, sem sensação de goma."},
+  {id:"alginato", nome:"Alginato de sódio", outros:100, estab:true,
+    nota:"Dissolve a frio ou a quente, mas degrada se ficar quente demais. Reage com o cálcio do leite; pouco usado."},
+  {id:"pectina", nome:"Pectina", outros:100, estab:true, longo:"Pectina de alto e de baixo metoxilo",
+    nota:"Citada no livro como estabilizante; sem dados de uso."},
+  {id:"agar", nome:"Ágar", outros:100, estab:true,
+    nota:"Citada no livro como estabilizante; sem dados de uso."},
+  {id:"amido", nome:"Amido de milho", outros:100, estab:true, contaTotal:false,
+    nota:"Precisa de calor: dissolvido em água e aquecido, forma um creme espesso. Fora da soma de estabilizantes."},
+  {id:"amidomod", nome:"Amido modificado", outros:100, estab:true, contaTotal:false,
+    nota:"Citado no livro como estabilizante; sem dados de uso. Fora da soma de estabilizantes."}
+];
+
+export const TIPOS_ACUCAR = [
+  ["sacarose", "Sacarose"], ["dextrose", "Dextrose"], ["frutose", "Frutose"],
+  ["invertido", "Invertido"], ["glucose", "Glucose"], ["malto", "Maltodextrina"]
+];
