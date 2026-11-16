@@ -1,11 +1,11 @@
 // Service worker: guarda o app no aparelho para funcionar sem internet.
 // Ao mudar qualquer arquivo do app, rode: python3 atualiza-versao.py
-const VERSAO = "icelab-20261116175557";
+const VERSAO = "icelab-20261116194924";
 const ARQUIVOS = [
   "./", "index.html", "manifest.json", "css/estilo.css",
   "js/app.js", "js/ui.js", "js/dados.js", "js/calculo.js", "js/ingredientes-base.js",
   "js/telas/inicio.js", "js/telas/calculadora.js", "js/telas/ingredientes.js", "js/telas/embreve.js",
-  "js/telas/receitas.js", "js/telas/testes.js", "js/telas/receita.js",
+  "js/telas/receitas.js", "js/telas/testes.js", "js/telas/lote.js", "js/telas/receita.js",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"
 ];
 

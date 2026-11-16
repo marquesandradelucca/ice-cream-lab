@@ -55,6 +55,7 @@ Escala única. Não usar valores fora dela.
 
 - **Pílula** (todo botão com texto, seletores, atalhos): altura **40px**, cantos totalmente redondos.
   - Só existem duas: **preta** (ação principal, opção escolhida) e **cinza** (ação secundária, opção não escolhida).
+  - Toda pílula cinza usa a mesma cor de texto (`--ink`); toda pílula preta usa `--paper`.
   - Nunca pílula com borda. Ação de apagar: pílula cinza com texto vermelho.
   - Duas ações lado a lado dividem a largura (50/50).
   - Texto da pílula: corpo, peso normal.
@@ -63,6 +64,7 @@ Escala única. Não usar valores fora dela.
   - Card recolhível: título à esquerda, setinha à direita, abre e fecha ao toque.
 - **Campo de peso**: pílula cinza com o "g" dentro (ex.: `− 20g +`).
 - **Campo de texto**: fundo `--paper` dentro de cards, ou `--surface` fora; cantos de 8px; 48px de altura.
+- **Nome editável** (receita na calculadora e na página da receita): rótulo pequeno "Nome" em cima e campo cinza (`--surface`) de 48px, texto de campo (16px, peso normal) — mesmo visual dos outros campos, sem lápis nem traço.
 - Todo arredondamento que não é pílula usa 8px.
 
 ## 5. Interação

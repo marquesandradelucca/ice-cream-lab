@@ -349,3 +349,134 @@ button:active,.botao:active,.pilula-preta:active,.pilula-cinza:active,.pilula-ab
   .voltar:active,.item-lista:active,.area:active,details.cartao > summary:active{transform:none; opacity:.7}
 }
 .botao.largo + .dica-lista{margin-top:var(--esp-secao)}
+
+/* ===== 13. Modo lote ===== */
+.passos{display:flex; gap:var(--esp-colado); margin-bottom:var(--esp-secao)}
+.passo-ind{flex:1; height:var(--toque); border:0; background:transparent; padding:0; position:relative; cursor:pointer}
+.passo-ind::after{content:""; position:absolute; left:0; right:0; top:50%; height:4px; margin-top:-2px; border-radius:999px; background:var(--line)}
+.passo-ind.feito::after{background:var(--muted)}
+.passo-ind.atual::after{background:var(--ink)}
+.passo-ind:active{transform:none}
+.passo-titulo{display:flex; flex-direction:column; gap:var(--esp-colado); margin-bottom:var(--esp-pagina); font-size:var(--t-secao); font-weight:500}
+.legenda-passo{margin-bottom:var(--esp-secao)}
+.seg-pasteur{flex-direction:column; margin-bottom:var(--esp-bloco)}
+.seg-pasteur button{flex:none}
+.cronometro{text-align:center}
+.crono-tempo{font-size:44px; font-weight:500; letter-spacing:-.02em; line-height:1.2; margin:var(--esp-grupo) 0 var(--esp-colado)}
+.cronometro.pronto .crono-tempo{color:var(--ok)}
+.crono-info{color:var(--muted); min-height:1.4em; margin-bottom:var(--esp-secao)}
+.txt-ok{color:var(--ok)} .txt-atencao{color:var(--atencao)} .txt-critico{color:var(--critico)}
+.linha-temp{display:flex; gap:var(--esp-grupo); margin-top:var(--esp-grupo)}
+.campo-temp{flex:1; height:var(--pilula); justify-content:center}
+.campo-temp input{width:5ch}
+.linha-temp .pilula-preta{flex:1}
+.leituras{margin-top:var(--esp-secao)}
+#pesagem{padding:var(--esp-grupo) var(--esp-secao)}
+#pesagem .contagem{padding:var(--esp-colado) var(--esp-colado) var(--esp-grupo); border-bottom:1px solid var(--line)}
+.linha-peso{display:grid; grid-template-columns:var(--toque) minmax(0,1fr) auto; align-items:center; gap:var(--esp-colado); padding:var(--esp-colado) 0; border-bottom:1px solid var(--line)}
+.linha-peso:last-child{border-bottom:0}
+.marcar{width:var(--toque); height:var(--toque); border:0; background:transparent; position:relative; cursor:pointer}
+.marcar::after{content:""; position:absolute; inset:10px; border-radius:50%; box-shadow:inset 0 0 0 1.5px var(--muted)}
+.marcar[aria-pressed="true"]::after{background:var(--ink); box-shadow:none}
+.marcar[aria-pressed="true"]::before{content:""; position:absolute; left:18px; top:14px; width:6px; height:11px; border-right:2px solid var(--paper); border-bottom:2px solid var(--paper); transform:rotate(45deg); z-index:1}
+.linha-peso.ok .nome-peso{color:var(--muted)}
+.nome-peso{line-height:1.3}
+.rotulo-aval{margin:var(--esp-pagina) 0 var(--esp-grupo); font-size:var(--t-secao); font-weight:500}
+.rotulo-aval:first-child{margin-top:0}
+.rotulo-aval .pequeno{font-weight:400}
+.campo-aval{background:var(--surface)}
+.acoes-final{display:flex; flex-direction:column; gap:var(--esp-grupo); margin:var(--esp-bloco) 0}
+.largo-pilula{display:flex; width:100%}
+.nav-lote{margin-top:var(--esp-bloco)}
+.nav-lote button:disabled{opacity:.4; cursor:default}
+.item-lista.em-andamento{box-shadow:inset 3px 0 0 var(--atencao)}
+.filtros{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-bottom:var(--esp-secao)}
+.menu-filtro .pilula-cinza{width:100%; justify-content:space-between}
+.menu-filtro .menu-lista{left:0; right:auto; width:100%}
+.bloco-vazio{margin-bottom:var(--esp-bloco)}
+
+/* Lote: sugestões de preparo e textura em grade 2×2 */
+.lista-sugestoes{display:flex; flex-direction:column}
+.sugestao{display:flex; flex-direction:column; gap:2px; padding:var(--esp-secao) 0; border-bottom:1px solid var(--line)}
+.sugestao:first-child{padding-top:0}
+.sugestao:last-child{padding-bottom:0; border-bottom:0}
+.sugestao-nome{font-weight:500}
+.seg-grade{display:grid; grid-template-columns:1fr 1fr}
+
+/* Lote em dois momentos */
+details.recolhivel > summary{font-weight:500}
+details.recolhivel .preparo,details.recolhivel .lista-sugestoes{padding-top:0}
+.excluir-discreto{display:block; margin:0 auto var(--esp-bloco)}
+.aviso-pesagem{box-shadow:inset 3px 0 0 var(--atencao)}
+.aviso-pesagem p + p{margin-top:var(--esp-colado)}
+.aviso-pesagem .pequeno{margin-bottom:var(--esp-grupo)}
+.item-lista.aguardando{box-shadow:inset 3px 0 0 var(--ink)}
+.seg button:disabled{cursor:default}
+.seg button:disabled:not([aria-pressed="true"]){opacity:.6}
+textarea:disabled{opacity:.7}
+.versao-lotes{display:flex; flex-direction:column}
+.versao-lotes > .pequeno{margin-bottom:var(--esp-colado)}
+.lote-linha{display:flex; justify-content:space-between; gap:var(--esp-secao); padding:var(--esp-grupo) 0; border-top:1px solid var(--line); text-decoration:none}
+.lote-linha span:last-child{text-align:right}
+.bloco-status .botao + .botao{margin-top:0}
+
+/* Home: lembrete de lote para avaliar */
+.lembrete{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+.lembrete-item{display:flex; flex-direction:column; gap:2px; padding:var(--esp-card); border-radius:var(--raio); background:var(--ink); color:var(--paper); text-decoration:none}
+.lembrete-rotulo,.lembrete-data{font-size:var(--t-pequeno); color:var(--ink-suave)}
+.lembrete-nome{font-size:var(--t-secao); font-weight:500}
+.lembrete-item:active{transform:scale(.985)}
+
+/* Testes: lista única com etiqueta nos lotes que precisam de algo */
+.item-topo{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-grupo)}
+.etiqueta-lote{flex:none; padding:2px var(--esp-grupo); border-radius:999px; background:var(--line); color:var(--ink); font-size:var(--t-pequeno)}
+.etiqueta-lote.preta{background:var(--ink); color:var(--paper)}
+@media (hover: hover){ .item-lista:hover .etiqueta-lote{background:var(--paper); color:var(--ink)} }
+.item-lista:active .etiqueta-lote{background:var(--paper); color:var(--ink)}
+
+/* Testes: card com pílula no tamanho padrão à direita */
+.item-teste{flex-direction:row; align-items:center; justify-content:space-between; gap:var(--esp-secao)}
+.item-texto{display:flex; flex-direction:column; gap:2px; min-width:0}
+.pilula-etiqueta{flex:none; padding:0 var(--esp-card); pointer-events:none}
+@media (hover: hover){ .item-teste:hover .pilula-etiqueta{background:var(--paper); color:var(--ink)} }
+.item-teste:active .pilula-etiqueta{background:var(--paper); color:var(--ink)}
+.linha-final{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-secao)}
+.linha-final .link-acao{min-height:0}
+
+/* Nota em estrelas */
+.estrelas{display:flex; gap:var(--esp-colado)}
+.estrela{width:var(--toque); height:var(--toque); padding:0; border:0; background:transparent; cursor:pointer; display:inline-flex; align-items:center; justify-content:center}
+.estrela svg{width:32px; height:32px; fill:none; stroke:var(--muted); stroke-width:1.5; stroke-linejoin:round}
+.estrela.cheia svg{fill:var(--ink); stroke:var(--ink)}
+.estrela:disabled{cursor:default}
+/* Estrelas um pouco maiores; não selecionada = cinza preenchido, selecionada = preto */
+.estrela{width:48px; height:48px}
+.estrela svg{width:38px; height:38px; fill:var(--line); stroke:var(--line)}
+.estrela.cheia svg{fill:var(--ink); stroke:var(--ink)}
+/* Toda pílula cinza tem o mesmo texto (tinta), seja ação ou opção não escolhida */
+.seg button{color:var(--ink)}
+/* Avaliação no padrão do guia: título de seção → conteúdo 12px, entre seções 32px */
+.rotulo-aval{margin:var(--esp-bloco) 0 var(--esp-secao)}
+.rotulo-aval:first-child{margin-top:0}
+.acoes-final{margin:var(--esp-bloco) 0}
+
+/* Painel de salvar: ações empilhadas na largura do card */
+.acoes-salvar{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-top:var(--esp-secao)}
+.acoes-salvar > *{width:100%}
+#campoNomeNova{margin-bottom:var(--esp-secao)}
+#avisoNome{margin-top:var(--esp-grupo)}
+
+/* Nomes editáveis (calculadora e página da receita): campo cinza do padrão de campos,
+   com rótulo "Nome" em cima — mesmo visual dos outros campos de digitar do app. */
+.rotulo-nome{display:block; font-size:var(--t-pequeno); color:var(--muted); margin-bottom:var(--esp-colado)}
+.titulo-editavel{height:var(--campo); padding:0 var(--esp-secao); border:0; border-radius:var(--raio); background:var(--surface)}
+.titulo-editavel:focus{outline:2px solid var(--ink); outline-offset:1px; border:0}
+/* Nome editável é um campo: texto de campo (16px, peso normal), não título */
+.titulo-editavel,.titulo-receita.titulo-editavel,.nome-receita-calc.titulo-editavel{font-size:var(--t-campo); font-weight:400}
+/* Lista de escolher ingrediente: botões no padrão de pílula */
+.escolha-topo .pilula-cinza{flex:none; padding:0 var(--esp-card)}
+.escolha-novo{align-self:stretch; width:100%; max-width:640px; margin:var(--esp-grupo) auto 0}
+/* Topo da calculadora: Salvar · Versões · Abrir em partes iguais */
+.acoes-calc > *{flex:1 1 0; min-width:0}
+.acoes-calc .pilula-cinza,.acoes-calc .pilula-abrir{padding:0 var(--esp-secao)}
+.acoes-calc,.acoes-ing{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr)}

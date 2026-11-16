@@ -1,9 +1,9 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261116175557";
-import { confirma } from "../ui.js?v=20261116175557";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261116175557";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261116194924";
+import { confirma } from "../ui.js?v=20261116194924";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261116194924";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -51,7 +51,11 @@ export function render(el, rota){
   // Atalho vindo da página da receita: #/calculadora/v/<id da versão>
   if (rota && rota.args[0] === "v" && rota.args[1]){
     const v = versao(decodeURIComponent(rota.args[1]));
-    if (v) carregaVersao(v);
+    if (v){
+      carregaVersao(v);
+      // "Criar próxima versão com o que pesei": as quantidades da balança substituem as da versão.
+      if (calc.linhasPesadas){ calc.linhas = calc.linhasPesadas; delete calc.linhasPesadas; delete calc.snapshot; }
+    }
     history.replaceState(null, "", "#/calculadora");
   }
 
@@ -71,10 +75,12 @@ export function render(el, rota){
 
   el.innerHTML =
     '<div class="bloco-receita">' +
+    '<label class="rotulo-nome" for="nome">Nome</label>' +
     '<input id="nome" class="nome-receita-calc titulo-editavel" type="text" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita">' +
     '<div class="estado-receita" id="estadoReceita"></div>' +
     '<div class="acoes-calc">' +
       '<button type="button" class="pilula-cinza" id="salvar">Salvar</button>' +
+      '<a class="pilula-cinza" id="irReceita" hidden>Versões</a>' +
       '<div class="menu-abrir" id="menuAbrir">' +
         '<button type="button" class="pilula-abrir" id="abrir" aria-haspopup="listbox" aria-expanded="false">Abrir<span class="chevron" aria-hidden="true"></span></button>' +
         '<div class="menu-lista" role="listbox" aria-label="Abrir receita"><div class="menu-rolagem"></div></div>' +
@@ -82,10 +88,17 @@ export function render(el, rota){
     '</div>' +
     '</div>' +
     '<div class="cartao painel-salvar" id="painelSalvar" hidden>' +
+      '<div id="campoNomeNova" hidden><label class="rotulo" for="nomeNova">Nome da nova receita</label>' +
+        '<input id="nomeNova" class="campo-texto" type="text" maxlength="60" enterkeyhint="next"></div>' +
       '<label class="rotulo" for="notaVersao" id="rotuloNota">O que mudou? (opcional)</label>' +
       '<input id="notaVersao" class="campo-texto" type="text" maxlength="140" enterkeyhint="done" placeholder="Ex.: menos dextrose, mais creme">' +
-      '<div class="acoes-linha"><button type="button" class="botao" id="confirmaSalvar">Salvar</button>' +
-      '<button type="button" class="link-acao" id="cancelaSalvar">cancelar</button></div>' +
+      '<p class="pequeno muted" id="avisoNome" hidden></p>' +
+      '<div class="acoes-salvar">' +
+        '<button type="button" class="pilula-preta" id="confirmaSalvar">Salvar</button>' +
+        '<button type="button" class="pilula-cinza" id="comoNova">Salvar como nova receita</button>' +
+        '<button type="button" class="pilula-cinza" id="comoVersao" hidden></button>' +
+        '<button type="button" class="pilula-cinza" id="cancelaSalvar">Cancelar</button>' +
+      '</div>' +
     '</div>' +
     '<div class="cartao aviso-snap" id="avisoSnap" hidden></div>' +
     '<h2 class="subtitulo">Ingredientes</h2>' +
@@ -175,12 +188,9 @@ export function render(el, rota){
     persiste(); desenhaTudo();
   });
 
-  elNome.addEventListener("input", function(){
-    calc.nome = elNome.value;
-    const r = calc.receitaId && receita(calc.receitaId);
-    if (r && elNome.value.trim()) r.nome = elNome.value.trim().slice(0, 60);
-    persiste();
-  });
+  // O nome aqui é o do rascunho. Ele só renomeia algo quando vira uma receita nova;
+  // para renomear uma receita existente, use a página dela.
+  elNome.addEventListener("input", function(){ calc.nome = elNome.value; persiste(); });
 
   // ----- Salvar: cria a receita (v1) ou uma nova versão -----
   const elPainel = el.querySelector("#painelSalvar"), elNota = el.querySelector("#notaVersao");
@@ -188,27 +198,58 @@ export function render(el, rota){
     const vs = calc.receitaId ? versoesDe(calc.receitaId) : [];
     return vs.length ? vs[vs.length - 1].numero + 1 : 1;
   }
+  // Painel de salvar. Com uma receita aberta, há dois caminhos:
+  //   "Salvar vN" (nova versão da mesma receita) ou "Salvar como nova receita" (com outro nome, v1).
+  const elNomeNova = el.querySelector("#nomeNova"), elCampoNova = el.querySelector("#campoNomeNova");
+  const elConfirma = el.querySelector("#confirmaSalvar"), elComoNova = el.querySelector("#comoNova");
+  const elAvisoNome = el.querySelector("#avisoNome");
+  let modoNova = false;
+  function abrePainel(nova){
+    const r = calc.receitaId && receita(calc.receitaId);
+    modoNova = nova || !r;
+    elCampoNova.hidden = !(modoNova && r);
+    if (modoNova && r){
+      const nome = calc.nome.trim();
+      elNomeNova.value = nome && nome !== r.nome ? nome : r.nome + " (variação)";
+    }
+    elNota.value = calc.notaSugerida || "";
+    el.querySelector("#rotuloNota").textContent = modoNova ? "Nota da v1 (opcional)" : "O que mudou? (opcional)";
+    elConfirma.textContent = modoNova ? (r ? "Criar nova receita" : "Salvar receita (v1)") : "Salvar v" + proximoNumero();
+    elConfirma.hidden = !modoNova && !mudou();
+    elComoNova.hidden = modoNova;
+    // Já no modo "nova receita", ainda dá para escolher salvar como versão da base.
+    const elComoVersao = el.querySelector("#comoVersao");
+    elComoVersao.hidden = !(modoNova && r && mudou());
+    if (r) elComoVersao.textContent = "Salvar como v" + proximoNumero() + " da receita original";
+    elAvisoNome.hidden = true;
+    elPainel.hidden = false;
+    if (modoNova && r){ elNomeNova.focus(); elNomeNova.select(); }
+  }
   el.querySelector("#salvar").addEventListener("click", function(){
     if (!calc.linhas.length) return;
-    if (calc.receitaId && !mudou()){ desenhaEstado("Sem mudanças desde a v" + versao(calc.versaoId).numero + "."); return; }
-    elNota.value = "";
-    el.querySelector("#confirmaSalvar").textContent = calc.receitaId ? "Salvar v" + proximoNumero() : "Salvar receita (v1)";
-    el.querySelector("#rotuloNota").textContent = calc.receitaId ? "O que mudou? (opcional)" : "Nota da v1 (opcional)";
-    elPainel.hidden = false;
+    // Se o nome foi trocado (ex.: abriu "Gelato de baunilha" e escreveu "Gelato de menta"),
+    // o Salvar já propõe criar a receita nova com esse nome.
+    const r = calc.receitaId && receita(calc.receitaId);
+    abrePainel(!!(r && calc.nome.trim() && calc.nome.trim() !== r.nome));
   });
+  el.querySelector("#comoVersao").addEventListener("click", function(){ modoNova = false; elConfirma.click(); });
+  elComoNova.addEventListener("click", function(){ abrePainel(true); });
   el.querySelector("#cancelaSalvar").addEventListener("click", function(){ elPainel.hidden = true; });
-  elNota.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); el.querySelector("#confirmaSalvar").click(); } });
-  el.querySelector("#confirmaSalvar").addEventListener("click", function(){
+  elNota.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); elConfirma.click(); } });
+  elNomeNova.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); elNota.focus(); } });
+  elConfirma.addEventListener("click", function(){
     let r = calc.receitaId && receita(calc.receitaId);
-    if (!r){
-      r = criaReceita(calc.nome.trim() || "Receita sem nome", calc.estilo);
-      calc.nome = r.nome;
+    if (modoNova){
+      const nome = (r ? elNomeNova.value : calc.nome).trim() || "Receita sem nome";
+      if (r && !elNomeNova.value.trim()){ elNomeNova.focus(); return; }
+      r = criaReceita(nome, calc.estilo);
     }
+    calc.nome = r.nome;   // versão da base mantém o nome da base; receita nova usa o nome escolhido
     const v = novaVersao(r.id, calc.linhas, calc.estilo, elNota.value.trim(), calc.snapshot);
-    calc.receitaId = r.id; calc.versaoId = v.id; delete calc.snapshot;
+    calc.receitaId = r.id; calc.versaoId = v.id; delete calc.snapshot; delete calc.notaSugerida;
     elPainel.hidden = true;
     persiste(); desenhaTudo();
-    desenhaEstado("Salvo como v" + v.numero + ".");
+    desenhaEstado(modoNova ? "Receita “" + r.nome + "” criada (v1)." : "Salvo como v" + v.numero + ".");
   });
 
   // Linha de estado: versão aberta, status e atalho para a página da receita.
@@ -217,13 +258,16 @@ export function render(el, rota){
     const r = calc.receitaId && receita(calc.receitaId), v = calc.versaoId && versao(calc.versaoId);
     let h = "";
     if (r && v){
-      h = 'v' + v.numero + ' · ' + r.status + (mudou() ? ' · <span class="nao-salvo">alterações não salvas</span>' : '') +
-        ' · <a href="#/receita/' + encodeURIComponent(r.id) + '">versões</a>';
+      h = mudou() ? 'a partir da v' + v.numero + ' · <span class="nao-salvo">salvar cria a v' + proximoNumero() + '</span>' : 'v' + v.numero + ' · ' + r.status;
     } else if (calc.linhas.length){
       h = 'Rascunho não salvo como receita';
     }
     if (msg) h = '<b>' + esc(msg) + '</b> ' + h;
     elEstado.innerHTML = h;
+    // Atalho para a página da receita (versões e lotes), como pílula ao lado de Salvar e Abrir.
+    const ir = el.querySelector("#irReceita");
+    ir.hidden = !(r && v);
+    if (r) ir.href = "#/receita/" + encodeURIComponent(r.id);
   }
 
   // Aviso de ingrediente atualizado depois da versão.
@@ -323,9 +367,9 @@ export function render(el, rota){
   elEscolha.setAttribute("role", "dialog"); elEscolha.setAttribute("aria-label", "Escolher ingrediente");
   elEscolha.innerHTML =
     '<div class="escolha-topo"><input type="search" class="campo-texto" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente">' +
-    '<button type="button" class="link-acao" data-fechar>cancelar</button></div>' +
+    '<button type="button" class="pilula-cinza" data-fechar>Cancelar</button></div>' +
     '<div class="escolha-lista"></div>' +
-    '<a class="link-acao escolha-novo" href="#/ingredientes/novo">criar ingrediente novo</a>';
+    '<a class="pilula-cinza escolha-novo" href="#/ingredientes/novo">+ novo ingrediente</a>';
   document.body.appendChild(elEscolha);
   const elBusca = elEscolha.querySelector("input");
   function semAcento(t){ return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }

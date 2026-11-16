@@ -1,9 +1,10 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente } from "../dados.js?v=20261116175557";
-import { confirma } from "../ui.js?v=20261116175557";
-import { atualizaVoltar } from "../app.js?v=20261116175557";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261116175557";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261116194924";
+import { confirma } from "../ui.js?v=20261116194924";
+import { atualizaVoltar } from "../app.js?v=20261116194924";
+import { resumoLote, dataCurta as dataLote } from "./lote.js?v=20261116194924";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261116194924";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -13,7 +14,7 @@ function compDe(v){ return function(id){ return (v.snapshot && v.snapshot[id]) |
 function gramas(g){ return g < 10 ? n(g, 1) : n(Math.round(g), 0); }
 
 // "Final" não fica no seletor: só se marca dentro do card da versão, que diz qual é.
-const STATUS = [["rascunho", "Rascunho"], ["em teste", "Em teste"]];
+// Uma receita está "em teste" até uma versão ser marcada como final (no card da versão).
 
 export function render(el, rota){
   const r = receita(decodeURIComponent(rota.args[0] || ""));
@@ -43,18 +44,31 @@ function diferencas(ant, v){
 function detalhe(el, r, abertas){
   const db = dados();
   const vs = versoesDe(r.id);
+  // Lote: continua o que estiver em andamento ou começa um novo com a versão final (ou a mais recente).
+  const abertos = db.lotes.filter(function(l){ return l.receitaId === r.id && l.status !== "concluido"; })
+    .sort(function(a, b){ return b.inicio.localeCompare(a.inicio); });
+  const vLote = (r.versaoFinal && versao(r.versaoFinal)) || vs[vs.length - 1];
+  function lotesDa(v){ return db.lotes.filter(function(l){ return l.versaoId === v.id; }).sort(function(a, b){ return b.inicio.localeCompare(a.inicio); }); }
+  function botaoLote(l){
+    const vv = versao(l.versaoId);
+    return '<a class="botao largo" href="#/lote/' + encodeURIComponent(l.id) + (l.status === "aguardando" ? '/avaliar' : '') + '">' +
+      (l.status === "aguardando" ? 'Avaliar lote' : 'Continuar lote') + (vv ? ' (v' + vv.numero + ', ' + dataLote(l.inicio) + ')' : '') + '</a>';
+  }
   // Quais cards estavam abertos, para não fecharem ao redesenhar a página.
   if (!abertas) abertas = vs.length ? [vs[vs.length - 1].id] : [];
 
   el.innerHTML =
     '<div class="cabeca-receita">' +
+      '<label class="rotulo-nome" for="nomeReceita">Nome</label>' +
       '<input class="titulo-receita titulo-editavel" id="nomeReceita" type="text" maxlength="60" enterkeyhint="done" aria-label="Nome da receita" value="' + esc(r.nome) + '">' +
       '<span class="muted pequeno">' + NOMES_ESTILO[r.estilo] + '</span></div>' +
     '<div class="bloco-status">' +
-    '<div class="seg seg-faixas seg-status" id="status" role="group" aria-label="Status da receita">' +
-      STATUS.map(function(s){ return '<button type="button" data-s="' + s[0] + '">' + s[1] + '</button>'; }).join("") + '</div>' +
-    (r.status === "final" && versao(r.versaoFinal) ? '<p class="estado-final">Receita final: v' + versao(r.versaoFinal).numero + '</p>' +
+    (r.status === "final" && versao(r.versaoFinal) ?
+      '<p class="estado-final">Receita final: v' + versao(r.versaoFinal).numero + '</p>' +
       '<a class="botao largo" href="#/receita/' + encodeURIComponent(r.id) + '/pronta">Ver receita</a>' : "") +
+    abertos.map(botaoLote).join("") +
+    (vs.length ? '<button type="button" class="' + (r.status === "final" || abertos.length ? 'pilula-cinza' : 'pilula-preta') + ' largo-pilula" id="fazerLote">' +
+        (abertos.length ? 'Fazer outro lote' : 'Fazer lote') + '</button>' : '') +
     '</div>' +
     '<h2 class="subtitulo">Versões</h2>' +
     '<section class="lista-versoes" id="versoes">' + vs.slice().reverse().map(function(v){
@@ -66,8 +80,7 @@ function detalhe(el, r, abertas){
         '<summary class="versao-topo"><span class="versao-num">v' + v.numero + (final ? ' · final' : '') + '</span>' +
         '<span class="versao-data muted pequeno">' + dataCurta(v.data) + '<span class="chevron" aria-hidden="true"></span></span></summary>' +
         '<div class="versao-corpo">' +
-        '<div class="versao-nota-linha"><p class="versao-nota' + (v.nota ? '' : ' muted') + '">' + (v.nota ? esc(v.nota) : 'Sem nota') + '</p>' +
-          '<button type="button" class="link-acao" data-nota="' + esc(v.id) + '">editar nota</button></div>' +
+        '<div class="versao-nota-linha"><p class="versao-nota' + (v.nota ? '' : ' muted') + '">' + (v.nota ? esc(v.nota) : 'Sem nota') + '</p></div>' +
         (ant ? '<div class="versao-difs"><span class="muted pequeno">Mudou desde a v' + ant.numero + ':</span>' +
           (difs.length ? difs.map(function(d){ return '<span class="dif dif-' + d.t + '">' + esc(d.txt) + '</span>'; }).join("") : '<span class="muted pequeno">nada</span>') + '</div>' : '') +
         '<div class="versao-qtds">' + v.linhas.map(function(l){
@@ -75,8 +88,12 @@ function detalhe(el, r, abertas){
           return '<div class="linha-pronta"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><span class="num">' + gramas(Number(l.g) || 0) + ' g</span></div>';
         }).join("") + '</div>' +
         '<p class="muted pequeno">' + n(res.peso, 0) + ' g · gord. ' + n(res.gord, 1) + '% · açúc. ' + n(res.ac, 1) +
-          '% · POD ' + n(res.pod, 0) + ' · PAC ' + n(res.pac, 0) + '</p>' +
-        '<div class="versao-acoes"><a class="pilula-cinza" href="#/calculadora/v/' + encodeURIComponent(v.id) + '">abrir na calculadora</a>' +
+          '% · POD ' + n(res.pod, 0) + ' · PAC ' + n(res.pac, 0) +
+          '</p>' +
+        (lotesDa(v).length ? '<div class="versao-lotes"><span class="muted pequeno">Lotes desta versão</span>' + lotesDa(v).map(function(l){
+          return '<a class="lote-linha" href="#/lote/' + encodeURIComponent(l.id) + '"><span>' + dataLote(l.inicio) + '</span><span class="muted">' + esc(resumoLote(l)) + '</span></a>';
+        }).join("") + '</div>' : '') +
+        '<div class="versao-acoes"><button type="button" class="pilula-cinza" data-nota="' + esc(v.id) + '">Editar nota</button><a class="pilula-cinza" href="#/calculadora/v/' + encodeURIComponent(v.id) + '">Nova versão a partir desta</a>' +
         (final ? '' : '<button type="button" class="pilula-preta" data-final="' + esc(v.id) + '">marcar como final</button>') + '</div></div></details>';
     }).join("") + '</section>' +
     '<h2 class="subtitulo">Modo de preparo</h2>' +
@@ -99,32 +116,12 @@ function detalhe(el, r, abertas){
   el.querySelector("#nomeReceita").addEventListener("blur", function(ev){ if (!ev.target.value.trim()) ev.target.value = r.nome; });
   el.querySelector("#nomeReceita").addEventListener("keydown", function(ev){ if (ev.key === "Enter") ev.target.blur(); });
 
-  const elSeg = el.querySelector("#status");
-  const pill = document.createElement("span");
-  pill.className = "pill-indicator"; pill.setAttribute("aria-hidden", "true");
-  elSeg.insertBefore(pill, elSeg.firstChild);
-  function desenhaStatus(){
-    elSeg.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.s === r.status)); });
-    const a = elSeg.querySelector('button[aria-pressed="true"]');
-    pill.style.opacity = a ? "1" : "0";
-    if (a && a.offsetWidth){ pill.style.width = a.offsetWidth + "px"; pill.style.transform = "translateX(" + a.offsetLeft + "px)"; elSeg.classList.add("pill-ready"); }
-  }
-  desenhaStatus();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(desenhaStatus);
-  window.addEventListener("resize", desenhaStatus);
 
   async function marcaFinal(id){
     const v = versao(id); if (!v) return;
     if (!(await confirma("Marcar a v" + v.numero + " como versão final? Ela vai para a lista de receitas prontas.", "Confirmar"))) return;
     r.versaoFinal = id; r.status = "final"; salva(); redesenha();
   }
-  elSeg.addEventListener("click", async function(ev){
-    const b = ev.target.closest("button"); if (!b) return;
-    const s = b.dataset.s;
-    if (s === r.status) return;
-    if (r.status === "final" && !(await confirma("Tirar a receita do status Final? Ela sai da lista de receitas prontas.", "Tirar do Final"))) return;
-    r.status = s; r.versaoFinal = null; salva(); redesenha();
-  });
   el.querySelectorAll("[data-final]").forEach(function(b){
     b.addEventListener("click", function(){ marcaFinal(b.dataset.final); });
   });
@@ -133,7 +130,7 @@ function detalhe(el, r, abertas){
   el.querySelectorAll("[data-nota]").forEach(function(b){
     b.addEventListener("click", function(){
       const v = versao(b.dataset.nota); if (!v) return;
-      const linha = b.parentElement;
+      const linha = b.closest("details").querySelector(".versao-nota-linha");
       linha.innerHTML = '<input class="campo-texto" type="text" maxlength="140" enterkeyhint="done" placeholder="O que mudou nesta versão?">' +
         '<button type="button" class="pilula-cinza">ok</button>';
       const inp = linha.querySelector("input"); inp.value = v.nota || ""; inp.focus();
@@ -143,15 +140,20 @@ function detalhe(el, r, abertas){
     });
   });
 
+  const btLote = el.querySelector("#fazerLote");
+  if (btLote) btLote.addEventListener("click", function(){
+    const l = criaLote(vLote.id); salva();
+    if (l) location.hash = "#/lote/" + encodeURIComponent(l.id);
+  });
   el.querySelector("#preparo").addEventListener("input", function(ev){ r.preparo = ev.target.value; salva(); });
   el.querySelector("#excluir").addEventListener("click", async function(){
     if (!(await confirma("Excluir “" + r.nome + "” e todas as " + vs.length + " versões? Isso não pode ser desfeito (a não ser por um backup).", "Excluir", true))) return;
     excluiReceita(r.id); salva(); location.hash = "#/";
   });
   // O status pode mudar nesta tela; o voltar acompanha (em teste → Testes, senão → Receitas).
-  const emTeste = r.status === "em teste";
+  const emTeste = r.status !== "final";
   atualizaVoltar(emTeste ? "#/testes" : "#/receitas", emTeste ? "Testes" : "Receitas");
-  return {titulo:"Receita", limpa:function(){ window.removeEventListener("resize", desenhaStatus); },
+  return {titulo:"Receita", limpa:function(){},
     voltar:emTeste ? "#/testes" : "#/receitas", voltarRotulo:emTeste ? "Testes" : "Receitas"};
 }
 

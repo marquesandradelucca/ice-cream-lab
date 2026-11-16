@@ -1,6 +1,6 @@
 // TEMPORÁRIO (só para testes durante o desenvolvimento): cria receitas fictícias.
 // Abrir #/teste-dados no celular. Remover antes de publicar o app.
-import { dados, salva, criaReceita, novaVersao } from "../dados.js?v=20261116175557";
+import { dados, salva, criaReceita, novaVersao } from "../dados.js?v=20261116194924";
 
 const DIA = 86400000;
 

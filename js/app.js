@@ -1,20 +1,21 @@
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega } from "./dados.js?v=20261116175557";
-import * as inicio from "./telas/inicio.js?v=20261116175557";
-import * as calculadora from "./telas/calculadora.js?v=20261116175557";
-import * as ingredientes from "./telas/ingredientes.js?v=20261116175557";
-import * as embreve from "./telas/embreve.js?v=20261116175557";
-import * as receitas from "./telas/receitas.js?v=20261116175557";
-import * as receita from "./telas/receita.js?v=20261116175557";
-import * as testes from "./telas/testes.js?v=20261116175557";
-import * as semente from "./telas/semente.js?v=20261116175557"; // TEMPORÁRIO: dados de teste
+import { carrega } from "./dados.js?v=20261116194924";
+import * as inicio from "./telas/inicio.js?v=20261116194924";
+import * as calculadora from "./telas/calculadora.js?v=20261116194924";
+import * as ingredientes from "./telas/ingredientes.js?v=20261116194924";
+import * as embreve from "./telas/embreve.js?v=20261116194924";
+import * as receitas from "./telas/receitas.js?v=20261116194924";
+import * as receita from "./telas/receita.js?v=20261116194924";
+import * as testes from "./telas/testes.js?v=20261116194924";
+import * as loteTela from "./telas/lote.js?v=20261116194924";
+import * as semente from "./telas/semente.js?v=20261116194924"; // TEMPORÁRIO: dados de teste
 
 const TELAS = {
   "": inicio,
   "calculadora": calculadora,
   "ingredientes": ingredientes,
   "receitas": receitas, "receita": receita,
-  "testes": testes,
+  "testes": testes, "lote": loteTela,
   "teste-dados": semente, // TEMPORÁRIO
   "ideias": embreve, "estudo": embreve
 };

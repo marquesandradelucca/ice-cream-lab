@@ -1,7 +1,7 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261116175557";
-import { PRESETS } from "./calculo.js?v=20261116175557";
+import { ING_BASE } from "./ingredientes-base.js?v=20261116194924";
+import { PRESETS } from "./calculo.js?v=20261116194924";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -94,6 +94,10 @@ export function carrega(){
   if (salvo && salvo.versaoDados){
     db = Object.assign(vazio(), salvo);
     if (converteLegado()) salva();
+    // Não existe mais "rascunho": toda receita que não é final está em teste.
+    let mudou = false;
+    db.receitas.forEach(function(r){ if (r.status !== "final" && r.status !== "em teste"){ r.status = "em teste"; mudou = true; } });
+    if (mudou) salva();
   } else {
     db = vazio();
     if (migraLegado(db)) db.migradoDoLegado = new Date().toISOString();
@@ -158,7 +162,7 @@ export function versoesDe(receitaId){
 
 export function criaReceita(nome, estilo, origem){
   const r = {id:novoId(), nome:String(nome || "Receita sem nome").slice(0, 60), estilo:estilo || "gelato",
-    status:"rascunho", versaoFinal:null, preparo:"", ideia:origem || null,
+    status:"em teste", versaoFinal:null, preparo:"", ideia:origem || null,
     criada:new Date().toISOString()};
   db.receitas.push(r);
   return r;
@@ -178,6 +182,7 @@ export function novaVersao(receitaId, linhas, estilo, nota, snapshotBase){
 export function excluiReceita(id){
   db.receitas = db.receitas.filter(function(r){ return r.id !== id; });
   db.versoes = db.versoes.filter(function(v){ return v.receitaId !== id; });
+  db.lotes = db.lotes.filter(function(l){ return l.receitaId !== id; });
   if (db.calc.receitaId === id){ delete db.calc.receitaId; delete db.calc.versaoId; delete db.calc.snapshot; }
 }
 
@@ -192,6 +197,24 @@ function converteLegado(){
   db.receitasLegado = [];
   return true;
 }
+
+// ---------- Lotes (testes) ----------
+// Um lote é criado ao tocar em "Fazer lote": já nasce com data e versão, e cada toque
+// durante o preparo fica salvo. Se o app fechar, ele retoma do passo em que parou.
+export function lote(id){ return db.lotes.find(function(l){ return l.id === id; }) || null; }
+
+export function criaLote(versaoId){
+  const v = versao(versaoId); if (!v) return null;
+  const l = {id:novoId(), receitaId:v.receitaId, versaoId:v.id, inicio:new Date().toISOString(), fim:null,
+    status:"em andamento", passo:0, escala:1,
+    pesado:v.linhas.map(function(x){ return {id:x.id, previsto:Number(x.g) || 0, real:null, ok:false}; }),
+    avaliacao:{textura:[], dureza:null, docura:null, nota:null}, obs:"", proximo:""};
+  db.lotes.push(l);
+  const r = receita(v.receitaId);
+  return l;
+}
+
+export function excluiLote(id){ db.lotes = db.lotes.filter(function(l){ return l.id !== id; }); }
 
 // ---------- Backup em arquivo ----------
 export function exportaBackup(){
