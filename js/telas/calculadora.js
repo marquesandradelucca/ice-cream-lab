@@ -1,8 +1,9 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js";
-import { dados, salva, ingrediente } from "../dados.js";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261116175557";
+import { confirma } from "../ui.js?v=20261116175557";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261116175557";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -17,47 +18,90 @@ function barra(valor, alvo, escala, texto, casas, estilo){
   return '<div class="bar"><span class="band" style="left:' + a + '%;width:' + Math.max(b - a, 1) + '%"></span>' +
     '<span class="range-label min num' + compact + (a < 7 && !compact ? ' edge-start' : '') + '" style="left:' + a + '%">' + (ocultarZero ? '' : n(alvo[0], casas)) + '</span>' +
     '<span class="range-label max num' + compact + (b > 93 && !compact ? ' edge-end' : '') + '" style="left:' + b + '%">' + n(alvo[1], casas) + '</span>' +
-    '<span class="mark status-' + nivel + borda + '" style="left:calc(' + p + '% - 1.5px)">' +
-    '<span class="mark-label num">' + texto + '</span></span></div>';
+    '<span class="mark status-' + nivel + borda + '" style="left:calc(' + p + '% - 1.5px)"></span></div>';
 }
 
 function metrica(nome, valor, alvo, escala, sufixo, casas, estilo){
-  return '<div class="metric"><div class="name">' + nome + '</div>' +
+  return '<div class="metric"><div class="metric-topo"><span class="name">' + nome + '</span>' +
+    '<span class="metric-valor num status-' + nivelFaixa(valor, alvo) + '">' + n(valor, casas) + sufixo + '</span></div>' +
     barra(valor, alvo, escala, n(valor, casas) + sufixo, casas, estilo) + '</div>';
 }
 
 function passoDe(v){ return v < 10 ? 0.5 : v < 50 ? 1 : 5; }
 
-export function render(el){
+export function render(el, rota){
   const db = dados();
   const calc = db.calc;
 
-  function comp(id){ return ingrediente(id); }
+  // Com uma versão antiga aberta e "manter valores", a conta usa a composição guardada nela.
+  function comp(id){ return (calc.snapshot && calc.snapshot[id]) || ingrediente(id); }
+  function nomeIng(id){ const i = comp(id); return i ? i.nome : "(ingrediente removido)"; }
+
+  function carregaVersao(v){
+    const r = receita(v.receitaId); if (!r) return;
+    calc.receitaId = r.id; calc.versaoId = v.id; calc.nome = r.nome;
+    calc.estilo = ALVOS[v.estilo] ? v.estilo : r.estilo;
+    calc.linhas = JSON.parse(JSON.stringify(v.linhas));
+    delete calc.snapshot;
+    // Se algum ingrediente mudou desde a versão, abre com os números dela e pergunta.
+    if (ingredientesMudados(v.snapshot).some(function(id){ return v.linhas.some(function(l){ return l.id === id; }); })){
+      calc.snapshot = JSON.parse(JSON.stringify(v.snapshot));
+    }
+  }
+  // Atalho vindo da página da receita: #/calculadora/v/<id da versão>
+  if (rota && rota.args[0] === "v" && rota.args[1]){
+    const v = versao(decodeURIComponent(rota.args[1]));
+    if (v) carregaVersao(v);
+    history.replaceState(null, "", "#/calculadora");
+  }
+
+  // Há mudanças desde a versão aberta?
+  function mudou(){
+    const v = calc.versaoId && versao(calc.versaoId);
+    if (!v) return calc.linhas.length > 0;
+    if (v.estilo !== calc.estilo || v.linhas.length !== calc.linhas.length) return true;
+    return v.linhas.some(function(l, i){ return l.id !== calc.linhas[i].id || Number(l.g) !== Number(calc.linhas[i].g); });
+  }
 
   function registraUltima(){
     db.ultima = {rota:"#/calculadora", rotulo:"Calculadora · " + (calc.nome || "receita sem nome")};
   }
-  function persiste(){ registraUltima(); salva(); }
+  function persiste(){ registraUltima(); salva(); if (typeof desenhaEstado === "function" && elEstadoPronto) desenhaEstado(); }
+  let elEstadoPronto = false;
 
   el.innerHTML =
-    '<div class="cabeca-calc">' +
-      '<input id="nome" class="nome-rascunho" type="text" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome do rascunho">' +
+    '<div class="bloco-receita">' +
+    '<input id="nome" class="nome-receita-calc titulo-editavel" type="text" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita">' +
+    '<div class="estado-receita" id="estadoReceita"></div>' +
+    '<div class="acoes-calc">' +
+      '<button type="button" class="pilula-cinza" id="salvar">Salvar</button>' +
       '<div class="menu-abrir" id="menuAbrir">' +
         '<button type="button" class="pilula-abrir" id="abrir" aria-haspopup="listbox" aria-expanded="false">Abrir<span class="chevron" aria-hidden="true"></span></button>' +
         '<div class="menu-lista" role="listbox" aria-label="Abrir receita"><div class="menu-rolagem"></div></div>' +
       '</div>' +
     '</div>' +
+    '</div>' +
+    '<div class="cartao painel-salvar" id="painelSalvar" hidden>' +
+      '<label class="rotulo" for="notaVersao" id="rotuloNota">O que mudou? (opcional)</label>' +
+      '<input id="notaVersao" class="campo-texto" type="text" maxlength="140" enterkeyhint="done" placeholder="Ex.: menos dextrose, mais creme">' +
+      '<div class="acoes-linha"><button type="button" class="botao" id="confirmaSalvar">Salvar</button>' +
+      '<button type="button" class="link-acao" id="cancelaSalvar">cancelar</button></div>' +
+    '</div>' +
+    '<div class="cartao aviso-snap" id="avisoSnap" hidden></div>' +
+    '<h2 class="subtitulo">Ingredientes</h2>' +
     '<section class="cartao" id="ingredientes">' +
       '<div id="linhas"></div>' +
       '<p class="muted" id="vazio" hidden>Nenhum ingrediente ainda. Adicione o primeiro ou abra uma base.</p>' +
       '<div class="linha-total">' +
-        '<button class="botao pequeno-botao" type="button" id="adicionar">+ ingrediente</button>' +
+        '<span class="rotulo-mistura">Mistura total</span>' +
         '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir o peso total">−</button>' +
-        '<input type="number" id="peso" inputmode="decimal" min="0" step="10" aria-label="Mistura total em gramas (reescala a receita)">' +
+        '<label class="campo-g"><input type="number" id="peso" inputmode="decimal" min="0" step="10" aria-label="Mistura total em gramas (reescala a receita)"><span aria-hidden="true">g</span></label>' +
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o peso total">+</button></div>' +
-        '<span class="rotulo-total">total g</span>' +
       '</div>' +
-      '<div class="rodape-ing"><button type="button" class="link-acao" id="modoExcluir">remover ingredientes</button></div>' +
+      '<div class="acoes-ing">' +
+        '<button type="button" class="pilula-cinza" id="modoExcluir">− ingrediente</button>' +
+        '<button type="button" class="pilula-preta" id="adicionar">+ ingrediente</button>' +
+      '</div>' +
     '</section>' +
     '<section class="resultado">' +
       '<div class="resultado-topo"><h2>Composição</h2><span class="muted pequeno">faixas de referência</span></div>' +
@@ -65,11 +109,13 @@ export function render(el){
       Object.keys(NOMES_ESTILO).map(function(k){
         return '<button type="button" data-estilo="' + k + '">' + (k === "icecream" ? "Sorvete" : NOMES_ESTILO[k]) + '</button>';
       }).join("") + '</div>' +
+      '<div class="cartao card-avisos" id="cardAvisos">' +
+        '<ul class="notes" id="avisos" aria-live="polite"></ul>' +
+        '<p class="muted pequeno" id="avisoEstab" hidden>O intervalo referente aos estabilizantes é apenas uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>' +
+      '</div>' +
       '<div id="metricas"></div>' +
-      '<ul class="notes" id="avisos" aria-live="polite"></ul>' +
-      '<p class="muted pequeno" id="avisoEstab" hidden>O intervalo referente aos estabilizantes é apenas uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>' +
     '</section>' +
-    '<details class="notas"><summary>Notas sobre o cálculo</summary>' +
+    '<details class="notas cartao"><summary>Notas sobre o cálculo<span class="chevron" aria-hidden="true"></span></summary>' +
       '<p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>' +
       '<p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>' +
       '<p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos.</p>' +
@@ -93,9 +139,11 @@ export function render(el){
     function op(v, t){ return '<button type="button" class="menu-opcao" role="option" data-v="' + esc(v) + '">' + esc(t) + '</button>'; }
     let h = op("novo", "Rascunho vazio") + '<div class="menu-grupo">Exemplos</div>';
     Object.keys(PRESETS).forEach(function(k){ h += op("preset:" + k, PRESETS[k].nome); });
-    if (db.receitasLegado.length){
-      h += '<div class="menu-grupo">Da calculadora antiga</div>';
-      db.receitasLegado.forEach(function(r){ h += op("leg:" + r.id, r.nome); });
+    if (db.receitas.length){
+      h += '<div class="menu-grupo">Minhas receitas</div>';
+      db.receitas.slice().sort(function(a, b){ return a.nome.localeCompare(b.nome); }).forEach(function(r){
+        h += op("rec:" + r.id, r.nome + (r.status === "final" ? " ✓" : ""));
+      });
     }
     elMenu.querySelector(".menu-rolagem").innerHTML = h;
   }
@@ -108,25 +156,93 @@ export function render(el){
   function escMenu(ev){ if (ev.key === "Escape") fechaMenu(); }
   document.addEventListener("pointerdown", foraDoMenu);
   document.addEventListener("keydown", escMenu);
-  elMenu.querySelector(".menu-lista").addEventListener("click", function(ev){
+  elMenu.querySelector(".menu-lista").addEventListener("click", async function(ev){
     const b = ev.target.closest(".menu-opcao"); if (!b) return;
     fechaMenu();
     const v = b.dataset.v;
-    if (calc.linhas.length && !confirm("Substituir o rascunho aberto? (Ele não fica salvo em outro lugar.)")) return;
-    if (v === "novo"){ calc.linhas = []; calc.nome = ""; }
-    else if (v.indexOf("preset:") === 0){
-      const p = PRESETS[v.slice(7)];
-      calc.estilo = p.estilo; calc.nome = p.nome; calc.linhas = JSON.parse(JSON.stringify(p.linhas));
+    if (mudou() && !(await confirma("Há mudanças não salvas neste rascunho. Abrir outro mesmo assim?", "Abrir"))) return;
+    if (v.indexOf("rec:") === 0){
+      const vs = versoesDe(v.slice(4));
+      if (vs.length) carregaVersao(vs[vs.length - 1]);
     } else {
-      const r = db.receitasLegado.find(function(x){ return "leg:" + x.id === v; });
-      if (!r) return;
-      calc.estilo = ALVOS[r.estilo] ? r.estilo : "gelato"; calc.nome = r.nome;
-      calc.linhas = JSON.parse(JSON.stringify(r.linhas));
+      delete calc.receitaId; delete calc.versaoId; delete calc.snapshot;
+      if (v === "novo"){ calc.linhas = []; calc.nome = ""; }
+      else {
+        const p = PRESETS[v.slice(7)];
+        calc.estilo = p.estilo; calc.nome = p.nome; calc.linhas = JSON.parse(JSON.stringify(p.linhas));
+      }
     }
     persiste(); desenhaTudo();
   });
 
-  elNome.addEventListener("input", function(){ calc.nome = elNome.value; persiste(); });
+  elNome.addEventListener("input", function(){
+    calc.nome = elNome.value;
+    const r = calc.receitaId && receita(calc.receitaId);
+    if (r && elNome.value.trim()) r.nome = elNome.value.trim().slice(0, 60);
+    persiste();
+  });
+
+  // ----- Salvar: cria a receita (v1) ou uma nova versão -----
+  const elPainel = el.querySelector("#painelSalvar"), elNota = el.querySelector("#notaVersao");
+  function proximoNumero(){
+    const vs = calc.receitaId ? versoesDe(calc.receitaId) : [];
+    return vs.length ? vs[vs.length - 1].numero + 1 : 1;
+  }
+  el.querySelector("#salvar").addEventListener("click", function(){
+    if (!calc.linhas.length) return;
+    if (calc.receitaId && !mudou()){ desenhaEstado("Sem mudanças desde a v" + versao(calc.versaoId).numero + "."); return; }
+    elNota.value = "";
+    el.querySelector("#confirmaSalvar").textContent = calc.receitaId ? "Salvar v" + proximoNumero() : "Salvar receita (v1)";
+    el.querySelector("#rotuloNota").textContent = calc.receitaId ? "O que mudou? (opcional)" : "Nota da v1 (opcional)";
+    elPainel.hidden = false;
+  });
+  el.querySelector("#cancelaSalvar").addEventListener("click", function(){ elPainel.hidden = true; });
+  elNota.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); el.querySelector("#confirmaSalvar").click(); } });
+  el.querySelector("#confirmaSalvar").addEventListener("click", function(){
+    let r = calc.receitaId && receita(calc.receitaId);
+    if (!r){
+      r = criaReceita(calc.nome.trim() || "Receita sem nome", calc.estilo);
+      calc.nome = r.nome;
+    }
+    const v = novaVersao(r.id, calc.linhas, calc.estilo, elNota.value.trim(), calc.snapshot);
+    calc.receitaId = r.id; calc.versaoId = v.id; delete calc.snapshot;
+    elPainel.hidden = true;
+    persiste(); desenhaTudo();
+    desenhaEstado("Salvo como v" + v.numero + ".");
+  });
+
+  // Linha de estado: versão aberta, status e atalho para a página da receita.
+  const elEstado = el.querySelector("#estadoReceita");
+  function desenhaEstado(msg){
+    const r = calc.receitaId && receita(calc.receitaId), v = calc.versaoId && versao(calc.versaoId);
+    let h = "";
+    if (r && v){
+      h = 'v' + v.numero + ' · ' + r.status + (mudou() ? ' · <span class="nao-salvo">alterações não salvas</span>' : '') +
+        ' · <a href="#/receita/' + encodeURIComponent(r.id) + '">versões</a>';
+    } else if (calc.linhas.length){
+      h = 'Rascunho não salvo como receita';
+    }
+    if (msg) h = '<b>' + esc(msg) + '</b> ' + h;
+    elEstado.innerHTML = h;
+  }
+
+  // Aviso de ingrediente atualizado depois da versão.
+  const elSnap = el.querySelector("#avisoSnap");
+  function desenhaSnap(){
+    const v = calc.versaoId && versao(calc.versaoId);
+    if (!calc.snapshot || !v){ elSnap.hidden = true; return; }
+    const ids = ingredientesMudados(calc.snapshot).filter(function(id){ return calc.linhas.some(function(l){ return l.id === id; }); });
+    if (!ids.length){ delete calc.snapshot; elSnap.hidden = true; return; }
+    const nomes = ids.map(function(id){ return (ingrediente(id) || calc.snapshot[id]).nome; });
+    elSnap.innerHTML = '<p><b>' + (ids.length > 1 ? "Estes ingredientes foram atualizados" : "Este ingrediente foi atualizado") +
+      ' depois da v' + v.numero + ':</b> ' + esc(nomes.join(", ")) + '.</p>' +
+      '<p class="muted pequeno">Os números abaixo usam a composição de quando a versão foi salva.</p>' +
+      '<div class="acoes-linha"><button type="button" class="pilula-preta" id="recalcular">Recalcular com os valores atuais</button></div>';
+    elSnap.hidden = false;
+    elSnap.querySelector("#recalcular").addEventListener("click", function(){
+      delete calc.snapshot; persiste(); desenhaTudo();
+    });
+  }
 
   // ----- Estilo -----
   el.querySelector("#estilo").addEventListener("click", function(ev){
@@ -157,16 +273,22 @@ export function render(el){
   function desenhaLinhas(){
     elLinhas.innerHTML = ""; inputs = [];
     calc.linhas.forEach(function(l, idx){
-      const ing = ingrediente(l.id);
+      const ing = comp(l.id);
       const row = document.createElement("div");
       row.className = "linha";
       row.innerHTML =
-        '<span class="nome-ing' + (ing ? '' : ' removido') + '">' + esc(ing ? ing.nome : "(ingrediente removido)") + '</span>' +
+        (ing && ing.nota ? '<button type="button" class="nome-ing com-nota" aria-expanded="false">' + esc(nomeIng(l.id)) + '<span class="info" aria-hidden="true">i</span></button>' :
+          '<span class="nome-ing' + (ing ? '' : ' removido') + '">' + esc(nomeIng(l.id)) + '</span>') +
         '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir">−</button>' +
-        '<input type="number" inputmode="decimal" min="0" step="1" aria-label="Gramas">' +
+        '<label class="campo-g"><input type="number" inputmode="decimal" min="0" step="1" aria-label="Gramas"><span aria-hidden="true">g</span></label>' +
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar">+</button></div>' +
         '<button type="button" class="remover" aria-label="Remover ingrediente">×</button>' +
-        (ing && ing.nota ? '<p class="nota-ing muted pequeno">' + esc(ing.nota) + '</p>' : "");
+        (ing && ing.nota ? '<p class="nota-ing muted pequeno" hidden>' + esc(ing.nota) + '</p>' : "");
+      const btNota = row.querySelector(".com-nota");
+      if (btNota) btNota.addEventListener("click", function(){
+        const nota = row.querySelector(".nota-ing"); nota.hidden = !nota.hidden;
+        btNota.setAttribute("aria-expanded", String(!nota.hidden));
+      });
       const inp = row.querySelector("input");
       inp.value = l.g;
       inp.setAttribute("aria-label", "Gramas de " + (ing ? ing.nome : "ingrediente"));
@@ -191,7 +313,7 @@ export function render(el){
   const elModo = el.querySelector("#modoExcluir");
   elModo.addEventListener("click", function(){
     const ligado = elCartao.classList.toggle("modo-excluir");
-    elModo.textContent = ligado ? "concluir" : "remover ingredientes";
+    elModo.textContent = ligado ? "concluir" : "− ingrediente";
   });
 
   // "+ ingrediente" abre uma lista para escolher, com busca. O escolhido entra com 0 g
@@ -332,9 +454,10 @@ export function render(el){
     persiste();
   }
 
+  elEstadoPronto = true;
   function desenhaTudo(){
     elNome.value = calc.nome || "";
-    desenhaAbrir(); desenhaEstilo(); desenhaLinhas(); atualiza();
+    desenhaAbrir(); desenhaEstilo(); desenhaLinhas(); desenhaSnap(); atualiza();
   }
   desenhaTudo();
 

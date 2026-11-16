@@ -1,267 +1,351 @@
-/* Ice Cream Lab — visual herdado da calculadora v1.1, adaptado para o celular na bancada:
-   controles de 48 px, uma coluna, botões grandes. */
+/* Ice Cream Lab — folha de estilos única, escrita a partir de GUIA-VISUAL.md.
+   Para mudar o visual, mude o token no :root (e anote no guia). */
+
+/* ===== 1. Tokens ===== */
 :root{
   color-scheme: light;
   --paper:#FCFCFA; --ink:#1B1D1B; --muted:#686E68; --line:#E5E5DE;
-  --edit-surface:color-mix(in srgb, var(--line) 42%, var(--paper));
-  --st-ok:#4D916A; --st-atencao:#B07F2C; --st-critico:#A94F45;
-  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:28px; --sp-8:48px;
-  --ctl:48px;
-  --type-small:.857rem;
+  --surface:color-mix(in srgb, var(--line) 42%, var(--paper));
+  --ok:#4D916A; --atencao:#B07F2C; --critico:#A94F45;
+  --ink-suave:color-mix(in srgb, var(--paper) 70%, var(--ink)); /* texto secundário sobre fundo preto */
+
+  /* Tipografia */
+  --t-titulo:18px; --t-secao:16px; --t-corpo:15px; --t-pequeno:13px; --t-campo:16px;
+
+  /* Espaçamento */
+  --esp-colado:4px; --esp-grupo:8px; --esp-secao:12px; --esp-pagina:24px; --esp-bloco:32px;
+  --esp-card:16px; --esp-lateral:16px;
+
+  /* Formas */
+  --pilula:40px; --raio:8px; --campo:48px; --toque:44px;
+
+  /* Movimento */
+  --mola:cubic-bezier(.34,1.56,.64,1);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme: dark;
     --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6; --line:#282B27;
-    --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
+    --ok:#7CC19B; --atencao:#D9A94F; --critico:#E08A7E;
   }
 }
 :root[data-theme="dark"]{
   color-scheme: dark;
   --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6; --line:#282B27;
-  --st-ok:#7CC19B; --st-atencao:#D9A94F; --st-critico:#E08A7E;
+  --ok:#7CC19B; --atencao:#D9A94F; --critico:#E08A7E;
 }
+
+/* ===== 2. Base ===== */
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{
   margin:0; background:var(--paper); color:var(--ink);
   font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
-  -webkit-tap-highlight-color:transparent;
+  font-size:var(--t-corpo); font-weight:400; line-height:1.5;
+  -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
 }
-.num,input[type="number"]{font-variant-numeric:tabular-nums}
-.muted{color:var(--muted)}
-.pequeno{font-size:var(--type-small)}
+h1,h2,h3,p{margin:0}
 a{color:inherit}
 button,input,select,textarea{font:inherit; color:inherit}
 :focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+[hidden]{display:none !important}
+.num,input[type="number"]{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.pequeno{font-size:var(--t-pequeno)}
+.sem-margem{margin:0}
+body.travado{overflow:hidden}
 
-/* Topo fixo com voltar */
+/* ===== 3. Estrutura da tela ===== */
 .barra-topo{
-  position:sticky; top:0; z-index:10; background:var(--paper);
-  display:flex; align-items:center; gap:var(--sp-2);
-  padding:calc(env(safe-area-inset-top,0px) + var(--sp-2)) var(--sp-4) var(--sp-2);
-  border-bottom:1px solid var(--line); min-height:56px;
+  position:sticky; top:0; z-index:10; background:var(--paper); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:var(--esp-colado);
+  padding:calc(env(safe-area-inset-top,0px) + var(--esp-grupo)) var(--esp-lateral) var(--esp-grupo); min-height:56px;
 }
-.barra-topo h1{font-size:1.15rem; font-weight:600; letter-spacing:-.02em; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.voltar{
-  display:inline-flex; align-items:center; justify-content:center;
-  width:var(--ctl); height:var(--ctl); margin-left:calc(var(--sp-3) * -1);
-  font-size:2rem; line-height:1; text-decoration:none;
-}
-.wrap{max-width:640px; margin:0 auto; padding:var(--sp-5) var(--sp-4) calc(env(safe-area-inset-bottom,0px) + var(--sp-8))}
+.marca{display:inline-flex; align-items:center; min-height:var(--toque); text-decoration:none; color:var(--ink)}
+.marca h1{font-size:var(--t-titulo); font-weight:600; letter-spacing:-.02em}
+.barra-topo .voltar{display:inline-flex; align-items:center; justify-content:center; width:40px; height:var(--toque);
+  margin-left:calc(var(--esp-secao) * -1); color:var(--ink); text-decoration:none}
+.barra-topo .voltar svg{width:22px; height:22px}
 
-/* Botões */
-.botao{
-  display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2);
-  min-height:var(--ctl); padding:0 var(--sp-5); border-radius:999px;
-  background:var(--ink); color:var(--paper); border:1px solid var(--ink);
-  font-weight:500; text-decoration:none; cursor:pointer; touch-action:manipulation;
-}
-.botao:active{opacity:.7}
-.botao.secundario{background:transparent; color:var(--ink)}
-.botao.perigo{background:transparent; color:var(--st-critico); border-color:var(--st-critico)}
-.acoes-linha{display:flex; flex-wrap:wrap; gap:var(--sp-3); margin:var(--sp-5) 0 var(--sp-3)}
+.wrap{max-width:640px; margin:0 auto; padding:var(--esp-pagina) var(--esp-lateral) calc(env(safe-area-inset-bottom,0px) + 48px)}
+.titulo-tela{font-size:var(--t-titulo); font-weight:600; margin-bottom:var(--esp-pagina)}
 
-.cartao{background:var(--edit-surface); border-radius:16px; padding:var(--sp-4); margin-bottom:var(--sp-5)}
-.etiqueta{font-size:var(--type-small); color:var(--muted); margin:0}
-.toast{
-  position:fixed; left:var(--sp-4); right:var(--sp-4); bottom:calc(env(safe-area-inset-bottom,0px) + var(--sp-4));
-  background:var(--ink); color:var(--paper); padding:var(--sp-3) var(--sp-4); border-radius:12px; z-index:20;
-  max-width:600px; margin:0 auto;
-}
+/* Títulos dentro das telas */
+.subtitulo,.resultado-topo h2,.grupo-areas h2,.form h3{font-size:var(--t-secao); font-weight:500}
+.subtitulo{margin-bottom:var(--esp-secao)}
+.titulo-receita{font-size:var(--t-titulo); font-weight:600}
+.cabeca-receita{display:flex; flex-direction:column; gap:var(--esp-colado); margin-bottom:var(--esp-pagina)}
+.titulo-editavel{display:block; width:100%; padding:0; border:0; border-bottom:1px solid transparent; border-radius:0;
+  background:transparent; color:var(--ink); font-family:inherit; line-height:1.4}
+.titulo-editavel:focus{outline:none; border-bottom-color:var(--line)}
+.etiqueta{font-size:var(--t-pequeno); color:var(--muted)}
 
-/* Início */
-.continuar{
-  display:flex; flex-direction:column; gap:var(--sp-1); text-decoration:none;
-  background:var(--ink); color:var(--paper); border-radius:16px; padding:var(--sp-4) var(--sp-5); margin-bottom:var(--sp-7);
+/* ===== 4. Pílulas e botões ===== */
+.botao,.pilula-preta,.pilula-cinza,.pilula-abrir{
+  display:inline-flex; align-items:center; justify-content:center; gap:var(--esp-grupo);
+  height:var(--pilula); padding:0 20px; border:0; border-radius:999px;
+  font-size:var(--t-corpo); font-weight:400; line-height:1; text-decoration:none; white-space:nowrap; cursor:pointer;
+  touch-action:manipulation;
 }
-.continuar .etiqueta{color:color-mix(in srgb, var(--paper) 70%, var(--ink))}
-.continuar-nome{font-weight:500; font-size:1.05rem}
-.grupo-areas{margin-bottom:var(--sp-7)}
-.grupo-areas h2,.subtitulo,.resultado h2{font-size:1rem; font-weight:500; margin:0 0 var(--sp-3)}
-.grade{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3)}
-.area{
-  display:flex; flex-direction:column; justify-content:space-between; gap:var(--sp-2);
-  min-height:104px; padding:var(--sp-4); border-radius:16px; background:var(--edit-surface);
-  text-decoration:none; touch-action:manipulation;
-}
-.area:active{opacity:.7}
-.area-nome{font-weight:500}
-.area-desc{font-size:var(--type-small); color:var(--muted)}
+.botao,.pilula-preta,.pilula-abrir{background:var(--ink); color:var(--paper)}
+.pilula-cinza,.botao.secundario{background:var(--line); color:var(--ink)}
+.botao.perigo{background:var(--line); color:var(--critico)}
+.botao.perigo-cheio{background:var(--critico); color:#fff}
+.botao.largo{display:flex; width:100%}
+.pilula-cinza.ativo{background:var(--ink); color:var(--paper)}
+.pilula{display:inline-flex; align-items:center; height:var(--pilula); padding:0 var(--esp-secao); border-radius:999px; background:var(--surface)}
+.link-acao{border:0; background:transparent; padding:0; min-height:var(--toque); color:var(--muted); font-size:var(--t-pequeno);
+  text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px; cursor:pointer}
+.chevron{display:inline-block; width:6px; height:6px; border-right:1px solid currentColor; border-bottom:1px solid currentColor;
+  transform:rotate(45deg) translateY(-2px); transition:transform 210ms ease}
+
+/* Grupos de ações */
+.acoes-linha{display:flex; flex-wrap:wrap; gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+.acoes-calc,.acoes-ing{display:flex; gap:var(--esp-grupo)}
+.acoes-calc > *,.acoes-ing > *{flex:1; min-width:0}
+
+/* Seletor de pílulas (faixas, status): escolhida preta, as outras cinza, sem animação */
+.seg{display:flex; gap:var(--esp-grupo)}
+.seg button{flex:1; height:var(--pilula); border:0; border-radius:999px; background:var(--line); color:var(--muted);
+  font-size:var(--t-corpo); cursor:pointer; touch-action:manipulation}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.seg .pill-indicator{display:none}
+
+/* ===== 5. Cards e listas ===== */
+.cartao{background:var(--surface); border-radius:var(--raio); padding:var(--esp-card); margin-bottom:var(--esp-bloco)}
+.cartao:has(+ .pilula-cinza){margin-bottom:var(--esp-secao)}
+.lista-cards{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+.item-lista{display:flex; flex-direction:column; justify-content:center; gap:2px; min-height:64px; padding:var(--esp-secao) var(--esp-card);
+  background:var(--surface); border-radius:var(--raio); text-decoration:none}
+.item-desc{font-size:var(--t-pequeno); color:var(--muted)}
+.dica-lista{font-size:var(--t-pequeno); color:var(--muted); margin-bottom:var(--esp-secao)}
+
+/* Card recolhível (versões, notas) */
+details.cartao{padding:0}
+details.cartao > summary{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-secao);
+  min-height:52px; padding:0 var(--esp-card); list-style:none; cursor:pointer}
+details.cartao > summary::-webkit-details-marker{display:none}
+details.cartao[open] .chevron{transform:rotate(225deg) translate(-2px,-1px)}
+details.cartao > :not(summary){padding:0 var(--esp-card)}
+details.cartao[open]{padding-bottom:var(--esp-card)}
+
+/* ===== 6. Home ===== */
+.grupo-areas{margin-bottom:var(--esp-bloco)}
+.grupo-areas h2{margin-bottom:var(--esp-secao)}
+.grade{display:grid; grid-template-columns:1fr 1fr; gap:var(--esp-grupo)}
+.area{display:flex; flex-direction:column; justify-content:space-between; gap:var(--esp-grupo); min-height:104px; padding:var(--esp-card);
+  background:var(--surface); border-radius:var(--raio); text-decoration:none}
+.area-desc{font-size:var(--t-pequeno); color:var(--muted)}
 .area.embreve .area-nome{color:var(--muted)}
-.creditos{font-size:var(--type-small); text-align:center; margin-top:var(--sp-8)}
-.embreve p{margin:0 0 var(--sp-3)}
+.backup p{margin-bottom:var(--esp-secao)}
+.backup .acoes-linha{margin-bottom:0}
+.creditos{font-size:var(--t-pequeno); color:var(--muted); text-align:center; margin-top:48px}
+.embreve p{margin-bottom:var(--esp-secao)}
 
-/* Campos */
-.rotulo{display:block; font-size:var(--type-small); color:var(--muted); margin:var(--sp-2) 0 var(--sp-1)}
-.rotulo:first-child{margin-top:0}
-select,.campo-texto,input[type="number"]{
-  width:100%; min-height:var(--ctl); border:0; border-radius:10px;
-  background:var(--paper); padding:0 var(--sp-3); font-size:16px; /* 16px evita zoom no iPhone */
-}
-textarea.campo-texto{padding:var(--sp-3); min-height:auto; resize:vertical}
-select{appearance:none; -webkit-appearance:none; padding-right:var(--sp-6);
-  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
-  background-position:right 14px center, right 10px center; background-size:4px 4px; background-repeat:no-repeat}
-input[type="number"]{text-align:right; -moz-appearance:textfield}
+/* ===== 7. Campos ===== */
+.campo-texto,select{width:100%; height:var(--campo); padding:0 var(--esp-secao); border:0; border-radius:var(--raio);
+  background:var(--paper); font-size:var(--t-campo)}
+textarea.campo-texto{height:auto; padding:var(--esp-secao); resize:vertical}
+input[type="number"]{-moz-appearance:textfield}
 input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+.rotulo{display:block; font-size:var(--t-pequeno); color:var(--muted); margin-bottom:var(--esp-colado)}
 
-/* Estilo */
-.seg{display:flex; gap:var(--sp-1); background:var(--edit-surface); border-radius:999px; padding:var(--sp-1); margin-bottom:var(--sp-5)}
-.seg button{flex:1; min-height:44px; border:0; border-radius:999px; background:transparent; color:var(--muted); font-weight:500; cursor:pointer; touch-action:manipulation}
-.seg button[aria-pressed="true"]{background:var(--paper); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.08)}
+/* Campo de peso: pílula cinza com o "g" dentro */
+.campo-g{display:inline-flex; align-items:center; justify-content:center; gap:2px; height:36px; min-width:72px; padding:0 var(--esp-secao);
+  border-radius:999px; background:var(--line); cursor:text}
+.campo-g input{width:4.2ch; height:100%; padding:0; border:0; background:transparent; text-align:right; font-size:var(--t-campo)}
+.campo-g input:focus{outline:none}
+.campo-g:focus-within{outline:2px solid var(--ink); outline-offset:1px}
+.campo-g span{color:var(--muted)}
+.qtd{display:flex; align-items:center}
+.passo{width:36px; height:var(--toque); border:0; border-radius:var(--raio); background:transparent; color:var(--muted);
+  font-size:18px; line-height:1; cursor:pointer; touch-action:manipulation}
+
+/* ===== 8. Calculadora ===== */
+.bloco-receita{margin-bottom:var(--esp-bloco)}
+.nome-receita-calc{font-size:var(--t-secao); font-weight:500}
+.estado-receita{margin-top:var(--esp-colado); font-size:var(--t-pequeno); color:var(--muted); min-height:1.4em}
+.estado-receita a{color:var(--ink)}
+.estado-receita b{font-weight:500; color:var(--ink)}
+.estado-receita .nao-salvo{color:var(--atencao)}
+.acoes-calc{margin-top:var(--esp-secao)}
+.painel-salvar .acoes-linha{margin:var(--esp-secao) 0 0; align-items:center}
+.aviso-snap{box-shadow:inset 3px 0 0 var(--atencao)}
+.aviso-snap p{margin-bottom:var(--esp-grupo)}
+.aviso-snap .acoes-linha{margin:0}
 
 /* Linhas de ingrediente */
-.linha{padding:var(--sp-3) 0; border-bottom:1px solid var(--line)}
-.linha:first-child{padding-top:0}
-.linha-topo{display:flex; gap:var(--sp-2); margin-bottom:var(--sp-2)}
-.linha-topo select{flex:1; min-width:0}
-.remover{flex:none; width:var(--ctl); height:var(--ctl); border:0; background:transparent; color:var(--muted); font-size:1.4rem; cursor:pointer}
-.qtd{display:flex; align-items:center; gap:var(--sp-2)}
-.qtd input{flex:1; min-width:0; text-align:center}
-.qtd .un{color:var(--muted); width:1ch}
-.passo{
-  flex:none; width:var(--ctl); height:var(--ctl); border-radius:999px; border:1px solid var(--line);
-  background:var(--paper); font-size:1.3rem; line-height:1; cursor:pointer; touch-action:manipulation;
-}
-.passo:active{background:var(--line)}
-.nota-ing{margin:var(--sp-2) 0 0}
-#ingredientes > .botao{margin-top:var(--sp-4)}
-.linha-total{margin-top:var(--sp-5)}
-.linha-total .rotulo{margin-bottom:var(--sp-2)}
-.dica{font-size:var(--type-small); margin:var(--sp-2) 0 0}
-
-/* Composição: barras herdadas da v1.1 */
-.resultado{margin-bottom:var(--sp-5)}
-.metric{padding-bottom:var(--sp-1)}
-.metric .name{color:var(--muted)}
-.bar{position:relative; height:3px; margin:var(--sp-7) 0 var(--sp-6); background:var(--line)}
-.bar .band{position:absolute; top:0; bottom:0; background:color-mix(in srgb, var(--muted) 43%, var(--line))}
-.bar .mark{position:absolute; top:-4px; width:3px; height:11px; background:var(--ink); color:var(--ink)}
-.bar .mark.status-atencao{background:var(--st-atencao); color:var(--st-atencao)}
-.bar .mark.status-critico{background:var(--st-critico); color:var(--st-critico)}
-.bar .mark-label{position:absolute; left:50%; bottom:12px; transform:translateX(-50%); white-space:nowrap; line-height:1.3}
-.bar .mark.inicio .mark-label{left:0; transform:none}
-.bar .mark.fim .mark-label{left:0; transform:translateX(-100%)}
-.bar .range-label{position:absolute; top:9px; color:var(--muted); font-size:var(--type-small); line-height:1.3; white-space:nowrap; transform:translateX(-50%)}
-.bar .range-label.min.compact{transform:translateX(calc(-100% - 4px))}
-.bar .range-label.max.compact{transform:translateX(4px)}
-.bar .range-label.edge-start{transform:translateX(0)}
-.bar .range-label.edge-end{transform:translateX(-100%)}
-.water-summary{display:flex; align-items:center; justify-content:space-between; color:var(--muted); margin-top:var(--sp-2)}
-.pilula{padding:var(--sp-1) var(--sp-3); border-radius:999px; background:var(--edit-surface); color:var(--ink); font-weight:500}
-.notes{margin:var(--sp-5) 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--sp-2)}
-.notes li{color:var(--muted); padding-left:var(--sp-4); position:relative}
-.notes li::before{content:""; position:absolute; left:0; top:.55em; width:8px; height:8px; border-radius:50%; background:var(--muted)}
-.notes li.status-ok::before{background:var(--st-ok)}
-.notes li.status-atencao::before{background:var(--st-atencao)}
-.notes li.status-critico::before{background:var(--st-critico)}
-.notas{color:var(--muted); font-size:var(--type-small)}
-.notas summary{cursor:pointer; min-height:var(--ctl); display:flex; align-items:center; font-size:.95rem}
-
-/* Ingredientes */
-.lista{display:flex; flex-direction:column; margin:var(--sp-3) 0 var(--sp-6)}
-.item-lista{display:flex; flex-direction:column; justify-content:center; min-height:60px; padding:var(--sp-2) 0; border-bottom:1px solid var(--line); text-decoration:none}
-.item-nome{font-weight:500}
-.item-desc{font-size:var(--type-small)}
-.form h3{font-size:.95rem; font-weight:500; margin:var(--sp-5) 0 var(--sp-1)}
-.campos{display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3)}
-.campo{display:flex; flex-direction:column; gap:var(--sp-1); min-width:0}
-.campo span{font-size:var(--type-small); color:var(--muted)}
-.campo.largo{margin-bottom:var(--sp-3)}
-.agua{font-weight:500; margin:var(--sp-4) 0}
-.agua.erro{color:var(--st-critico)}
-.check{display:flex; align-items:center; gap:var(--sp-3); min-height:var(--ctl)}
-.check input{width:22px; height:22px; accent-color:var(--ink)}
-
-
-/* Calculadora compacta */
-.cabeca-calc{display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-3)}
-.nome-rascunho{flex:1; min-width:0; border:0; background:transparent; font-size:16px; font-weight:500; padding:var(--sp-2) 0; border-bottom:1px solid transparent}
-.nome-rascunho:focus{border-bottom-color:var(--line); outline:none}
-select.pilula-abrir{flex:none; width:92px; min-height:36px; border-radius:999px; background-color:var(--ink); color:var(--paper); font-size:14px; font-weight:500; padding:0 28px 0 var(--sp-4)}
-#ingredientes{padding:var(--sp-2) var(--sp-3)}
-#ingredientes .linha{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--sp-1); padding:var(--sp-1) 0; border-bottom:1px solid var(--line)}
-#ingredientes .linha:first-child{padding-top:var(--sp-1)}
-#ingredientes .sel-ing{min-height:40px; background-color:transparent; padding:0 20px 0 var(--sp-1); font-size:15px; text-overflow:ellipsis; background-position:right 10px center, right 6px center}
-#ingredientes .qtd{gap:2px}
-#ingredientes .qtd input{width:58px; flex:none; min-height:36px; padding:0 var(--sp-1); font-size:16px}
-#ingredientes .passo{width:32px; height:32px; font-size:1.05rem; border:0; background:transparent; color:var(--muted)}
-#ingredientes .passo:active{background:var(--line)}
-#ingredientes .remover{width:28px; height:36px; font-size:1.1rem}
-#ingredientes .nota-ing{grid-column:1 / -1; margin:0 0 var(--sp-1) var(--sp-1); line-height:1.4}
-#ingredientes .linha-total{display:grid; grid-template-columns:minmax(0,1fr) auto 30px; align-items:center; gap:var(--sp-1); margin-top:var(--sp-2)}
-#ingredientes .linha-total .rotulo-total{font-size:.7rem; color:var(--muted); line-height:1.1; text-align:center}
-.pequeno-botao{min-height:36px; padding:0 var(--sp-3); font-size:14px; justify-self:start}
-#ingredientes .remover{display:none; color:var(--st-critico)}
+#ingredientes{padding:var(--esp-grupo) var(--esp-secao)}
+#ingredientes .linha{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--esp-colado);
+  padding:var(--esp-colado) 0; border-bottom:1px solid var(--line)}
+.nome-ing{min-width:0; padding:0 var(--esp-colado); line-height:1.3; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.nome-ing.removido{color:var(--critico)}
+.nome-ing.com-nota{border:0; background:transparent; text-align:left; color:var(--ink); cursor:pointer}
+.com-nota .info{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:6px; border-radius:50%;
+  background:var(--line); color:var(--muted); font-size:11px; font-style:italic; vertical-align:1px}
+.com-nota[aria-expanded="true"] .info{background:var(--ink); color:var(--paper)}
+.nota-ing{grid-column:1 / -1; padding:0 var(--esp-colado) var(--esp-colado); font-size:var(--t-pequeno); color:var(--muted); line-height:1.4}
+.remover{display:none; width:32px; height:var(--toque); border:0; background:transparent; color:var(--critico); font-size:18px; cursor:pointer}
 #ingredientes.modo-excluir .linha{grid-template-columns:minmax(0,1fr) auto 32px}
 #ingredientes.modo-excluir .remover{display:block}
-#ingredientes.modo-excluir .linha-total{display:none}
-.rodape-ing{display:flex; justify-content:flex-end}
-.link-acao{border:0; background:transparent; color:var(--muted); font-size:var(--type-small); min-height:36px; padding:0 var(--sp-1); text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px; cursor:pointer}
-#ingredientes.modo-excluir .link-acao{color:var(--ink); font-weight:500}
+#ingredientes.modo-excluir .linha-total,#ingredientes.modo-excluir #adicionar{display:none}
+#ingredientes.modo-excluir #modoExcluir{background:var(--ink); color:var(--paper)}
+.linha-total{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--esp-colado); padding:var(--esp-colado) 0}
+.rotulo-mistura{color:var(--muted); padding-left:var(--esp-colado)}
+.acoes-ing{margin:var(--esp-grupo) 0 var(--esp-colado)}
 
-/* Seletor de faixas como controle dos gráficos */
-.resultado-topo{display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-2)}
-.resultado-topo h2{margin-bottom:var(--sp-2)}
-/* Pílula animada da v1.1: um fundo cinza desliza até a opção escolhida */
-.seg.seg-faixas{position:relative; isolation:isolate; background:transparent; padding:0; gap:var(--sp-1); margin:0 0 var(--sp-2) -6px}
-.seg-faixas .pill-indicator{position:absolute; top:0; left:0; height:100%; border-radius:999px; background:var(--line); z-index:-1; pointer-events:none;
-  transition:transform 360ms cubic-bezier(.22,1,.36,1), width 360ms cubic-bezier(.22,1,.36,1)}
-.seg-faixas button{min-height:40px; transition:color 225ms ease}
-.seg-faixas button[aria-pressed="true"]{background:transparent; box-shadow:none; color:var(--ink)}
-.seg-faixas:not(.pill-ready) button[aria-pressed="true"]{background:var(--line)}
-@media (prefers-reduced-motion: reduce){ .seg-faixas .pill-indicator{transition:none} }
+/* Composição */
+.resultado{margin-bottom:var(--esp-bloco)}
+.resultado-topo{display:flex; align-items:baseline; justify-content:space-between; gap:var(--esp-grupo); margin-bottom:var(--esp-secao)}
+.resultado-topo span{font-size:var(--t-pequeno); color:var(--muted)}
+.seg-faixas{margin-bottom:var(--esp-secao)}
+.card-avisos:has(#avisos:empty){display:none}
+.notes{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--esp-grupo)}
+.notes li{position:relative; padding-left:var(--esp-card); color:var(--muted)}
+.notes li::before{content:""; position:absolute; left:0; top:.55em; width:8px; height:8px; border-radius:50%; background:var(--muted)}
+.notes li.status-ok::before{background:var(--ok)}
+.notes li.status-atencao::before{background:var(--atencao)}
+.notes li.status-critico::before{background:var(--critico)}
+#avisoEstab{margin-top:var(--esp-secao); font-size:var(--t-pequeno); color:var(--muted)}
 
-/* Nome fixo do ingrediente na linha */
-#ingredientes .nome-ing{min-width:0; padding:0 var(--sp-1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-#ingredientes .nome-ing.removido{color:var(--st-critico)}
+/* Gráficos: nome e valor na linha de cima, barra embaixo.
+   Os números da faixa ficam sob a barra; o vão depois deles iguala o espaço nome → barra. */
+.metric-topo{display:flex; justify-content:space-between; align-items:baseline; gap:var(--esp-secao)}
+.metric .name{color:var(--muted)}
+.metric-valor.status-atencao{color:var(--atencao)}
+.metric-valor.status-critico{color:var(--critico)}
+.bar{position:relative; height:3px; margin:var(--esp-secao) 0 44px; background:var(--line)}
+.metric:last-child .bar{margin-bottom:36px}
+.bar .band{position:absolute; top:0; bottom:0; background:color-mix(in srgb, var(--muted) 43%, var(--line))}
+.bar .mark{position:absolute; top:-4px; width:3px; height:11px; background:var(--ink)}
+.bar .mark.status-atencao{background:var(--atencao)}
+.bar .mark.status-critico{background:var(--critico)}
+.bar .range-label{position:absolute; top:9px; transform:translateX(-50%); color:var(--muted); font-size:var(--t-pequeno); line-height:1.3; white-space:nowrap}
+.bar .range-label.min.compact{transform:translateX(calc(-100% - 4px))}
+.bar .range-label.max.compact{transform:translateX(4px)}
+.bar .range-label.edge-start{transform:none}
+.bar .range-label.edge-end{transform:translateX(-100%)}
+.water-summary{display:flex; align-items:center; justify-content:space-between; color:var(--muted)}
+.water-summary .pilula{color:var(--ink)}
 
-/* Lista para escolher ingrediente */
-body.travado{overflow:hidden}
-.escolha{position:fixed; inset:0; z-index:30; background:var(--paper); display:flex; flex-direction:column;
-  padding:calc(env(safe-area-inset-top,0px) + var(--sp-3)) var(--sp-4) calc(env(safe-area-inset-bottom,0px) + var(--sp-3))}
-.escolha[hidden]{display:none}
-.escolha-topo{display:flex; gap:var(--sp-2); align-items:center; max-width:640px; width:100%; margin:0 auto}
-.escolha-topo input{background:var(--edit-surface)}
-.escolha-lista{flex:1; overflow-y:auto; max-width:640px; width:100%; margin:var(--sp-2) auto 0; -webkit-overflow-scrolling:touch}
-.escolha-item{display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2); width:100%; min-height:48px; padding:0 var(--sp-1);
-  border:0; border-bottom:1px solid var(--line); background:transparent; text-align:left; cursor:pointer}
-.escolha-item:active{background:var(--edit-surface)}
-.escolha-grupo{margin:var(--sp-4) 0 0 var(--sp-1)}
-.escolha-novo{align-self:center; margin-top:var(--sp-2)}
+/* Notas sobre o cálculo */
+details.notas{color:var(--muted); font-size:var(--t-pequeno)}
+details.notas > summary{color:var(--ink); font-size:var(--t-corpo)}
+details.notas p{margin-top:var(--esp-secao)}
 
-/* Espaçamento padronizado da calculadora:
-   título → conteúdo: 12px (--sp-3) | entre blocos: 32px */
-:root{--entre-blocos:32px; --titulo-conteudo:var(--sp-3)}
-.cabeca-calc{margin-bottom:var(--titulo-conteudo)}
-#ingredientes.cartao{margin-bottom:var(--entre-blocos)}
-.resultado-topo{margin-bottom:var(--titulo-conteudo)}
-.resultado-topo h2{margin:0}
-.seg.seg-faixas{margin-bottom:var(--titulo-conteudo)}
-.resultado{margin-bottom:var(--entre-blocos)}
-
-/* Seletor de faixas: pílula escolhida preta, as outras cinza */
-.seg.seg-faixas{gap:var(--sp-2); margin-left:0}
-.seg-faixas button{background:var(--line); color:var(--muted)}
-.seg-faixas button[aria-pressed="true"]{background:transparent; color:var(--paper)}
-.seg-faixas .pill-indicator{background:var(--ink)}
-.seg-faixas:not(.pill-ready) button[aria-pressed="true"]{background:var(--ink)}
-
-/* Menu "Abrir" próprio, no visual da v1.1 */
-.menu-abrir{position:relative; flex:none}
-.pilula-abrir{display:inline-flex; align-items:center; gap:var(--sp-2); min-height:36px; padding:0 var(--sp-4); border:1px solid var(--ink);
-  border-radius:999px; background:var(--ink); color:var(--paper); font-size:14px; font-weight:500; cursor:pointer}
-.pilula-abrir .chevron{width:6px; height:6px; border-right:1px solid currentColor; border-bottom:1px solid currentColor; transform:rotate(45deg) translateY(-2px); transition:transform 210ms ease}
-.menu-abrir.aberto .chevron{transform:rotate(225deg) translate(-2px,-1px)}
-.menu-lista{position:absolute; z-index:40; top:calc(100% + 6px); right:0; width:240px; max-width:calc(100vw - 32px);
-  background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:var(--sp-2) var(--sp-2) var(--sp-2) 0;
+/* Menu "Abrir" */
+.menu-abrir{position:relative; display:flex}
+.pilula-abrir{width:100%}
+.menu-lista{position:absolute; z-index:40; top:calc(100% + 6px); right:0; width:min(280px, calc(100vw - 32px));
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--raio); padding:var(--esp-grupo);
   box-shadow:0 9px 24px rgba(0,0,0,.09); opacity:0; transform:translateY(-5px); visibility:hidden; pointer-events:none;
   transition:opacity 210ms ease, transform 210ms ease, visibility 210ms}
-.menu-abrir.aberto .menu-lista{opacity:1; transform:translateY(0); visibility:visible; pointer-events:auto}
-.menu-rolagem{max-height:320px; overflow-y:auto; overscroll-behavior:contain; padding:0 var(--sp-1) 0 var(--sp-2)}
-.menu-grupo{padding:var(--sp-3) var(--sp-2) var(--sp-1); color:var(--muted); font-size:var(--type-small)}
-.menu-opcao{display:block; width:100%; min-height:44px; border:0; border-radius:10px; background:transparent; text-align:left; padding:var(--sp-2); cursor:pointer}
-.menu-opcao:hover,.menu-opcao:active{background:var(--line)}
-@media (prefers-reduced-motion: reduce){ .menu-lista,.pilula-abrir .chevron{transition:none} }
+.menu-abrir.aberto .menu-lista{opacity:1; transform:none; visibility:visible; pointer-events:auto}
+.menu-abrir.aberto .chevron{transform:rotate(225deg) translate(-2px,-1px)}
+.menu-rolagem{max-height:320px; overflow-y:auto; overscroll-behavior:contain}
+.menu-grupo{padding:var(--esp-secao) var(--esp-grupo) var(--esp-colado); font-size:var(--t-pequeno); color:var(--muted)}
+.menu-opcao{display:block; width:100%; min-height:var(--toque); padding:var(--esp-grupo); border:0; border-radius:var(--raio);
+  background:transparent; text-align:left; cursor:pointer}
+
+/* Lista para escolher ingrediente (tela cheia) */
+.escolha{position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; background:var(--paper);
+  padding:calc(env(safe-area-inset-top,0px) + var(--esp-secao)) var(--esp-lateral) calc(env(safe-area-inset-bottom,0px) + var(--esp-secao))}
+.escolha-topo{display:flex; align-items:center; gap:var(--esp-grupo); width:100%; max-width:640px; margin:0 auto}
+.escolha-topo input{background:var(--surface)}
+.escolha-lista{flex:1; overflow-y:auto; width:100%; max-width:640px; margin:var(--esp-grupo) auto 0}
+.escolha-item{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-grupo); width:100%; min-height:var(--campo);
+  padding:0 var(--esp-grupo); border:0; border-bottom:1px solid var(--line); border-radius:var(--raio); background:transparent; text-align:left; cursor:pointer}
+.escolha-grupo{margin:var(--esp-card) 0 0 var(--esp-grupo); font-size:var(--t-pequeno); color:var(--muted)}
+.escolha-novo{align-self:center}
+
+/* ===== 9. Receita e versões ===== */
+.bloco-status{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+.estado-final{color:var(--ok); margin-top:var(--esp-colado)}
+.lista-versoes{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+.lista-versoes .versao{margin:0}
+.versao-num{font-weight:600}
+.versao.final .versao-num{color:var(--ok)}
+.versao-data{display:inline-flex; align-items:center; gap:var(--esp-secao); font-size:var(--t-pequeno); color:var(--muted)}
+.versao-corpo{display:flex; flex-direction:column; gap:var(--esp-secao)}
+.versao-nota-linha{display:flex; align-items:center; gap:var(--esp-grupo)}
+.versao-nota{flex:1}
+.versao-nota-linha .link-acao{flex:none; min-height:0}
+.versao-nota-linha input{flex:1; height:var(--pilula); background:var(--paper)}
+.versao-difs{display:flex; flex-wrap:wrap; align-items:center; gap:var(--esp-colado) var(--esp-secao)}
+.dif{font-size:var(--t-pequeno)}
+.dif-novo{color:var(--ok)}
+.dif-saiu{color:var(--critico)}
+.versao-acoes{display:flex; flex-direction:column; gap:var(--esp-grupo)}
+.versao-acoes > *{width:100%}
+.linha-pronta{display:flex; justify-content:space-between; gap:var(--esp-secao); padding:var(--esp-grupo) 0; border-bottom:1px solid var(--line)}
+.linha-pronta:last-child{border-bottom:0}
+.versao-qtds .linha-pronta{padding:var(--esp-colado) 0}
+#preparo{background:var(--surface); margin-bottom:var(--esp-grupo)}
+#preparo + .pequeno{margin-bottom:var(--esp-bloco)}
+.preparo{line-height:1.7}
+
+/* Receita pronta: tamanho do lote */
+.linha-lote{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--esp-colado)}
+.linha-lote .rotulo{margin:0}
+.atalhos-lote{display:flex; gap:var(--esp-grupo); margin:var(--esp-secao) 0}
+.atalhos-lote > *{flex:1}
+
+/* ===== 10. Ingredientes ===== */
+.form .campos{display:flex; flex-direction:column}
+.form .campos .campo{display:flex; align-items:center; justify-content:space-between; gap:var(--esp-secao); min-height:var(--campo); border-bottom:1px solid var(--line)}
+.form .campos .campo:last-child{border-bottom:0}
+.form .campos .campo input{width:96px; height:36px; padding:0 var(--esp-secao); border:0; border-radius:999px; background:var(--line);
+  text-align:center; font-size:var(--t-campo)}
+.form .campo.largo{display:flex; flex-direction:column; gap:var(--esp-colado); margin-bottom:var(--esp-secao)}
+.form .campo.largo span{font-size:var(--t-pequeno); color:var(--muted)}
+.form > p.pequeno{margin-bottom:var(--esp-grupo)}
+.form h3{margin:var(--esp-pagina) 0 var(--esp-colado)}
+.form h3 + p{margin-bottom:var(--esp-grupo)}
+.agua{margin:var(--esp-card) 0; font-weight:500}
+.agua.erro{color:var(--critico)}
+.check{display:flex; align-items:center; gap:var(--esp-secao); min-height:var(--toque)}
+.check input{width:22px; height:22px; accent-color:var(--ink)}
+.acoes-ing + .acoes-linha{margin-top:var(--esp-bloco)}
+
+/* ===== 11. Janela de confirmação e aviso rápido ===== */
+.confirma-fundo{position:fixed; inset:0; z-index:50; display:flex; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.28);
+  padding:var(--esp-card) var(--esp-card) calc(env(safe-area-inset-bottom,0px) + var(--esp-card)); animation:aparece 180ms ease}
+.confirma-caixa{width:100%; max-width:440px; padding:20px; background:var(--paper); border-radius:var(--raio);
+  box-shadow:0 12px 32px rgba(0,0,0,.18); animation:sobe 240ms cubic-bezier(.22,1,.36,1)}
+.confirma-texto{margin-bottom:20px; font-size:var(--t-campo)}
+.confirma-acoes{display:flex; gap:var(--esp-grupo)}
+.confirma-acoes .botao{flex:1; padding:0 var(--esp-secao)}
+@keyframes aparece{from{opacity:0}}
+@keyframes sobe{from{transform:translateY(24px); opacity:0}}
+.toast{position:fixed; left:var(--esp-card); right:var(--esp-card); bottom:calc(env(safe-area-inset-bottom,0px) + var(--esp-card)); z-index:20;
+  max-width:600px; margin:0 auto; padding:var(--esp-secao) var(--esp-card); border-radius:var(--raio); background:var(--ink); color:var(--paper)}
+
+/* ===== 12. Interação ===== */
+/* Clique: afunda com calma e volta com uma leve mola */
+button,.botao,.pilula-preta,.pilula-cinza,.pilula-abrir,.item-lista,.area,.menu-opcao,.escolha-item,.voltar,.marca,details.cartao > summary,.passo{
+  transition:transform 260ms var(--mola), background-color 180ms ease, color 180ms ease, opacity 180ms ease;
+}
+button:active,.botao:active,.pilula-preta:active,.pilula-cinza:active,.pilula-abrir:active,.menu-opcao:active,.escolha-item:active,.voltar:active{
+  transform:scale(.96); transition-duration:140ms; transition-timing-function:ease-out}
+.item-lista:active,.area:active,details.cartao > summary:active{transform:scale(.985); transition-duration:140ms; transition-timing-function:ease-out}
+.nome-ing.com-nota:active,.campo-g:active{transform:none}
+
+/* Preto ao tocar (celular) e ao passar o mouse (computador) */
+.seg button:active,.pilula-cinza:active,.passo:active,.menu-opcao:active,.escolha-item:active,.item-lista:active,.area:active{
+  background:var(--ink); color:var(--paper)}
+.item-lista:active .item-desc,.area:active .area-desc{color:var(--ink-suave)}
+@media (hover: hover){
+  .seg button:hover,.pilula-cinza:hover,.botao.secundario:hover,.passo:hover,.menu-opcao:hover,.escolha-item:hover,
+  .item-lista:hover,.area:hover{background:var(--ink); color:var(--paper)}
+  .item-lista:hover .item-desc,.area:hover .area-desc,.area.embreve:hover .area-nome,.escolha-item:hover .muted{color:var(--ink-suave)}
+  .botao.perigo:hover{background:var(--critico); color:#fff}
+  .link-acao:hover{color:var(--ink)}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+  button:active,.botao:active,.pilula-preta:active,.pilula-cinza:active,.pilula-abrir:active,.menu-opcao:active,.escolha-item:active,
+  .voltar:active,.item-lista:active,.area:active,details.cartao > summary:active{transform:none; opacity:.7}
+}
+.botao.largo + .dica-lista{margin-top:var(--esp-secao)}

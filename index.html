@@ -17,15 +17,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/estilo.css" />
+<link rel="stylesheet" href="css/estilo.css?v=20261116175557" />
 </head>
 <body>
 <header class="barra-topo">
-  <a class="voltar" id="voltar" href="#/" aria-label="Voltar ao início" hidden>‹</a>
-  <h1 id="titulo">Ice Cream Lab</h1>
+  <a class="voltar" id="voltar" href="#/" aria-label="Voltar" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+  </a>
+  <a class="marca" href="#/" aria-label="Ice Cream Lab: ir para a home"><h1>Ice Cream Lab</h1></a>
 </header>
-<main class="wrap" id="tela"></main>
+<div class="wrap">
+  <h2 class="titulo-tela" id="titulo" hidden></h2>
+  <main id="tela"></main>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-<script type="module" src="js/app.js"></script>
+<script type="module" src="js/app.js?v=20261116175557"></script>
 </body>
 </html>

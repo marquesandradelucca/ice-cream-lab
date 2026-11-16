@@ -1,11 +1,11 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js";
-import { PRESETS } from "./calculo.js";
+import { ING_BASE } from "./ingredientes-base.js?v=20261116175557";
+import { PRESETS } from "./calculo.js?v=20261116175557";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
-const VERSAO_DADOS = 1;
+const VERSAO_DADOS = 2;
 
 let db = null;
 
@@ -93,9 +93,11 @@ export function carrega(){
   const salvo = lerJSON(CHAVE);
   if (salvo && salvo.versaoDados){
     db = Object.assign(vazio(), salvo);
+    if (converteLegado()) salva();
   } else {
     db = vazio();
     if (migraLegado(db)) db.migradoDoLegado = new Date().toISOString();
+    converteLegado();
     salva();
   }
   // Pede ao navegador para não apagar os dados sozinho (ajuda, mas não garante).
@@ -117,6 +119,78 @@ export function ingrediente(id){
 
 export function ingredienteUsado(id){
   return db.calc.linhas.some(function(l){ return l.id === id; });
+}
+
+// ---------- Receitas e versões ----------
+// Composição usada por uma versão, guardada junto dela: se o ingrediente for corrigido
+// depois, a versão continua com os números de quando foi salva.
+const CAMPOS_COMP = ["nome", "gord", "slng", "soro", "outros", "ac", "estab", "contaTotal"];
+export function snapshotDe(linhas, base){
+  const snap = {};
+  linhas.forEach(function(l){
+    const i = (base && base[l.id]) || ingrediente(l.id);
+    if (!i || snap[l.id]) return;
+    const c = {};
+    CAMPOS_COMP.forEach(function(k){ if (i[k] !== undefined) c[k] = JSON.parse(JSON.stringify(i[k])); });
+    snap[l.id] = c;
+  });
+  return snap;
+}
+
+// Ingredientes cuja composição atual difere da guardada na versão.
+export function ingredientesMudados(snapshot){
+  return Object.keys(snapshot || {}).filter(function(id){
+    const atual = ingrediente(id);
+    if (!atual) return true;
+    const agora = snapshotDe([{id:id}])[id], antes = snapshot[id];
+    return ["gord", "slng", "soro", "outros", "ac", "estab", "contaTotal"].some(function(k){
+      return JSON.stringify(agora[k] || null) !== JSON.stringify(antes[k] || null);
+    });
+  });
+}
+
+export function receita(id){ return db.receitas.find(function(r){ return r.id === id; }) || null; }
+export function versao(id){ return db.versoes.find(function(v){ return v.id === id; }) || null; }
+export function versoesDe(receitaId){
+  return db.versoes.filter(function(v){ return v.receitaId === receitaId; })
+    .sort(function(a, b){ return a.numero - b.numero; });
+}
+
+export function criaReceita(nome, estilo, origem){
+  const r = {id:novoId(), nome:String(nome || "Receita sem nome").slice(0, 60), estilo:estilo || "gelato",
+    status:"rascunho", versaoFinal:null, preparo:"", ideia:origem || null,
+    criada:new Date().toISOString()};
+  db.receitas.push(r);
+  return r;
+}
+
+export function novaVersao(receitaId, linhas, estilo, nota, snapshotBase){
+  const vs = versoesDe(receitaId);
+  const limpas = linhas.map(function(l){ return {id:l.id, g:Number(l.g) || 0}; });
+  const v = {id:novoId(), receitaId:receitaId, numero:vs.length ? vs[vs.length - 1].numero + 1 : 1,
+    linhas:limpas, estilo:estilo, data:new Date().toISOString(), nota:String(nota || ""),
+    snapshot:snapshotDe(limpas, snapshotBase)};
+  db.versoes.push(v);
+  const r = receita(receitaId); if (r) r.estilo = estilo;
+  return v;
+}
+
+export function excluiReceita(id){
+  db.receitas = db.receitas.filter(function(r){ return r.id !== id; });
+  db.versoes = db.versoes.filter(function(v){ return v.receitaId !== id; });
+  if (db.calc.receitaId === id){ delete db.calc.receitaId; delete db.calc.versaoId; delete db.calc.snapshot; }
+}
+
+// Receitas salvas na calculadora antiga viram receitas de verdade, cada uma com sua v1.
+function converteLegado(){
+  if (!db.receitasLegado || !db.receitasLegado.length) return false;
+  db.receitasLegado.forEach(function(rl){
+    const r = criaReceita(rl.nome, rl.estilo);
+    const v = novaVersao(r.id, rl.linhas, rl.estilo, "Trazida da calculadora antiga.");
+    if (db.calc.nome === rl.nome && !db.calc.receitaId){ db.calc.receitaId = r.id; db.calc.versaoId = v.id; }
+  });
+  db.receitasLegado = [];
+  return true;
 }
 
 // ---------- Backup em arquivo ----------
@@ -168,6 +242,7 @@ export function importaBackup(texto){
     db.receitasLegado.push({id:String(r.id || novoId()), nome:String(r.nome), estilo:r.estilo || "gelato", linhas:linhas});
     nr++;
   });
+  converteLegado();
   salva();
   return "Importados da calculadora antiga: " + np + " produto(s) e " + nr + " receita(s).";
 }
