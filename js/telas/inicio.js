@@ -1,7 +1,9 @@
-import { dados, exportaBackup, importaBackup, receita, versao } from "../dados.js?v=20261116211245";
-import { confirma } from "../ui.js?v=20261116211245";
-import { dataCurta } from "./lote.js?v=20261116211245";
-import { toast } from "../app.js?v=20261116211245";
+import { dados, exportaBackup, importaBackup, receita, versao } from "../dados.js?v=20261116225207";
+import { confirma } from "../ui.js?v=20261116225207";
+import { dataCurta } from "./lote.js?v=20261116225207";
+import { situacao, aoMudar } from "../sync.js?v=20261116225207";
+import { textoSituacao } from "./ajustes.js?v=20261116225207";
+import { toast } from "../app.js?v=20261116225207";
 
 const OFICINA = [
   {area:"ideias",       nome:"Ideias",           desc:"Sabores para testar",          pronto:true},
@@ -50,29 +52,11 @@ export function render(el){
   el.innerHTML =
     lembrete +
     bloco("Oficina", OFICINA) + bloco("Biblioteca", BIBLIOTECA) +
-    '<section class="grupo-areas backup"><h2>Backup</h2>' +
-    '<p class="muted">Seus dados ficam só neste aparelho. Guarde um backup de vez em quando (no app Arquivos ou no Drive).</p>' +
-    '<div class="acoes-linha"><button class="botao" type="button" id="exportar">Exportar backup</button>' +
-    '<button class="botao secundario" type="button" id="importar">Importar backup</button></div>' +
-    '<input type="file" id="arquivo" accept="application/json,.json" hidden></section>' +
-    '<footer class="creditos muted">Ice Cream Lab · © 2026 Lucca Marques · v2.0 (etapa 4)</footer>';
-
-  el.querySelector("#exportar").addEventListener("click", exportaBackup);
-  const arq = el.querySelector("#arquivo");
-  el.querySelector("#importar").addEventListener("click", function(){ arq.click(); });
-  arq.addEventListener("change", function(){
-    const f = arq.files && arq.files[0]; if (!f) return;
-    const leitor = new FileReader();
-    leitor.onload = async function(){
-      try {
-        const ehCompleto = /"versaoDados"/.test(leitor.result);
-        if (ehCompleto && !(await confirma("Restaurar este backup substitui todos os dados atuais do app. Continuar?", "Restaurar", true))) return;
-        toast(importaBackup(leitor.result));
-        render(el);
-      } catch (e) { toast("Não consegui ler o arquivo: " + e.message); }
-    };
-    leitor.readAsText(f);
-    arq.value = "";
-  });
-  return {titulo:"Ice Cream Lab"};
+    // Backup e conta foram para Ajustes; aqui fica só a situação da sincronização.
+    '<a class="item-lista item-ajustes" href="#/ajustes"><span class="item-nome">Ajustes</span>' +
+      '<span class="item-desc" id="situacaoSync">' + esc(textoSituacao(situacao())) + '</span></a>' +
+    '<footer class="creditos muted">Ice Cream Lab · © 2026 Lucca Marques · v2.0 (etapa 5)</footer>';
+  const parar = aoMudar(function(s){ const e = document.getElementById("situacaoSync"); if (e) e.textContent = textoSituacao(s); });
+  return {titulo:"Ice Cream Lab", limpa:parar};
 }
+

@@ -535,3 +535,16 @@ textarea:disabled{opacity:.7}
 }
 .campo-busca::placeholder{color:var(--muted); opacity:1}
 .campo-busca::-webkit-search-decoration{-webkit-appearance:none}
+
+/* ===== 15. Ajustes ===== */
+.item-ajustes{margin-top:var(--esp-bloco)}
+.bloco-ajustes{margin:var(--esp-secao) 0 var(--esp-bloco)}
+.estado-sync{margin-top:var(--esp-colado)}
+.form-conta{margin:var(--esp-secao) 0 0}
+.form-conta .campo-texto{background:var(--paper)}
+.rotulo-espaco-curto{margin-top:var(--esp-secao)}
+#erroConta{margin-top:var(--esp-secao)}
+.form-conta{margin-top:0}
+.backup-discreto{margin-top:var(--esp-bloco)}
+.backup-discreto > summary{font-weight:400; color:var(--muted)}
+.backup-discreto p{margin-bottom:var(--esp-secao)}

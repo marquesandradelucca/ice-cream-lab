@@ -1,8 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261116211245";
-import { PRESETS } from "./calculo.js?v=20261116211245";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261116211245";
+import { ING_BASE } from "./ingredientes-base.js?v=20261116225207";
+import { PRESETS } from "./calculo.js?v=20261116225207";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261116225207";
+import { notificaMudanca } from "./sync.js?v=20261116225207";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -149,7 +150,14 @@ export function criaIdeia(nome, estilo, nota){
   return x;
 }
 
+// Grava no aparelho e avisa a sincronização (que envia para a nuvem quando há login e internet).
 export function salva(){
+  const ok = salvaLocal();
+  try { notificaMudanca(); } catch (e) {}
+  return ok;
+}
+// Só grava no aparelho (usado pela sincronização ao aplicar o que veio da nuvem).
+export function salvaLocal(){
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); return true; }
   catch (e) { return false; }
 }
