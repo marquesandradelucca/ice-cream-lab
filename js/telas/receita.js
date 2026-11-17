@@ -1,10 +1,10 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261116225207";
-import { confirma } from "../ui.js?v=20261116225207";
-import { atualizaVoltar } from "../app.js?v=20261116225207";
-import { resumoLote, dataCurta as dataLote } from "./lote.js?v=20261116225207";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261116225207";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261116234908";
+import { confirma } from "../ui.js?v=20261116234908";
+import { atualizaVoltar } from "../app.js?v=20261116234908";
+import { resumoLote, dataCurta as dataLote } from "./lote.js?v=20261116234908";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261116234908";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
