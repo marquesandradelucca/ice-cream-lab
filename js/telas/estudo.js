@@ -2,9 +2,9 @@
 // do Notion e editáveis no app.
 // Rotas: #/estudo (lista com busca), #/estudo/<id> (tema) e #/estudo/<id>/calculadora
 // (tema aberto pelo atalho de um gráfico: o voltar leva de volta à calculadora).
-import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261117020901";
-import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261117020901";
-import { mdParaHtml, confirma } from "../ui.js?v=20261117020901";
+import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261117022102";
+import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261117022102";
+import { mdParaHtml, confirma } from "../ui.js?v=20261117022102";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }

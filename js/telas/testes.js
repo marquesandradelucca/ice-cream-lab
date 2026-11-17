@@ -1,8 +1,8 @@
 // Testes: uma lista só, das receitas que estão sendo testadas (status "em teste"
 // ou com lote aberto). Cada card mostra o último lote e, se algum lote precisa de algo,
 // uma pílula "avaliar" ou "preparando". Tocar abre a página da receita (versões e lotes).
-import { dados, versao, versoesDe } from "../dados.js?v=20261117020901";
-import { resumoLote } from "./lote.js?v=20261117020901";
+import { dados, versao, versoesDe } from "../dados.js?v=20261117022102";
+import { resumoLote } from "./lote.js?v=20261117022102";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function data(iso){ try { return new Date(iso).toLocaleDateString("pt-BR", {day:"2-digit", month:"short"}); } catch (e) { return ""; } }

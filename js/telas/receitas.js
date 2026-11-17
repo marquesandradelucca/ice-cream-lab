@@ -1,6 +1,6 @@
 // Receitas: só as finais (abrem a receita pronta). As que ainda não são finais ficam em Testes.
-import { dados, versao, versoesDe } from "../dados.js?v=20261117020901";
-import { NOMES_ESTILO } from "../calculo.js?v=20261117020901";
+import { dados, versao, versoesDe } from "../dados.js?v=20261117022102";
+import { NOMES_ESTILO } from "../calculo.js?v=20261117022102";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function porNome(a, b){ return a.nome.localeCompare(b.nome); }

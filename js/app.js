@@ -1,17 +1,17 @@
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega } from "./dados.js?v=20261117020901";
-import { iniciaSync } from "./sync.js?v=20261117020901";
-import * as inicio from "./telas/inicio.js?v=20261117020901";
-import * as calculadora from "./telas/calculadora.js?v=20261117020901";
-import * as ingredientes from "./telas/ingredientes.js?v=20261117020901";
-import * as embreve from "./telas/embreve.js?v=20261117020901";
-import * as receitas from "./telas/receitas.js?v=20261117020901";
-import * as receita from "./telas/receita.js?v=20261117020901";
-import * as testes from "./telas/testes.js?v=20261117020901";
-import * as loteTela from "./telas/lote.js?v=20261117020901";
-import * as estudo from "./telas/estudo.js?v=20261117020901";
-import * as ideias from "./telas/ideias.js?v=20261117020901";
-import * as ajustes from "./telas/ajustes.js?v=20261117020901";
+import { carrega } from "./dados.js?v=20261117022102";
+import { iniciaSync } from "./sync.js?v=20261117022102";
+import * as inicio from "./telas/inicio.js?v=20261117022102";
+import * as calculadora from "./telas/calculadora.js?v=20261117022102";
+import * as ingredientes from "./telas/ingredientes.js?v=20261117022102";
+import * as embreve from "./telas/embreve.js?v=20261117022102";
+import * as receitas from "./telas/receitas.js?v=20261117022102";
+import * as receita from "./telas/receita.js?v=20261117022102";
+import * as testes from "./telas/testes.js?v=20261117022102";
+import * as loteTela from "./telas/lote.js?v=20261117022102";
+import * as estudo from "./telas/estudo.js?v=20261117022102";
+import * as ideias from "./telas/ideias.js?v=20261117022102";
+import * as ajustes from "./telas/ajustes.js?v=20261117022102";
 
 const TELAS = {
   "": inicio,
