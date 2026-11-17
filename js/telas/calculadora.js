@@ -1,9 +1,9 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261117022102";
-import { confirma } from "../ui.js?v=20261117022102";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261117022102";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261117033814";
+import { confirma } from "../ui.js?v=20261117033814";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261117033814";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -82,8 +82,14 @@ export function render(el, rota){
 
   el.innerHTML =
     '<div class="bloco-receita">' +
-    '<label class="rotulo-nome" for="nome">Nome</label>' +
+    // Cartão da receita: nome, estado e ações juntos.
+    '<div class="cartao-receita">' +
+    '<label class="rotulo-nome so-leitor" for="nome">Nome</label>' +
+    // O lápis ao lado avisa que o nome é editável; tocar nele foca o campo.
+    '<label class="nome-campo" for="nome">' +
     '<input id="nome" class="nome-receita-calc titulo-editavel" type="text" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita">' +
+    '<svg class="lapis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>' +
+    '</label>' +
     '<div class="estado-receita" id="estadoReceita"></div>' +
     '<div class="acoes-calc">' +
       '<button type="button" class="pilula-cinza" id="salvar">Salvar</button>' +
@@ -92,6 +98,7 @@ export function render(el, rota){
         '<button type="button" class="pilula-abrir" id="abrir" aria-haspopup="listbox" aria-expanded="false">Abrir<span class="chevron" aria-hidden="true"></span></button>' +
         '<div class="menu-lista" role="listbox" aria-label="Abrir receita"><div class="menu-rolagem"></div></div>' +
       '</div>' +
+    '</div>' +
     '</div>' +
     '</div>' +
     '<div class="cartao painel-salvar" id="painelSalvar" hidden>' +
@@ -108,6 +115,8 @@ export function render(el, rota){
       '</div>' +
     '</div>' +
     '<div class="cartao aviso-snap" id="avisoSnap" hidden></div>' +
+    // Em telas largas, ingredientes e composição ficam lado a lado (ver .calc-colunas no CSS).
+    '<div class="calc-colunas"><div class="calc-col-ing">' +
     '<h2 class="subtitulo">Ingredientes</h2>' +
     '<section class="cartao" id="ingredientes">' +
       '<div id="linhas"></div>' +
@@ -119,10 +128,11 @@ export function render(el, rota){
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o peso total">+</button></div>' +
       '</div>' +
       '<div class="acoes-ing">' +
-        '<button type="button" class="pilula-cinza" id="modoExcluir">− ingrediente</button>' +
         '<button type="button" class="pilula-preta" id="adicionar">+ ingrediente</button>' +
+        '<button type="button" class="pilula-cinza" id="modoExcluir">− ingrediente</button>' +
       '</div>' +
-    '</section>' +
+    '</section></div>' +
+    '<div class="calc-col-res">' +
     '<section class="resultado">' +
       '<div class="resultado-topo"><h2>Composição</h2><span class="muted pequeno">faixas de referência</span></div>' +
       '<div class="seg seg-faixas" id="estilo" role="group" aria-label="Faixas de referência dos gráficos">' +
@@ -134,7 +144,7 @@ export function render(el, rota){
         '<p class="muted pequeno" id="avisoEstab" hidden>O intervalo referente aos estabilizantes é apenas uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>' +
       '</div>' +
       '<div id="metricas"></div>' +
-    '</section>' +
+    '</section></div>' +
     '<details class="notas cartao"><summary>Notas sobre o cálculo<span class="chevron" aria-hidden="true"></span></summary>' +
       '<p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>' +
       '<p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>' +
@@ -144,7 +154,7 @@ export function render(el, rota){
       '<p>A barra de estabilizantes soma os gramas das gomas como se valessem o mesmo; a faixa de 0,1 a 0,5% é a dose total de referência do Estudo. O amido fica fora da soma.</p>' +
       '<p>Esta calculadora avalia o equilíbrio da formulação, não a segurança alimentar.</p>' +
       '<p><b>Fontes</b><br>Goff, H. D.; Hartel, R. W. <i>Ice Cream</i>, 7ª ed. Springer, 2013.<br>Gelatologist, série de artigos sobre PAC, dureza e produção de gelato (Medium).<br>Clarke, C.; Cox, A. <i>The Science of Ice Cream</i>; Caviezel, L. <i>Scienza e tecnologia del gelato artigianale</i>.</p>' +
-    '</details>';
+    '</details>' + '</div>';
 
   const elLinhas = el.querySelector("#linhas");
   let inputs = [];
@@ -516,5 +526,16 @@ export function render(el, rota){
   }
   desenhaTudo();
 
-  return {titulo:"Calculadora", limpa:function(){ salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); window.removeEventListener("resize", posicionaPill); elEscolha.remove(); document.body.classList.remove("travado"); }};
+  document.body.classList.add("tela-calc");
+  // Em tela larga, a caixa de avisos vai para baixo dos ingredientes (coluna esquerda);
+  // no celular volta para dentro da composição, antes dos gráficos.
+  const telaLarga = window.matchMedia("(min-width: 960px)");
+  function posicionaAvisos(){
+    const card = el.querySelector("#cardAvisos");
+    if (telaLarga.matches) el.querySelector(".calc-col-ing").appendChild(card);
+    else el.querySelector(".resultado").insertBefore(card, el.querySelector("#metricas"));
+  }
+  posicionaAvisos();
+  telaLarga.addEventListener("change", posicionaAvisos);
+  return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("tela-calc"); telaLarga.removeEventListener("change", posicionaAvisos); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); window.removeEventListener("resize", posicionaPill); elEscolha.remove(); document.body.classList.remove("travado"); }};
 }

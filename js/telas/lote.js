@@ -3,10 +3,10 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261117022102";
-import { n } from "../calculo.js?v=20261117022102";
-import { confirma } from "../ui.js?v=20261117022102";
-import { atualizaVoltar } from "../app.js?v=20261117022102";
+import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261117033814";
+import { n } from "../calculo.js?v=20261117033814";
+import { confirma } from "../ui.js?v=20261117033814";
+import { atualizaVoltar } from "../app.js?v=20261117033814";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }

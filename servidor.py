@@ -10,4 +10,8 @@ class SemCache(http.server.SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache")
         super().end_headers()
 
-http.server.ThreadingHTTPServer(("0.0.0.0", 8000), SemCache).serve_forever()
+# Fila maior: o app pede muitos arquivos de uma vez e a fila padrão (5) derrubava conexões.
+class Servidor(http.server.ThreadingHTTPServer):
+    request_queue_size = 128
+
+Servidor(("0.0.0.0", 8000), SemCache).serve_forever()

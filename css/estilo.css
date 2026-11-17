@@ -169,6 +169,18 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .estado-receita b{font-weight:500; color:var(--ink)}
 .estado-receita .nao-salvo{color:var(--atencao)}
 .acoes-calc{margin-top:var(--esp-secao)}
+/* Cartão da receita: o nome fica sem caixa própria, dentro de um cartão com o estado e as ações. */
+.cartao-receita{background:var(--surface); border-radius:var(--raio); padding:var(--esp-card)}
+.cartao-receita .nome-receita-calc.titulo-editavel{background:transparent; padding:0; height:auto; line-height:1.5; font-size:var(--t-secao); font-weight:500}
+.cartao-receita .nome-receita-calc.titulo-editavel::placeholder{font-weight:400}
+.cartao-receita .nome-receita-calc.titulo-editavel:focus{outline-offset:4px}
+.cartao-receita .estado-receita{margin-top:var(--esp-colado)}
+.cartao-receita .acoes-calc > .menu-abrir{order:-1} /* Abrir antes de Salvar */
+.nome-campo{display:flex; align-items:center; gap:var(--esp-grupo); min-width:0; cursor:text}
+.nome-campo .nome-receita-calc.titulo-editavel{width:auto; min-width:10ch; max-width:100%; field-sizing:content}
+.nome-campo .lapis{flex:none; width:16px; height:16px; color:var(--muted)}
+.nome-campo:focus-within .lapis{visibility:hidden}
+.so-leitor{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 .painel-salvar .acoes-linha{margin:var(--esp-secao) 0 0; align-items:center}
 .aviso-snap{box-shadow:inset 3px 0 0 var(--atencao)}
 .aviso-snap p{margin-bottom:var(--esp-grupo)}
@@ -548,3 +560,33 @@ textarea:disabled{opacity:.7}
 .backup-discreto{margin-top:var(--esp-bloco)}
 .backup-discreto > summary{font-weight:400; color:var(--muted)}
 .backup-discreto p{margin-bottom:var(--esp-secao)}
+
+/* Calculadora em tela larga: ingredientes à esquerda, composição à direita sempre visível. */
+@media (min-width: 960px){
+  body.tela-calc .wrap{max-width:1160px}
+  .calc-colunas{display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:var(--esp-bloco); align-items:start; margin-bottom:var(--esp-bloco)}
+  .calc-col-ing > .cartao:last-child{margin-bottom:0}
+  /* Notas ficam embaixo dos ingredientes; a composição ocupa as duas linhas à direita. */
+  .calc-colunas{row-gap:var(--esp-bloco); grid-template-rows:auto 1fr}
+  .calc-col-ing{grid-column:1; grid-row:1}
+  .calc-col-res{grid-column:2; grid-row:1 / span 2}
+  .calc-colunas > .notas{grid-column:1; grid-row:2; align-self:start; margin-bottom:0}
+  .calc-col-res{position:sticky; top:72px}
+  .calc-col-res .resultado{margin-bottom:0}
+  /* Em tela larga, Salvar e Abrir ficam à direita do nome, dentro do cartão. */
+  body.tela-calc .cartao-receita{display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:var(--esp-pagina); align-items:center}
+  body.tela-calc .cartao-receita > .nome-campo{grid-column:1; grid-row:1}
+  body.tela-calc .cartao-receita > .estado-receita{grid-column:1; grid-row:2}
+  body.tela-calc .cartao-receita > .acoes-calc{grid-column:2; grid-row:1 / span 2; margin:0}
+  body.tela-calc .cartao-receita > .acoes-calc > *{width:140px; flex:none}
+  /* Sem a caixa de avisos no meio, o seletor de faixas precisa de respiro antes dos gráficos. */
+  body.tela-calc .resultado .seg-faixas{margin-bottom:var(--esp-pagina)}
+  body.tela-calc .aviso-snap{max-width:calc(50% - var(--esp-bloco) / 2)}
+}
+
+/* Gráficos da calculadora em duas colunas só quando há largura para os nomes. */
+@media (min-width: 1200px){
+  body.tela-calc #metricas{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:var(--esp-pagina)}
+  body.tela-calc #metricas .water-summary{grid-column:1 / -1}
+  body.tela-calc #metricas .metric-valor{white-space:nowrap}
+}
