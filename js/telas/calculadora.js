@@ -1,9 +1,9 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261117033814";
-import { confirma } from "../ui.js?v=20261117033814";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261117033814";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261117034523";
+import { confirma } from "../ui.js?v=20261117034523";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261117034523";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -24,7 +24,7 @@ function barra(valor, alvo, escala, texto, casas, estilo){
 // Cada gráfico leva ao tema de Estudo que explica o número.
 const TEMA_ESTUDO = {"Gordura":"balanceamento", "Sólidos lácteos (SLNG)":"balanceamento", "Açúcares":"balanceamento",
   "Sólidos totais":"balanceamento", "POD (doçura)":"pac-pod", "PAC (maciez)":"pac-pod",
-  "Estabilizantes":"estabilizantes", "Ponto de congelamento":"dureza"};
+  "Estabilizantes":"estabilizantes", "Ponto de congelamento":"dureza", "Água na mistura":"balanceamento"};
 function metrica(nome, valor, alvo, escala, sufixo, casas, estilo){
   const tema = TEMA_ESTUDO[nome];
   const rotulo = tema ? '<a class="name metric-ajuda" href="#/estudo/' + tema + '/calculadora">' + nome + '<span class="info" aria-hidden="true">i</span></a>' :
@@ -129,7 +129,7 @@ export function render(el, rota){
       '</div>' +
       '<div class="acoes-ing">' +
         '<button type="button" class="pilula-preta" id="adicionar">+ ingrediente</button>' +
-        '<button type="button" class="pilula-cinza" id="modoExcluir">− ingrediente</button>' +
+        '<button type="button" class="pilula-cinza" id="modoExcluir">Excluir</button>' +
       '</div>' +
     '</section></div>' +
     '<div class="calc-col-res">' +
@@ -378,7 +378,7 @@ export function render(el, rota){
   const elModo = el.querySelector("#modoExcluir");
   elModo.addEventListener("click", function(){
     const ligado = elCartao.classList.toggle("modo-excluir");
-    elModo.textContent = ligado ? "concluir" : "− ingrediente";
+    elModo.textContent = ligado ? "Concluir" : "Excluir";
   });
 
   // "+ ingrediente" abre uma lista para escolher, com busca. O escolhido entra com 0 g
@@ -507,7 +507,8 @@ export function render(el, rota){
       metrica("PAC (maciez)", r.pac, alvo.pac, ESCALA.pac, "", 0, est) +
       (r.estab > 0 ? metrica("Estabilizantes", r.estab, ALVO_ESTAB, [0, 1], "%", 2, est) : "") +
       (fp === null ? "" : metrica("Ponto de congelamento", fp, ALVO_FP, ESCALA.fp, " °C", 2, est)) +
-      '<div class="water-summary"><span>Água na mistura</span><span class="pilula num">' + n(r.agua) + '%</span></div>';
+      // Água = 100% − sólidos totais: a faixa ideal é o espelho da faixa de sólidos.
+      metrica("Água na mistura", r.agua, [100 - alvo.sol[1], 100 - alvo.sol[0]], [100 - ESCALA.sol[1], 100 - ESCALA.sol[0]], "%", 1, est);
     animaMarcadores(elM, antM); animaFaixas(elM, antF);
     el.querySelector("#avisoEstab").hidden = !(r.estab > 0);
     elA.innerHTML = "";

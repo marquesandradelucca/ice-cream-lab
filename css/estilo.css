@@ -587,6 +587,8 @@ textarea:disabled{opacity:.7}
 /* Gráficos da calculadora em duas colunas só quando há largura para os nomes. */
 @media (min-width: 1200px){
   body.tela-calc #metricas{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:var(--esp-pagina)}
-  body.tela-calc #metricas .water-summary{grid-column:1 / -1}
   body.tela-calc #metricas .metric-valor{white-space:nowrap}
 }
+
+/* Calculadora: adicionar é a ação principal (2/3); Excluir fica com 1/3. */
+#ingredientes .acoes-ing{grid-auto-columns:auto; grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
