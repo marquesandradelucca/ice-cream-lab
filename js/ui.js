@@ -28,3 +28,50 @@ export function confirma(mensagem, rotuloSim, perigo){
     fundo.querySelector('[data-r="1"]').focus();
   });
 }
+
+// Markdown simples das páginas de Estudo: **negrito**, _itálico_, listas ("- " e "1. "),
+// tabelas com "|" e parágrafos separados por linha em branco.
+function escHtml(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function inline(t){
+  return escHtml(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[\s(])_(.+?)_(?=[\s).,:;!?]|$)/g, "$1<i>$2</i>");
+}
+export function mdParaHtml(md){
+  const linhas = String(md || "").replace(/\r/g, "").split("\n");
+  let html = "", i = 0;
+  while (i < linhas.length){
+    const l = linhas[i];
+    if (!l.trim()){ i++; continue; }
+    if (/^\s*\[[^\]]+\]\(https?:\/\/[^)\s]+\)\s*$/.test(l)){
+      let links = "";
+      while (i < linhas.length && /^\s*\[[^\]]+\]\(https?:\/\/[^)\s]+\)\s*$/.test(linhas[i])){
+        const m = linhas[i].match(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/);
+        links += '<a class="item-lista link-externo" href="' + escHtml(m[2]) + '" target="_blank" rel="noopener">' + escHtml(m[1]) + '</a>';
+        i++;
+      }
+      html += '<div class="lista-links">' + links + "</div>"; continue;
+    }
+    if (/^\s*\|/.test(l)){
+      const rows = [];
+      while (i < linhas.length && /^\s*\|/.test(linhas[i])){ rows.push(linhas[i]); i++; }
+      const cel = function(r){ return r.trim().replace(/^\||\|$/g, "").split("|").map(function(c){ return c.trim(); }); };
+      const corpo = rows.filter(function(r){ return !/^\s*\|[\s\-|:]+\|\s*$/.test(r); });
+      html += '<div class="tabela-rolagem"><table><thead><tr>' + cel(corpo[0]).map(function(c){ return "<th>" + inline(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        corpo.slice(1).map(function(r){ return "<tr>" + cel(r).map(function(c){ return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+      continue;
+    }
+    if (/^\s*- /.test(l)){
+      let items = "";
+      while (i < linhas.length && /^\s*- /.test(linhas[i])){ items += "<li>" + inline(linhas[i].replace(/^\s*- /, "")) + "</li>"; i++; }
+      html += "<ul>" + items + "</ul>"; continue;
+    }
+    if (/^\s*\d+\. /.test(l)){
+      let items = "";
+      while (i < linhas.length && /^\s*\d+\. /.test(linhas[i])){ items += "<li>" + inline(linhas[i].replace(/^\s*\d+\. /, "")) + "</li>"; i++; }
+      html += "<ol>" + items + "</ol>"; continue;
+    }
+    const par = [];
+    while (i < linhas.length && linhas[i].trim() && !/^\s*(\||- |\d+\. |\[[^\]]+\]\(https?:)/.test(linhas[i])){ par.push(linhas[i]); i++; }
+    html += "<p>" + inline(par.join(" ")) + "</p>";
+  }
+  return html;
+}

@@ -3,10 +3,10 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261116194924";
-import { n } from "../calculo.js?v=20261116194924";
-import { confirma } from "../ui.js?v=20261116194924";
-import { atualizaVoltar } from "../app.js?v=20261116194924";
+import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261116211245";
+import { n } from "../calculo.js?v=20261116211245";
+import { confirma } from "../ui.js?v=20261116211245";
+import { atualizaVoltar } from "../app.js?v=20261116211245";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -18,11 +18,11 @@ const PASSOS = [
   {id:"avaliar", nome:"Avaliar"}
 ];
 
-// Sugestões de partida do briefing; serão revistas com o conteúdo de Estudo (etapa 4).
+// Sugestões conferidas com o Estudo (tema Processo, trazido do Notion).
 const SUGESTOES = [
   ["Pasteurizar", "65 °C por 30 min, 72 °C por 5 min ou 85 °C por 5 s."],
   ["Maturar", "Na geladeira: mínimo 1 h, ideal 12 h, nunca mais de 72 h."],
-  ["Bater", "Até o creme sair da máquina entre −6 e −9 °C."],
+  ["Bater", "Até o creme sair da máquina entre −5 e −9 °C, conforme o equipamento."],
   ["Endurecer", "No freezer, antes de servir e avaliar."]
 ];
 
@@ -137,7 +137,7 @@ export function render(el, rota){
       '<details class="cartao recolhivel"' + (temPreparo ? '' : ' open') + '><summary>Sugestões de preparo<span class="chevron" aria-hidden="true"></span></summary>' +
         '<div class="lista-sugestoes">' + SUGESTOES.map(function(s){
           return '<div class="sugestao"><span class="sugestao-nome">' + s[0] + '</span><span class="muted">' + s[1] + '</span></div>';
-        }).join("") + '</div></details>' +
+        }).join("") + '<a class="pilula-cinza largo-pilula ver-estudo" href="#/estudo/processo">Ver o processo no Estudo</a></div></details>' +
       '<div class="acoes-final">' +
         (l.status === "em andamento" ?
           '<button type="button" class="botao largo" id="avaliarDepois">Pronto, avaliar depois</button>' +

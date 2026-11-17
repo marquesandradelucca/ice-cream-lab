@@ -1,7 +1,8 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261116194924";
-import { PRESETS } from "./calculo.js?v=20261116194924";
+import { ING_BASE } from "./ingredientes-base.js?v=20261116211245";
+import { PRESETS } from "./calculo.js?v=20261116211245";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261116211245";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -104,12 +105,49 @@ export function carrega(){
     converteLegado();
     salva();
   }
+  if (semeiaEstudo()) salva();
   // Pede ao navegador para não apagar os dados sozinho (ajuda, mas não garante).
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){});
   return db;
 }
 
 export function dados(){ return db; }
+
+// Estudo: na primeira vez, as páginas vêm do conteúdo trazido do Notion. Depois são editáveis no app.
+function semeiaEstudo(){
+  if (Array.isArray(db.estudo) && db.estudo.length){
+    // Revisão do tema de estilos (16/11): troca o texto antigo, se ainda não foi editado no app.
+    const e = db.estudo.find(function(p){ return p.id === "estilos"; });
+    const novo = ESTUDO_BASE.find(function(p){ return p.id === "estilos"; });
+    let mudou = false;
+    if (e && novo && e.titulo === "Gelato, sorvete e ice cream: diferenças"){ e.titulo = novo.titulo; e.md = novo.md; mudou = true; }
+    // Bibliografia revisada (16/11): troca a versão anterior, se não foi editada à mão.
+    const bib = db.estudo.find(function(p){ return p.id === "bibliografia"; });
+    const bibNova = ESTUDO_BASE.find(function(p){ return p.id === "bibliografia"; });
+    if (bib && bibNova && bib.md.indexOf("Também citados") >= 0){ bib.md = bibNova.md; mudou = true; }
+    // PAC e POD ganhou a explicação sobre a calculadora (16/11), se o tema não foi editado.
+    const pac = db.estudo.find(function(p){ return p.id === "pac-pod"; });
+    const pacNovo = ESTUDO_BASE.find(function(p){ return p.id === "pac-pod"; });
+    if (pac && pacNovo && !pac.anterior && pac.md.indexOf("Na calculadora do app") < 0 && pacNovo.md.indexOf(pac.md.trim()) === 0){ pac.md = pacNovo.md; mudou = true; }
+    // Temas que passaram a existir no conteúdo base (ex.: Bibliografia) entram no fim.
+    ESTUDO_BASE.forEach(function(p, i){
+      if (!db.estudo.some(function(x){ return x.id === p.id; })){ db.estudo.push({id:p.id, grupo:p.grupo, titulo:p.titulo, md:p.md, ordem:i}); mudou = true; }
+    });
+    return mudou;
+  }
+  db.estudo = ESTUDO_BASE.map(function(p, i){ return {id:p.id, grupo:p.grupo, titulo:p.titulo, md:p.md, ordem:i}; });
+  return true;
+}
+export function paginaEstudo(id){ return db.estudo.find(function(p){ return p.id === id; }) || null; }
+export function originalEstudo(id){ return ESTUDO_BASE.find(function(p){ return p.id === id; }) || null; }
+
+// Ideias: nome, estilo e nota livre. "Começar receita" leva à calculadora.
+export function ideia(id){ return db.ideias.find(function(x){ return x.id === id; }) || null; }
+export function criaIdeia(nome, estilo, nota){
+  const x = {id:novoId(), nome:String(nome || "").slice(0, 60), estilo:estilo || null, nota:String(nota || ""), criada:new Date().toISOString()};
+  db.ideias.unshift(x);
+  return x;
+}
 
 export function salva(){
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); return true; }

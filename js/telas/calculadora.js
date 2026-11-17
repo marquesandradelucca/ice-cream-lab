@@ -1,9 +1,9 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261116194924";
-import { confirma } from "../ui.js?v=20261116194924";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261116194924";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261116211245";
+import { confirma } from "../ui.js?v=20261116211245";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261116211245";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -21,8 +21,15 @@ function barra(valor, alvo, escala, texto, casas, estilo){
     '<span class="mark status-' + nivel + borda + '" style="left:calc(' + p + '% - 1.5px)"></span></div>';
 }
 
+// Cada gráfico leva ao tema de Estudo que explica o número.
+const TEMA_ESTUDO = {"Gordura":"balanceamento", "Sólidos lácteos (SLNG)":"balanceamento", "Açúcares":"balanceamento",
+  "Sólidos totais":"balanceamento", "POD (doçura)":"pac-pod", "PAC (maciez)":"pac-pod",
+  "Estabilizantes":"estabilizantes", "Ponto de congelamento":"dureza"};
 function metrica(nome, valor, alvo, escala, sufixo, casas, estilo){
-  return '<div class="metric"><div class="metric-topo"><span class="name">' + nome + '</span>' +
+  const tema = TEMA_ESTUDO[nome];
+  const rotulo = tema ? '<a class="name metric-ajuda" href="#/estudo/' + tema + '/calculadora">' + nome + '<span class="info" aria-hidden="true">i</span></a>' :
+    '<span class="name">' + nome + '</span>';
+  return '<div class="metric"><div class="metric-topo">' + rotulo +
     '<span class="metric-valor num status-' + nivelFaixa(valor, alvo) + '">' + n(valor, casas) + sufixo + '</span></div>' +
     barra(valor, alvo, escala, n(valor, casas) + sufixo, casas, estilo) + '</div>';
 }
@@ -134,7 +141,7 @@ export function render(el, rota){
       '<p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos.</p>' +
       '<p>O ponto de congelamento soma os equivalentes de sacarose, lidos na curva de soluções de sacarose de Leighton, e os sais do leite, que valem (sólidos lácteos + soro) × 2,37 ÷ água. A faixa de −3,0 a −2,75 °C é a de um creme que serve bem entre −10 e −14 °C. Num freezer doméstico a −18 °C nenhuma receita comum cai nessa faixa; tire o pote alguns minutos antes de servir.</p>' +
       '<p>Ficam de fora os sólidos de chocolate e de castanhas, que endurecem ao congelar, e o overrun. Use os números para comparar receitas, não como medida absoluta.</p>' +
-      '<p>A barra de estabilizantes soma os gramas das gomas como se valessem o mesmo; a faixa de 0,2 a 0,5% é a do blend de gomas clássicas (Goff e Hartel, p. 76). O amido fica fora da soma.</p>' +
+      '<p>A barra de estabilizantes soma os gramas das gomas como se valessem o mesmo; a faixa de 0,1 a 0,5% é a dose total de referência do Estudo. O amido fica fora da soma.</p>' +
       '<p>Esta calculadora avalia o equilíbrio da formulação, não a segurança alimentar.</p>' +
       '<p><b>Fontes</b><br>Goff, H. D.; Hartel, R. W. <i>Ice Cream</i>, 7ª ed. Springer, 2013.<br>Gelatologist, série de artigos sobre PAC, dureza e produção de gelato (Medium).<br>Clarke, C.; Cox, A. <i>The Science of Ice Cream</i>; Caviezel, L. <i>Scienza e tecnologia del gelato artigianale</i>.</p>' +
     '</details>';
@@ -242,7 +249,11 @@ export function render(el, rota){
     if (modoNova){
       const nome = (r ? elNomeNova.value : calc.nome).trim() || "Receita sem nome";
       if (r && !elNomeNova.value.trim()){ elNomeNova.focus(); return; }
-      r = criaReceita(nome, calc.estilo);
+      r = criaReceita(nome, calc.estilo, calc.ideiaId || null);
+      // Se o rascunho começou numa ideia, a ideia passa a apontar para a receita.
+      const id = calc.ideiaId && db.ideias.find(function(x){ return x.id === calc.ideiaId; });
+      if (id) id.receitaId = r.id;
+      delete calc.ideiaId;
     }
     calc.nome = r.nome;   // versão da base mantém o nome da base; receita nova usa o nome escolhido
     const v = novaVersao(r.id, calc.linhas, calc.estilo, elNota.value.trim(), calc.snapshot);

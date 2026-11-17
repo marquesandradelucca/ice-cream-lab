@@ -480,3 +480,58 @@ textarea:disabled{opacity:.7}
 .acoes-calc > *{flex:1 1 0; min-width:0}
 .acoes-calc .pilula-cinza,.acoes-calc .pilula-abrir{padding:0 var(--esp-secao)}
 .acoes-calc,.acoes-ing{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr)}
+
+/* ===== 14. Estudo e Ideias ===== */
+.texto-estudo{margin-bottom:var(--esp-bloco); line-height:1.65}
+.texto-estudo p{margin:0 0 var(--esp-secao)}
+.texto-estudo ul,.texto-estudo ol{margin:0 0 var(--esp-secao); padding-left:22px}
+.texto-estudo li{margin-bottom:var(--esp-colado)}
+.texto-estudo b{font-weight:500}
+.tabela-rolagem{overflow-x:auto; margin:0 0 var(--esp-secao); border-radius:var(--raio); background:var(--surface)}
+.texto-estudo table{width:100%; border-collapse:collapse; font-size:var(--t-pequeno); line-height:1.4}
+.texto-estudo th,.texto-estudo td{padding:var(--esp-grupo) var(--esp-secao); text-align:left; vertical-align:top; border-bottom:1px solid var(--line)}
+.texto-estudo th{font-weight:500}
+.texto-estudo tr:last-child td{border-bottom:0}
+.campo-estudo{background:var(--surface)}
+.texto-edicao{font-size:14px; line-height:1.55}
+.rotulo-espaco{margin-top:var(--esp-pagina)}
+.dica-edicao{margin:var(--esp-grupo) 0 var(--esp-pagina)}
+.espaco-lista{margin-top:var(--esp-pagina)}
+.espaco-curto{margin-top:var(--esp-pagina)}
+#estiloIdeia{margin-bottom:0}
+.metric-ajuda{text-decoration:none; color:var(--muted); display:inline-flex; align-items:center}
+.metric-ajuda .info{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:6px; border-radius:50%;
+  background:var(--line); color:var(--muted); font-size:11px; font-style:italic}
+@media (hover: hover){ .metric-ajuda:hover{color:var(--ink)} .metric-ajuda:hover .info{background:var(--ink); color:var(--paper)} }
+.metric-ajuda:active .info{background:var(--ink); color:var(--paper)}
+.ver-estudo{margin-top:var(--esp-secao)}
+.anotar-ideia{display:flex; gap:var(--esp-grupo); align-items:center}
+.anotar-ideia input{flex:1; height:var(--pilula); border-radius:999px; padding:0 var(--esp-card)}
+.anotar-ideia .pilula-preta{flex:none}
+/* Home: card de Ideias mostra as últimas anotadas */
+.area-ideias{display:flex; flex-direction:column; gap:2px; min-width:0}
+.area-ideia{font-size:var(--t-pequeno); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.area-ideia::before{content:"· "; color:var(--muted)}
+.grade{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.area{min-width:0}
+.area-larga{grid-column:1 / -1; min-height:0}
+/* Card de Ideias na metade: nomes quebram em até duas linhas em vez de cortar */
+.area-ideia{white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.35}
+/* Links externos do Estudo: pílulas cinza na largura toda */
+.lista-links{display:flex; flex-direction:column; gap:var(--esp-grupo); margin:0 0 var(--esp-pagina)}
+.link-externo{white-space:normal; text-align:center; line-height:1.3; height:auto; min-height:var(--pilula); padding:var(--esp-grupo) var(--esp-card)}
+/* Links externos como cards (texto à esquerda, quebra linha sem virar pílula alta) */
+.link-externo{white-space:normal; text-align:left; justify-content:center; height:auto; min-height:var(--campo); padding:var(--esp-secao) var(--esp-card); border-radius:var(--raio); line-height:1.4}
+/* Estudo: busca e edição no fim, discreta */
+.campo-busca{background:var(--surface); height:var(--pilula); border-radius:999px; padding:0 var(--esp-card); margin-bottom:var(--esp-pagina)}
+.acoes-edicao{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-top:var(--esp-bloco); padding-top:var(--esp-pagina); border-top:1px solid var(--line)}
+.acoes-edicao > *{width:100%}
+.texto-estudo + .botao.largo{margin-top:0}
+/* Campo de busca: lupa à esquerda, texto de campo (16px, peso normal) */
+.campo-busca{
+  -webkit-appearance:none; appearance:none; font-family:inherit; font-size:var(--t-campo); font-weight:400; color:var(--ink);
+  padding-left:44px;
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23868b86' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4 4'/%3E%3C/svg%3E") no-repeat 16px center / 18px 18px;
+}
+.campo-busca::placeholder{color:var(--muted); opacity:1}
+.campo-busca::-webkit-search-decoration{-webkit-appearance:none}

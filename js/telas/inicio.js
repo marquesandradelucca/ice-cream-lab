@@ -1,16 +1,16 @@
-import { dados, exportaBackup, importaBackup, receita, versao } from "../dados.js?v=20261116194924";
-import { confirma } from "../ui.js?v=20261116194924";
-import { dataCurta } from "./lote.js?v=20261116194924";
-import { toast } from "../app.js?v=20261116194924";
+import { dados, exportaBackup, importaBackup, receita, versao } from "../dados.js?v=20261116211245";
+import { confirma } from "../ui.js?v=20261116211245";
+import { dataCurta } from "./lote.js?v=20261116211245";
+import { toast } from "../app.js?v=20261116211245";
 
 const OFICINA = [
-  {area:"ideias",       nome:"Ideias",           desc:"Sabores para testar",          pronto:false},
+  {area:"ideias",       nome:"Ideias",           desc:"Sabores para testar",          pronto:true},
   {area:"calculadora",  nome:"Calculadora",      desc:"Balanço da mistura ao vivo",   pronto:true},
   {area:"testes",       nome:"Testes",           desc:"Lotes e receitas em teste",    pronto:true},
   {area:"receitas",     nome:"Receitas",         desc:"Receitas finais",                 pronto:true}
 ];
 const BIBLIOTECA = [
-  {area:"estudo",       nome:"Estudo",           desc:"Fundamentos e técnicas",       pronto:false},
+  {area:"estudo",       nome:"Estudo",           desc:"Fundamentos e técnicas",       pronto:true},
   {area:"ingredientes", nome:"Ingredientes",     desc:"Composição de cada um",        pronto:true}
 ];
 
@@ -18,12 +18,18 @@ function bloco(titulo, itens){
   const lotes = dados().lotes;
   const preparando = lotes.filter(function(l){ return l.status === "em andamento"; }).length;
   const avisoTestes = preparando ? preparando + (preparando === 1 ? " lote preparando" : " lotes preparando") : "";
+  // O card de Ideias mostra as últimas anotadas (até 3) e quantas mais existem.
+  const ideias = dados().ideias;
+  const listaIdeias = '<span class="area-ideias">' + ideias.slice(0, 3).map(function(x){
+    return '<span class="area-ideia">' + esc(x.nome) + '</span>';
+  }).join("") + (ideias.length > 3 ? '<span class="area-desc">+ ' + (ideias.length - 3) + ' ' + (ideias.length - 3 === 1 ? 'ideia' : 'ideias') + '</span>' : '') + '</span>';
   return '<section class="grupo-areas"><h2>' + titulo + '</h2><div class="grade">' +
     itens.map(function(a){
       return '<a class="area' + (a.pronto ? "" : " embreve") + '" href="#/' + a.area + '">' +
         '<span class="area-nome">' + a.nome + '</span>' +
+        (a.area === "ideias" && ideias.length ? listaIdeias :
         '<span class="area-desc">' + (a.area === "testes" && avisoTestes ? avisoTestes :
-          a.pronto ? a.desc : "Em breve") + '</span></a>';
+          a.pronto ? a.desc : "Em breve") + '</span>') + '</a>';
     }).join("") + '</div></section>';
 }
 
@@ -49,7 +55,7 @@ export function render(el){
     '<div class="acoes-linha"><button class="botao" type="button" id="exportar">Exportar backup</button>' +
     '<button class="botao secundario" type="button" id="importar">Importar backup</button></div>' +
     '<input type="file" id="arquivo" accept="application/json,.json" hidden></section>' +
-    '<footer class="creditos muted">Ice Cream Lab · © 2026 Lucca Marques · v2.0 (etapa 3)</footer>';
+    '<footer class="creditos muted">Ice Cream Lab · © 2026 Lucca Marques · v2.0 (etapa 4)</footer>';
 
   el.querySelector("#exportar").addEventListener("click", exportaBackup);
   const arq = el.querySelector("#arquivo");

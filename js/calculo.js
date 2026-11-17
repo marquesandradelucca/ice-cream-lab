@@ -27,7 +27,7 @@ export const ESCALA = {
 };
 
 export const ALVO_FP = [-3.0, -2.75];
-export const ALVO_ESTAB = [0.2, 0.5];   // Goff e Hartel, 7ª ed., p. 76
+export const ALVO_ESTAB = [0.1, 0.5];   // faixa do Estudo (Fundamentos), confirmada pelo Lucca em 16/11/2026
 
 // Ponto de congelamento de soluções de sacarose (Leighton/Pickering), curva ajustada:
 // erro de até 0,08 °C até 180 g/100 g, daí para cima segue reta.
