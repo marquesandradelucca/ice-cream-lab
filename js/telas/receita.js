@@ -1,10 +1,10 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261117034523";
-import { confirma } from "../ui.js?v=20261117034523";
-import { atualizaVoltar } from "../app.js?v=20261117034523";
-import { resumoLote, dataCurta as dataLote } from "./lote.js?v=20261117034523";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261117034523";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261117042849";
+import { confirma, LAPIS } from "../ui.js?v=20261117042849";
+import { atualizaVoltar } from "../app.js?v=20261117042849";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261117042849";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261117042849";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -58,18 +58,27 @@ function detalhe(el, r, abertas){
   if (!abertas) abertas = vs.length ? [vs[vs.length - 1].id] : [];
 
   el.innerHTML =
-    '<div class="cabeca-receita">' +
-      '<label class="rotulo-nome" for="nomeReceita">Nome</label>' +
-      '<input class="titulo-receita titulo-editavel" id="nomeReceita" type="text" maxlength="60" enterkeyhint="done" aria-label="Nome da receita" value="' + esc(r.nome) + '">' +
-      '<span class="muted pequeno">' + NOMES_ESTILO[r.estilo] + '</span></div>' +
+    // Mesmo cartão de nome da calculadora: nome editável com lápis e, embaixo, o estilo.
+    '<div class="cartao-receita cabeca-cartao">' +
+      '<label class="nome-campo" for="nomeReceita">' +
+      '<input class="nome-receita-calc titulo-editavel" id="nomeReceita" type="text" maxlength="60" enterkeyhint="done" aria-label="Nome da receita" value="' + esc(r.nome) + '">' +
+      LAPIS + '</label>' +
+      '<div class="estado-receita">' + NOMES_ESTILO[r.estilo] + '</div>' +
+      // Ações da receita inteira ficam no cartão do nome, como Abrir/Salvar na calculadora.
+      '<div class="acoes-calc">' +
+        (vs.length ? '<button type="button" class="pilula-preta" id="fazerLote">' + (abertos.length ? 'Outro lote' : 'Fazer lote') + '</button>' : '') +
+        '<button type="button" class="pilula-cinza" id="excluir">Excluir</button>' +
+      '</div></div>' +
+    // Desktop: versões à esquerda; modo de preparo e lotes à direita (ver .layout-receita no CSS).
+    // No celular a ordem é a do código: lotes, versões, preparo.
+    '<div class="layout-receita"><div class="lr-status">' +
     '<div class="bloco-status">' +
     (r.status === "final" && versao(r.versaoFinal) ?
       '<p class="estado-final">Receita final: v' + versao(r.versaoFinal).numero + '</p>' +
       '<a class="botao largo" href="#/receita/' + encodeURIComponent(r.id) + '/pronta">Ver receita</a>' : "") +
     abertos.map(botaoLote).join("") +
-    (vs.length ? '<button type="button" class="' + (r.status === "final" || abertos.length ? 'pilula-cinza' : 'pilula-preta') + ' largo-pilula" id="fazerLote">' +
-        (abertos.length ? 'Fazer outro lote' : 'Fazer lote') + '</button>' : '') +
-    '</div>' +
+    '</div></div>' +
+    '<div class="lr-versoes">' +
     '<h2 class="subtitulo">Versões</h2>' +
     '<section class="lista-versoes" id="versoes">' + vs.slice().reverse().map(function(v){
       const idx = vs.indexOf(v), ant = idx > 0 ? vs[idx - 1] : null;
@@ -90,16 +99,16 @@ function detalhe(el, r, abertas){
         '<p class="muted pequeno">' + n(res.peso, 0) + ' g · gord. ' + n(res.gord, 1) + '% · açúc. ' + n(res.ac, 1) +
           '% · POD ' + n(res.pod, 0) + ' · PAC ' + n(res.pac, 0) +
           '</p>' +
-        (lotesDa(v).length ? '<div class="versao-lotes"><span class="muted pequeno">Lotes desta versão</span>' + lotesDa(v).map(function(l){
-          return '<a class="lote-linha" href="#/lote/' + encodeURIComponent(l.id) + '"><span>' + dataLote(l.inicio) + '</span><span class="muted">' + esc(resumoLote(l)) + '</span></a>';
-        }).join("") + '</div>' : '') +
-        '<div class="versao-acoes"><button type="button" class="pilula-cinza" data-nota="' + esc(v.id) + '">Editar nota</button><a class="pilula-cinza" href="#/calculadora/v/' + encodeURIComponent(v.id) + '">Nova versão a partir desta</a>' +
-        (final ? '' : '<button type="button" class="pilula-preta" data-final="' + esc(v.id) + '">marcar como final</button>') + '</div></div></details>';
-    }).join("") + '</section>' +
+        (lotesDa(v).length ? '<div class="versao-lotes"><span class="muted pequeno">Lotes desta versão</span>' +
+          lotesDa(v).map(cartaoLote).join("") + '</div>' : '') +
+        '<div class="versao-acoes"><button type="button" class="pilula-cinza" data-nota="' + esc(v.id) + '">Editar nota</button><a class="pilula-cinza" href="#/calculadora/v/' + encodeURIComponent(v.id) + '" aria-label="Nova versão a partir desta">Nova versão</a>' +
+        (final ? '' : '<button type="button" class="pilula-preta" data-final="' + esc(v.id) + '">Marcar como final</button>') + '</div></div></details>';
+    }).join("") + '</section></div>' +
+    '<div class="lr-preparo">' +
     '<h2 class="subtitulo">Modo de preparo</h2>' +
     '<textarea class="campo-texto" id="preparo" rows="6" placeholder="Passo a passo: pesar, pasteurizar, maturar, bater…">' + esc(r.preparo) + '</textarea>' +
-    '<p class="muted pequeno">Salvo sozinho. Aparece na receita pronta.</p>' +
-    '<div class="acoes-linha"><button type="button" class="botao perigo" id="excluir">Excluir receita</button></div>';
+    '</div>' +
+    '</div>';
 
   function redesenha(){
     const abertos = Array.prototype.map.call(el.querySelectorAll("details.versao[open]"), function(d){ return d.dataset.v; });
@@ -169,20 +178,27 @@ function pronta(el, r){
   let alvo = Math.round(base);
 
   el.innerHTML =
-    '<div class="cabeca-receita"><h2 class="titulo-receita">' + esc(r.nome) + '</h2>' +
-      '<span class="muted pequeno">' + NOMES_ESTILO[r.estilo] + ' · v' + v.numero + '</span></div>' +
-    '<section class="cartao">' +
+    // Cartão do nome (sem lápis: aqui o nome não se edita) com o atalho para versões à direita.
+    '<div class="cartao-receita cabeca-cartao">' +
+      '<h2 class="nome-fixo">' + esc(r.nome) + '</h2>' +
+      '<div class="estado-receita">' + NOMES_ESTILO[r.estilo] + ' · v' + v.numero + '</div>' +
+      '<div class="acoes-calc"><a class="pilula-cinza" href="#/receita/' + encodeURIComponent(r.id) + '">Versões e edição</a></div></div>' +
+    // Desktop: quantidades à esquerda, modo de preparo à direita.
+    '<div class="layout-2"><div class="col-a">' +
+    '<h2 class="subtitulo">Ingredientes</h2>' +
+    '<section class="cartao cartao-pronta">' +
+      '<div id="quantidades"></div>' +
+      // Tamanho do lote embaixo da lista: primeiro se vê a receita, depois se ajusta a escala.
       '<div class="linha-lote"><span class="rotulo">Tamanho do lote</span>' +
         '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir o lote">−</button>' +
         '<label class="campo-g"><input type="number" id="lote" inputmode="decimal" min="1" step="50" aria-label="Tamanho do lote em gramas"><span aria-hidden="true">g</span></label>' +
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o lote">+</button></div></div>' +
       '<div class="atalhos-lote">' + [250, 500, 1000].map(function(g){ return '<button type="button" class="pilula-cinza" data-g="' + g + '">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>'; }).join("") + '</div>' +
-      '<div id="quantidades"></div>' +
-    '</section>' +
+    '</section></div>' +
+    '<div class="col-b">' +
     '<h2 class="subtitulo">Modo de preparo</h2>' +
     '<section class="cartao">' + (r.preparo ? '<div class="preparo">' + esc(r.preparo).replace(/\n/g, "<br>") + '</div>' :
-      '<p class="muted sem-margem">Sem modo de preparo ainda.</p>') + '</section>' +
-    '<a class="pilula-cinza" href="#/receita/' + encodeURIComponent(r.id) + '">versões e edição</a>';
+      '<p class="muted sem-margem">Sem modo de preparo ainda.</p>') + '</section></div></div>';
 
   const elLote = el.querySelector("#lote");
   function desenha(){

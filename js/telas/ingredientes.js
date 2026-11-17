@@ -1,8 +1,8 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261117034523";
-import { confirma } from "../ui.js?v=20261117034523";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261117034523";
-import { n } from "../calculo.js?v=20261117034523";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261117042849";
+import { confirma } from "../ui.js?v=20261117042849";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261117042849";
+import { n } from "../calculo.js?v=20261117042849";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 

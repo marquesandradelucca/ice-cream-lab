@@ -3,10 +3,10 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261117034523";
-import { n } from "../calculo.js?v=20261117034523";
-import { confirma } from "../ui.js?v=20261117034523";
-import { atualizaVoltar } from "../app.js?v=20261117034523";
+import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261117042849";
+import { n } from "../calculo.js?v=20261117042849";
+import { confirma } from "../ui.js?v=20261117042849";
+import { atualizaVoltar } from "../app.js?v=20261117042849";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -63,6 +63,30 @@ export function resumoLote(l){
   return partes.concat(frases(l)).join(" · ") || "concluído";
 }
 
+// Lote completo para mostrar dentro da versão: data, nota em estrelas, o que foi marcado e as observações.
+const ESTRELA_P = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3.1-5.4 3.1 1.2-6L3.3 9.5l6.1-.7z"/></svg>';
+export function cartaoLote(l){
+  const a = l.avaliacao || {}, concluido = l.status === "concluido";
+  const rot = function(lista, v){ const o = lista.find(function(x){ return x[0] === v; }); return o ? o[1].toLowerCase() : ""; };
+  const marcas = [];
+  const tx = texturas(a).map(function(t){ return rot(TEXTURA, t); }).filter(Boolean);
+  if (tx.length) marcas.push("Textura " + tx.join(", "));
+  AVALIACAO.forEach(function(g){ if (a[g.k]) marcas.push(g.nome + " " + rot(g.op, a[g.k])); });
+  // A observação automática ("Lote de…: nota 4/5") repete o que já está acima; só mostra o que foi escrito.
+  const obs = l.proximoEditado && l.proximo ? l.proximo : "";
+  const destino = "#/lote/" + encodeURIComponent(l.id) + (l.status === "aguardando" ? "/avaliar" : "");
+  return '<a class="lote-cartao" href="' + destino + '">' +
+    '<span class="lote-topo"><span class="lote-data">Lote de ' + dataCurta(l.inicio) + '</span>' +
+      (concluido ? (a.nota ? '<span class="lote-nota" aria-label="Nota ' + a.nota + ' de 5">' +
+        [1, 2, 3, 4, 5].map(function(x){ return '<span class="mini-estrela' + (a.nota >= x ? ' cheia' : '') + '">' + ESTRELA_P + '</span>'; }).join("") + '</span>' :
+        '<span class="muted pequeno">sem nota</span>') :
+        '<span class="muted pequeno">' + (l.status === "aguardando" ? "aguardando avaliação" : "preparando") + '</span>') +
+    '</span>' +
+    (marcas.length ? '<span class="lote-marcas">' + esc(marcas.join(" · ")) + '</span>' : '') +
+    (obs ? '<span class="lote-obs">' + esc(obs).replace(/\n/g, "<br>") + '</span>' : '') +
+  '</a>';
+}
+
 // Ingredientes pesados diferente da receita (meio grama de tolerância).
 export function diferencasPesagem(l, nomeIng){
   return l.pesado.filter(function(x){
@@ -116,12 +140,10 @@ export function render(el, rota){
     const total = base * l.escala;
     const feitos = l.pesado.filter(function(x){ return x.ok; }).length;
     const temPreparo = !!(r && r.preparo);
+    // Desktop: pesagem à esquerda, preparo e sugestões à direita.
     alvo.innerHTML =
+      '<div class="layout-2"><div class="col-a">' +
       '<section class="cartao" id="pesagem">' +
-        '<div class="linha-total"><span class="rotulo-mistura">Tamanho do lote</span>' +
-          '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir o lote">−</button>' +
-          '<label class="campo-g"><input type="number" id="loteTotal" inputmode="decimal" min="1" step="50" aria-label="Tamanho do lote em gramas"><span aria-hidden="true">g</span></label>' +
-          '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o lote">+</button></div></div>' +
         '<p class="muted pequeno contagem">' + feitos + ' de ' + l.pesado.length + ' pesados · toque no círculo ao pesar</p>' +
         l.pesado.map(function(x, i){
           const prev = x.previsto * l.escala;
@@ -131,25 +153,37 @@ export function render(el, rota){
             '<label class="campo-g"><input type="number" inputmode="decimal" min="0" step="0.1" data-i="' + i + '" value="' + (x.real != null ? x.real : gramas(prev).replace(",", ".")) + '" aria-label="Peso real de ' + esc(nomeIng(x.id)) + '"><span aria-hidden="true">g</span></label>' +
           '</div>';
         }).join("") +
-      '</section>' +
+        // Tamanho do lote embaixo da lista, como na receita pronta, com os atalhos de quantidade.
+        '<div class="linha-total linha-lote-pesagem"><span class="rotulo-mistura">Tamanho do lote</span>' +
+          '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir o lote">−</button>' +
+          '<label class="campo-g"><input type="number" id="loteTotal" inputmode="decimal" min="1" step="50" aria-label="Tamanho do lote em gramas"><span aria-hidden="true">g</span></label>' +
+          '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o lote">+</button></div></div>' +
+        '<div class="atalhos-lote">' + [250, 500, 1000].map(function(g){
+          return '<button type="button" class="pilula-cinza' + (Math.round(total) === g ? ' ativo' : '') + '" data-g="' + g + '">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>';
+        }).join("") + '</div>' +
+      '</section></div>' +
+      '<div class="col-b">' +
       (temPreparo ? '<details class="cartao recolhivel" open><summary>Seu modo de preparo<span class="chevron" aria-hidden="true"></span></summary>' +
         '<div class="preparo">' + esc(r.preparo).replace(/\n/g, "<br>") + '</div></details>' : '') +
       '<details class="cartao recolhivel"' + (temPreparo ? '' : ' open') + '><summary>Sugestões de preparo<span class="chevron" aria-hidden="true"></span></summary>' +
         '<div class="lista-sugestoes">' + SUGESTOES.map(function(s){
           return '<div class="sugestao"><span class="sugestao-nome">' + s[0] + '</span><span class="muted">' + s[1] + '</span></div>';
-        }).join("") + '<a class="pilula-cinza largo-pilula ver-estudo" href="#/estudo/processo">Ver o processo no Estudo</a></div></details>' +
-      '<div class="acoes-final">' +
+        }).join("") + '</div></details></div>' +
+      '<div class="col-a"><div class="acoes-final">' +
         (l.status === "em andamento" ?
           '<button type="button" class="botao largo" id="avaliarDepois">Pronto, avaliar depois</button>' +
           '<button type="button" class="pilula-cinza largo-pilula" id="avaliarAgora">Avaliar agora</button>' :
           '<button type="button" class="pilula-preta largo-pilula" id="avaliarAgora">Ir para a avaliação</button>') +
-      '</div>' +
-      '<div class="acoes-linha"><button type="button" class="botao perigo" id="excluirLote">Excluir lote</button></div>';
+      '</div></div>' +
+      '<div class="col-a"><div class="acoes-linha"><button type="button" class="botao perigo" id="excluirLote">Excluir lote</button></div></div></div>';
 
     const elTotal = alvo.querySelector("#loteTotal");
     elTotal.value = Math.round(total);
     function escala(novo){ if (novo > 0){ l.escala = novo / base; l.pesado.forEach(function(x){ if (!x.ok) x.real = null; }); grava(); desenha(); } }
     elTotal.addEventListener("change", function(){ escala(Number(elTotal.value)); });
+    alvo.querySelectorAll(".atalhos-lote [data-g]").forEach(function(b){
+      b.addEventListener("click", function(){ escala(Number(b.dataset.g)); });
+    });
     alvo.querySelectorAll(".linha-total .passo").forEach(function(b){
       b.addEventListener("click", function(){ escala(Math.max(50, Math.round((total + Number(b.dataset.dir) * 50) / 50) * 50)); });
     });
@@ -190,7 +224,9 @@ export function render(el, rota){
     const travado = l.status === "concluido" && !l.editando;
     const dis = travado ? " disabled" : "";
     const difs = diferencasPesagem(l, nomeIng);
+    // Desktop: escolhas da avaliação à esquerda, observações e ações à direita.
     alvo.innerHTML =
+      '<div class="layout-2"><div class="col-a">' +
       (difs.length ? '<section class="cartao aviso-pesagem"><p class="pequeno muted">Pesado diferente da receita</p>' +
         difs.map(function(d){ return '<p>' + esc(d) + '</p>'; }).join("") + '</section>' : '') +
       '<p class="rotulo-aval">Textura</p>' +
@@ -205,7 +241,8 @@ export function render(el, rota){
       '<p class="rotulo-aval">Nota</p><div class="estrelas" role="group" aria-label="Nota de 1 a 5">' + [1, 2, 3, 4, 5].map(function(x){
         return '<button type="button" class="estrela' + (a.nota >= x ? ' cheia' : '') + '" data-nota="' + x + '" aria-label="' + x + (x === 1 ? ' estrela' : ' estrelas') + '" aria-pressed="' + (a.nota === x) + '"' + dis + '>' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3.1-5.4 3.1 1.2-6L3.3 9.5l6.1-.7z"/></svg></button>';
-      }).join("") + '</div>' +
+      }).join("") + '</div></div>' +
+      '<div class="col-b">' +
       '<p class="rotulo-aval">Observações</p>' +
       '<textarea class="campo-texto campo-aval" id="proximo" rows="4" placeholder="Como ficou? O que mudar na próxima versão?"' + dis + '>' + esc(l.proximo) + '</textarea>' +
       '<div class="acoes-final">' +
@@ -213,10 +250,13 @@ export function render(el, rota){
           '<p class="estado-final">Lote concluído' + (l.fim ? ' · ' + dataCurta(l.fim) + ', ' + hora(l.fim) : '') + '</p>' +
           (travado ? '<button type="button" class="pilula-cinza largo-pilula" id="editarAval">Editar avaliação</button>' :
             '<button type="button" class="pilula-preta largo-pilula" id="travarAval">Pronto</button>')) +
-        (v ? '<button type="button" class="pilula-cinza largo-pilula" id="proximaVersao">Criar próxima versão</button>' +
-          (difs.length ? '<button type="button" class="pilula-cinza largo-pilula" id="proximaPesada">Criar próxima versão com o que pesei</button>' : '') : '') +
-      '</div>' +
-      '<div class="acoes-linha"><button type="button" class="botao perigo" id="excluirLote">Excluir lote</button></div>';
+        (difs.length && v ? '<button type="button" class="pilula-cinza largo-pilula" id="proximaPesada">Criar próxima versão com o que pesei</button>' : '') +
+        // Próxima versão e Excluir dividem a linha (2/3 e 1/3), como + ingrediente e Excluir.
+        '<div class="linha-proxima">' +
+          (v ? '<button type="button" class="pilula-cinza" id="proximaVersao">Criar próxima versão</button>' : '') +
+          '<button type="button" class="pilula-cinza" id="excluirLote">Excluir</button>' +
+        '</div>' +
+      '</div></div></div>';
 
     alvo.querySelectorAll("[data-t]").forEach(function(b){
       b.addEventListener("click", function(){

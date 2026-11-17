@@ -1,9 +1,9 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261117034523";
-import { confirma } from "../ui.js?v=20261117034523";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261117034523";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261117042849";
+import { confirma, LAPIS } from "../ui.js?v=20261117042849";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261117042849";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -88,7 +88,7 @@ export function render(el, rota){
     // O lápis ao lado avisa que o nome é editável; tocar nele foca o campo.
     '<label class="nome-campo" for="nome">' +
     '<input id="nome" class="nome-receita-calc titulo-editavel" type="text" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita">' +
-    '<svg class="lapis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>' +
+    LAPIS +
     '</label>' +
     '<div class="estado-receita" id="estadoReceita"></div>' +
     '<div class="acoes-calc">' +
@@ -109,7 +109,7 @@ export function render(el, rota){
       '<p class="pequeno muted" id="avisoNome" hidden></p>' +
       '<div class="acoes-salvar">' +
         '<button type="button" class="pilula-preta" id="confirmaSalvar">Salvar</button>' +
-        '<button type="button" class="pilula-cinza" id="comoNova">Salvar como nova receita</button>' +
+        '<button type="button" class="pilula-cinza" id="comoNova">Como nova receita</button>' +
         '<button type="button" class="pilula-cinza" id="comoVersao" hidden></button>' +
         '<button type="button" class="pilula-cinza" id="cancelaSalvar">Cancelar</button>' +
       '</div>' +
@@ -232,12 +232,14 @@ export function render(el, rota){
     elNota.value = calc.notaSugerida || "";
     el.querySelector("#rotuloNota").textContent = modoNova ? "Nota da v1 (opcional)" : "O que mudou? (opcional)";
     elConfirma.textContent = modoNova ? (r ? "Criar nova receita" : "Salvar receita (v1)") : "Salvar v" + proximoNumero();
-    elConfirma.hidden = !modoNova && !mudou();
+    // Com uma receita aberta, as duas saídas ficam sempre lado a lado:
+    // nova versão desta receita e nova receita (variação).
+    elConfirma.hidden = false;
     elComoNova.hidden = modoNova;
-    // Já no modo "nova receita", ainda dá para escolher salvar como versão da base.
     const elComoVersao = el.querySelector("#comoVersao");
-    elComoVersao.hidden = !(modoNova && r && mudou());
-    if (r) elComoVersao.textContent = "Salvar como v" + proximoNumero() + " da receita original";
+    elComoVersao.hidden = !(modoNova && r);
+    if (r) elComoVersao.textContent = "Salvar como v" + proximoNumero();
+    el.querySelector(".acoes-salvar").classList.toggle("sem-receita", !r);
     elAvisoNome.hidden = true;
     elPainel.hidden = false;
     if (modoNova && r){ elNomeNova.focus(); elNomeNova.select(); }

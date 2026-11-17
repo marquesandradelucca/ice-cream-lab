@@ -175,6 +175,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .cartao-receita .nome-receita-calc.titulo-editavel::placeholder{font-weight:400}
 .cartao-receita .nome-receita-calc.titulo-editavel:focus{outline-offset:4px}
 .cartao-receita .estado-receita{margin-top:var(--esp-colado)}
+.cartao-receita .nome-fixo{font-size:var(--t-secao); font-weight:500; line-height:1.5}
 .cartao-receita .acoes-calc > .menu-abrir{order:-1} /* Abrir antes de Salvar */
 .nome-campo{display:flex; align-items:center; gap:var(--esp-grupo); min-width:0; cursor:text}
 .nome-campo .nome-receita-calc.titulo-editavel{width:auto; min-width:10ch; max-width:100%; field-sizing:content}
@@ -288,8 +289,9 @@ details.notas p{margin-top:var(--esp-secao)}
 .dif{font-size:var(--t-pequeno)}
 .dif-novo{color:var(--ok)}
 .dif-saiu{color:var(--critico)}
-.versao-acoes{display:flex; flex-direction:column; gap:var(--esp-grupo)}
+.versao-acoes{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--esp-grupo)}
 .versao-acoes > *{width:100%}
+.versao-acoes > [data-final]{grid-column:1 / -1} /* "marcar como final" ocupa a linha toda */
 .linha-pronta{display:flex; justify-content:space-between; gap:var(--esp-secao); padding:var(--esp-grupo) 0; border-bottom:1px solid var(--line)}
 .linha-pronta:last-child{border-bottom:0}
 .versao-qtds .linha-pronta{padding:var(--esp-colado) 0}
@@ -302,6 +304,10 @@ details.notas p{margin-top:var(--esp-secao)}
 .linha-lote .rotulo{margin:0}
 .atalhos-lote{display:flex; gap:var(--esp-grupo); margin:var(--esp-secao) 0}
 .atalhos-lote > *{flex:1}
+.cartao-pronta .linha-lote{margin-top:var(--esp-secao)}
+.cartao-pronta .atalhos-lote{margin-bottom:0}
+#pesagem .linha-lote-pesagem{margin-top:var(--esp-secao)}
+#pesagem .atalhos-lote{margin-bottom:var(--esp-grupo)} /* + 8 do cartão = 16 no fundo */
 
 /* ===== 10. Ingredientes ===== */
 .form .campos{display:flex; flex-direction:column}
@@ -464,6 +470,10 @@ textarea:disabled{opacity:.7}
 /* Estrelas um pouco maiores; não selecionada = cinza preenchido, selecionada = preto */
 .estrela{width:48px; height:48px}
 .estrela svg{width:38px; height:38px; fill:var(--line); stroke:var(--line)}
+/* As cinco estrelas dividem a largura da coluna, maiores e fáceis de tocar. */
+.estrelas{display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+.estrelas .estrela{width:100%; height:64px}
+.estrelas .estrela svg{width:48px; height:48px}
 .estrela.cheia svg{fill:var(--ink); stroke:var(--ink)}
 /* Toda pílula cinza tem o mesmo texto (tinta), seja ação ou opção não escolhida */
 .seg button{color:var(--ink)}
@@ -473,8 +483,10 @@ textarea:disabled{opacity:.7}
 .acoes-final{margin:var(--esp-bloco) 0}
 
 /* Painel de salvar: ações empilhadas na largura do card */
-.acoes-salvar{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-top:var(--esp-secao)}
+.acoes-salvar{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:var(--esp-grupo); margin-top:var(--esp-secao)}
 .acoes-salvar > *{width:100%}
+.acoes-salvar > #cancelaSalvar{grid-column:1 / -1} /* as duas formas de salvar lado a lado; Cancelar embaixo */
+.acoes-salvar.sem-receita > #confirmaSalvar{grid-column:1 / -1} /* rascunho sem receita: só um jeito de salvar */
 #campoNomeNova{margin-bottom:var(--esp-secao)}
 #avisoNome{margin-top:var(--esp-grupo)}
 
@@ -574,11 +586,12 @@ textarea:disabled{opacity:.7}
   .calc-col-res{position:sticky; top:72px}
   .calc-col-res .resultado{margin-bottom:0}
   /* Em tela larga, Salvar e Abrir ficam à direita do nome, dentro do cartão. */
-  body.tela-calc .cartao-receita{display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:var(--esp-pagina); align-items:center}
-  body.tela-calc .cartao-receita > .nome-campo{grid-column:1; grid-row:1}
-  body.tela-calc .cartao-receita > .estado-receita{grid-column:1; grid-row:2}
-  body.tela-calc .cartao-receita > .acoes-calc{grid-column:2; grid-row:1 / span 2; margin:0}
-  body.tela-calc .cartao-receita > .acoes-calc > *{width:140px; flex:none}
+  body .cartao-receita{display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:var(--esp-pagina); align-items:center}
+  body .cartao-receita > .nome-campo, body .cartao-receita > .nome-fixo{grid-column:1; grid-row:1}
+  body .cartao-receita > .estado-receita{grid-column:1; grid-row:2}
+  body .cartao-receita > .acoes-calc{grid-column:2; grid-row:1 / span 2; margin:0}
+  body .cartao-receita > .acoes-calc > *{width:140px; flex:none}
+  body .cartao-receita > .acoes-calc > :only-child{width:auto; padding:0 var(--esp-pagina)}
   /* Sem a caixa de avisos no meio, o seletor de faixas precisa de respiro antes dos gráficos. */
   body.tela-calc .resultado .seg-faixas{margin-bottom:var(--esp-pagina)}
   body.tela-calc .aviso-snap{max-width:calc(50% - var(--esp-bloco) / 2)}
@@ -592,3 +605,42 @@ textarea:disabled{opacity:.7}
 
 /* Calculadora: adicionar é a ação principal (2/3); Excluir fica com 1/3. */
 #ingredientes .acoes-ing{grid-auto-columns:auto; grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+
+/* Layout de duas colunas para receita e lote em tela larga.
+   No celular os blocos seguem na ordem do código; no desktop, os .col-a vão para a esquerda
+   (um embaixo do outro) e o .col-b ocupa a direita inteira. */
+@media (min-width: 960px){
+  .wrap:has(.layout-2){max-width:1160px}
+  .layout-2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:repeat(4, auto) 1fr; column-gap:var(--esp-bloco); align-items:start}
+  .layout-2 > .col-a{grid-column:1}
+  .layout-2 > .col-b{grid-column:2; grid-row:1 / 6}
+  /* Na grade as margens não se somam-e-fundem: o cartão acima já dá o bloco. */
+  .layout-2 > .col-a > .acoes-final{margin-top:0}
+  /* Receita: versões à esquerda (todas as linhas); preparo e lotes à direita, começando no topo. */
+  .wrap:has(.layout-receita){max-width:1160px}
+  .layout-receita{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:auto 1fr; column-gap:var(--esp-bloco); align-items:start}
+  .layout-receita > .lr-versoes{grid-column:1; grid-row:1 / 3}
+  .layout-receita > .lr-preparo{grid-column:2; grid-row:1}
+  .layout-receita > .lr-status{grid-column:2; grid-row:2}
+}
+
+/* Receita: cartão do nome no topo; Excluir no fim, separado por uma linha. */
+.cabeca-cartao{margin-bottom:var(--esp-bloco)}
+.bloco-status:empty{display:none} /* sem lote aberto nem versão final: nada a mostrar */
+
+/* Avaliar: "Criar próxima versão" (2/3) e "Excluir" (1/3) na mesma linha. */
+.linha-proxima{display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:var(--esp-grupo)}
+.linha-proxima > :only-child{grid-column:1 / -1}
+.campo-aval{display:block} /* sem o vão de linha de texto embaixo do campo */
+
+/* Lote dentro da versão: data e estrelas na primeira linha, o que foi marcado e as observações embaixo. */
+.lote-cartao{display:flex; flex-direction:column; gap:var(--esp-colado); padding:var(--esp-secao) 0; border-top:1px solid var(--line); text-decoration:none; color:var(--ink)}
+.lote-topo{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-secao)}
+.lote-data{font-weight:500}
+.lote-nota{display:inline-flex; gap:2px}
+.mini-estrela svg{display:block; width:16px; height:16px; fill:var(--line); stroke:var(--line)}
+.mini-estrela.cheia svg{fill:var(--ink); stroke:var(--ink)}
+.lote-marcas{font-size:var(--t-pequeno); color:var(--muted)}
+.lote-obs{font-size:var(--t-pequeno)}
+#preparo{display:block}
+.lr-preparo #preparo{margin-bottom:var(--esp-bloco)}

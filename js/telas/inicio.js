@@ -1,9 +1,9 @@
-import { dados, exportaBackup, importaBackup, receita, versao } from "../dados.js?v=20261117034523";
-import { confirma } from "../ui.js?v=20261117034523";
-import { dataCurta } from "./lote.js?v=20261117034523";
-import { situacao, aoMudar } from "../sync.js?v=20261117034523";
-import { textoSituacao } from "./ajustes.js?v=20261117034523";
-import { toast } from "../app.js?v=20261117034523";
+import { dados, exportaBackup, importaBackup, receita, versao } from "../dados.js?v=20261117042849";
+import { confirma } from "../ui.js?v=20261117042849";
+import { dataCurta } from "./lote.js?v=20261117042849";
+import { situacao, aoMudar } from "../sync.js?v=20261117042849";
+import { textoSituacao } from "./ajustes.js?v=20261117042849";
+import { toast } from "../app.js?v=20261117042849";
 
 const OFICINA = [
   {area:"ideias",       nome:"Ideias",           desc:"Sabores para testar",          pronto:true},
