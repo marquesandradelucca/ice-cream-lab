@@ -1,1 +1,7 @@
 icone/
+
+# Arquivos de origem do ícone (ficam só no computador; o app usa os PNGs gerados)
+icons/*.ai
+icons/*.icon/
+icons/Ice Cream Lab-*.png
+.DS_Store
