@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118040421";
-import { abreAjustes } from "./ajustes.js?v=20261118040421";
-import { dataCurta } from "./lote.js?v=20261118040421";
-import { icone, capa } from "../visual.js?v=20261118040421";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118132934";
+import { abreAjustes } from "./ajustes.js?v=20261118132934";
+import { dataCurta } from "./lote.js?v=20261118132934";
+import { icone, capa, tomVidro } from "../visual.js?v=20261118132934";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }
@@ -37,7 +37,7 @@ export function render(el){
   if (aguardando.length){
     const l = aguardando[0], r = receita(l.receitaId), v = versao(l.versaoId);
     const nome = (r ? r.nome : "Receita") + (v ? " · v" + v.numero : "");
-    avaliar = '<section class="ui-bloco home-avaliar" style="--capa:' + capa(r ? r.nome : "", r && r.capa) + '">' +
+    avaliar = '<section class="ui-bloco home-avaliar" style="--capa:' + capa(r ? r.nome : "", r && r.capa) + ';--ui-tom:' + ((r && tomVidro(r.nome, r.capa)) || 'rgba(255,255,255,.24)') + '">' +
       '<span class="ui-rotulo home-avaliar-rotulo">Para avaliar' + (aguardando.length > 1 ? ' · ' + aguardando.length : '') + '</span>' +
       '<a class="ui-botao vidro-escuro home-avaliar-botao" href="#/lote/' + encodeURIComponent(l.id) + '/avaliar">Avaliar</a>' +
       '<span class="titulo home-avaliar-nome">' + esc(nome) + '</span>' +

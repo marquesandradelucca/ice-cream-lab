@@ -1,11 +1,11 @@
 // Estudo (redesign): temas agrupados, trazidos do Notion e editáveis no app.
 // Rotas: #/estudo (todos, com busca), #/estudo/grupo/<grupo> (filtrado pela seção vinda da Biblioteca),
 // #/estudo/<id> (tema) e #/estudo/<id>/calculadora (aberto por um gráfico: o voltar leva à calculadora).
-import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261118040421";
-import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261118040421";
-import { mdParaHtml, confirma } from "../ui.js?v=20261118040421";
-import { icone, capa } from "../visual.js?v=20261118040421";
-import { capaBiblioteca } from "./biblioteca.js?v=20261118040421";
+import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261118132934";
+import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261118132934";
+import { mdParaHtml, confirma } from "../ui.js?v=20261118132934";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261118132934";
+import { capaBiblioteca } from "./biblioteca.js?v=20261118132934";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
@@ -31,11 +31,16 @@ function lista(el, grupo){
   const gAtual = GRUPOS_ESTUDO.find(function(g){ return g[0] === grupo; });
   const nomeGrupo = gAtual ? gAtual[1] : "Estudo";
   const filtro = function(id, nome){ return '<a class="ui-filtro" href="#/estudo' + (id ? '/grupo/' + id : '') + '" aria-pressed="' + (grupo === id) + '">' + nome + '</a>'; };
+  // Com seção escolhida: fundo = capa da seção e temas em cartões de vidro (padrão das telas com capa).
+  const comCapa = !!gAtual;
+  document.body.classList.toggle("est-capa", comCapa);
   el.innerHTML =
+    (comCapa ? '<div class="rec-fundo" style="--capa:' + capa(nomeGrupo, capaTemas(grupo)) + '"></div>' : '') +
     '<div class="ui-app">' +
-    '<header class="ui-cabecalho nav"><a class="ui-redondo" href="#/biblioteca" aria-label="Voltar para a Biblioteca">' + icone("voltar") + '</a><h1>' + esc(nomeGrupo) + '</h1></header>' +
+    '<header class="ui-cabecalho nav"><a class="ui-redondo' + (comCapa ? ' escuro' : '') + '" href="#/biblioteca" aria-label="Voltar para a Biblioteca">' + icone("voltar") + '</a><h1>' + esc(nomeGrupo) + '</h1>' +
+      '<button class="ui-redondo' + (comCapa ? ' escuro' : '') + '" type="button" id="abreBusca" aria-label="Buscar nos temas">' + icone("buscar") + '</button></header>' +
     '<div class="ui-tela">' +
-      '<input id="buscaEstudo" class="ui-campo" type="search" placeholder="Buscar nos temas" aria-label="Buscar no Estudo" value="' + esc(busca) + '">' +
+      '<input id="buscaEstudo" class="ui-campo" type="search" placeholder="Buscar nos temas" aria-label="Buscar no Estudo" value="' + esc(busca) + '"' + (busca ? '' : ' hidden') + '>' +
       '<div id="resultado" class="estudo-lista"></div>' +
     '</div></div>';
   const elRes = el.querySelector("#resultado"), inp = el.querySelector("#buscaEstudo");
@@ -53,7 +58,7 @@ function lista(el, grupo){
         const temas = db.estudo.filter(function(p){ return p.grupo === g[0]; }).sort(function(a, b){ return a.ordem - b.ordem; });
         if (!temas.length) return "";
         return (grupo ? '<p class="ui-sec estudo-desc">' + esc(g[2]) + '</p>' : '<h2 class="ing-sec">' + g[1] + '</h2>') +
-          '<div class="ing-grade">' + temas.map(function(p){
+          '<div class="temas-lista">' + temas.map(function(p){
             return '<a class="ui-bloco pequeno tema-bloco" href="#/estudo/' + encodeURIComponent(p.id) + '" style="--capa:' + capa(p.titulo, capaTemas(p.grupo)) + '"><span class="titulo">' + esc(p.titulo) + '</span></a>';
           }).join("") + '</div>';
       }).join("");
@@ -79,8 +84,14 @@ function lista(el, grupo){
       '<p class="ui-sec ideias-vazio">Nada encontrado para “' + esc(busca.trim()) + '”.</p>';
   }
   inp.addEventListener("input", function(){ busca = inp.value; desenha(); });
+  // Lupa: mostra/esconde a busca (escondendo, limpa).
+  el.querySelector("#abreBusca").addEventListener("click", function(){
+    inp.hidden = !inp.hidden;
+    if (!inp.hidden) inp.focus(); else { busca = ""; inp.value = ""; desenha(); }
+  });
+  if (comCapa) aplicaTom(el, nomeGrupo, capaTemas(grupo));
   desenha();
-  return {titulo:"Estudo", voltar:"#/biblioteca", voltarRotulo:"Biblioteca", limpa:limpaUi};
+  return {titulo:"Estudo", voltar:"#/biblioteca", voltarRotulo:"Biblioteca", limpa:function(){ document.body.classList.remove("est-capa"); limpaUi(); }};
 }
 
 // Bibliografia: cada linha "[Título - Autores](endereço)" vira um cartão separado que abre o link.
@@ -113,16 +124,21 @@ function tema(el, id, daCalculadora){
   const grupo = (GRUPOS_ESTUDO.find(function(g){ return g[0] === p.grupo; }) || [])[1] || "";
 
   function ler(){
+    // Tema (exceto Bibliografia): fundo = capa da seção; título e texto em painéis de vidro escuro.
+    const bib = p.id === "bibliografia", esc2 = !bib ? " escuro" : "";
+    document.body.classList.toggle("est-capa", !bib);
     el.innerHTML =
+      (!bib ? '<div class="rec-fundo" style="--capa:' + capa(p.titulo, capaTemas(p.grupo)) + '"></div>' : '') +
       '<div class="ui-app">' +
-      '<header class="ui-cabecalho nav"><a class="ui-redondo" href="' + voltar + '" aria-label="Voltar para ' + rotuloVoltar + '">' + icone("voltar") + '</a>' +
-        // Bibliografia é uma lista de cartões: cabeçalho de subtela (voltar + título), como as listas do Estudo.
-        (p.id === "bibliografia" ? '<h1>' + esc(p.titulo) + '</h1>' : '<span style="flex:1"></span>') +
-        '<button class="ui-redondo" type="button" id="opcoes" aria-label="Mais opções">' + icone("opcoes") + '</button></header>' +
+      '<header class="ui-cabecalho nav"><a class="ui-redondo' + esc2 + '" href="' + voltar + '" aria-label="Voltar para ' + rotuloVoltar + '">' + icone("voltar") + '</a>' +
+        (bib ? '<h1>' + esc(p.titulo) + '</h1>' : '<span style="flex:1"></span>') +
+        '<button class="ui-redondo' + esc2 + '" type="button" id="opcoes" aria-label="Mais opções">' + icone("opcoes") + '</button></header>' +
       '<div class="ui-tela">' +
-        (p.id === "bibliografia" ? '' : '<section class="ui-bloco tema-capa" style="--capa:' + capa(p.titulo, capaTemas(p.grupo)) + '"><span class="ui-etiqueta tema-grupo">' + esc(grupo) + '</span><h1 class="rec-nome">' + esc(p.titulo) + '</h1></section>') +
-        (p.id === "bibliografia" ? referencias(p.md) : '<article class="ui-cartao ui-vidro texto-estudo tema-texto">' + mdParaHtml(p.md) + '</article>') +
+        (bib ? referencias(p.md) :
+          '<section class="ui-cartao ui-vidro-escuro rec-painel"><div class="rec-etiquetas"><span class="ui-etiqueta">' + esc(grupo) + '</span></div><h1 class="rec-nome">' + esc(p.titulo) + '</h1></section>' +
+          '<article class="ui-cartao ui-vidro-escuro rec-painel texto-estudo tema-texto">' + mdParaHtml(p.md) + '</article>') +
       '</div></div>';
+    if (!bib) aplicaTom(el, p.titulo, capaTemas(p.grupo));
     el.querySelector("#opcoes").addEventListener("click", opcoes);
   }
 
@@ -158,6 +174,7 @@ function tema(el, id, daCalculadora){
   }
 
   function editar(){
+    document.body.classList.remove("est-capa");
     el.innerHTML =
       '<div class="ui-app">' +
       '<header class="ui-cabecalho nav"><button class="ui-redondo" type="button" id="fecharEd" aria-label="Cancelar">' + icone("fechar") + '</button><h1>Editar tema</h1></header>' +
@@ -195,5 +212,5 @@ function tema(el, id, daCalculadora){
   }
 
   ler();
-  return {titulo:"Estudo", voltar:voltar, voltarRotulo:rotuloVoltar, limpa:limpaUi};
+  return {titulo:"Estudo", voltar:voltar, voltarRotulo:rotuloVoltar, limpa:function(){ document.body.classList.remove("est-capa"); limpaUi(); }};
 }

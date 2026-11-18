@@ -7,13 +7,13 @@
 // - O app lembra como cada item estava na última sincronização. O que mudou desde então sobe;
 //   o que chegou de outro aparelho desce. Se o mesmo item mudou dos dois lados, vale o mais recente.
 // - Sem internet, nada se perde: as mudanças ficam no aparelho e sobem quando a conexão voltar.
-import { dados, salvaLocal } from "./dados.js?v=20261118040421";
+import { dados, salvaLocal } from "./dados.js?v=20261118132934";
 
 const URL_SUPABASE = "https://bigruncntcxnckcttjuw.supabase.co";
 const CHAVE_PUBLICA = "sb_publishable_Mff_WvrBX1Qgyvbx0jn8eA_YsDL78KI"; // pública de propósito; a tabela é protegida por RLS
 const CHAVE_SESSAO = "icelab-sessao";
 const CHAVE_ESTADO = "icelab-sync";
-const COLECOES = ["ingredientes", "receitas", "versoes", "lotes", "ideias", "estudo"];
+const COLECOES = ["ingredientes", "receitas", "versoes", "lotes", "ideias", "estudo", "fotos"];
 
 let sessao = ler(CHAVE_SESSAO);
 let estado = ler(CHAVE_ESTADO) || novoEstado();

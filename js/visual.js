@@ -20,7 +20,7 @@ const PATHS = {
   imagem:'<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
   ok:'<path d="M5 12l5 5L20 7"/>'
 };
-import { ICONES_ARQ } from "./icones.js?v=20261118040421";
+import { ICONES_ARQ } from "./icones.js?v=20261118132934";
 export function icone(nome, extra){
   // Ícone da pasta icons/ (preenchido), quando existir; senão o de traço.
   const arq = ICONES_ARQ[nome];
@@ -81,6 +81,8 @@ export const PALETAS = [
   {nome:"Coco", chaves:["coco"], cores:["#D4CEC6","#EBE7E1","#FAF8F4"]},
 ];
 export const NEUTRAS = [["#816E58", "#AF9D87", "#DBD1C4"], ["#5F6786", "#949AAE", "#CBCED8"], ["#9B553F", "#C18B74", "#E6CAB9"], ["#6A983E", "#9BB676", "#CBDAB6"]];
+// Neutros também escolhíveis no seletor de capa (sem palavra-chave: não entram na escolha automática).
+NEUTRAS.forEach(function(c, i){ PALETAS.push({nome:"Neutro " + (i + 1), chaves:[], cores:c}); });
 function semAcento(s){ return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
 // Procura cada palavra-chave como palavra inteira ("uva" não pega "suave").
 export function paletaDe(nome){
@@ -96,7 +98,13 @@ function sorteio(texto){
   for (let i = 0; i < texto.length; i++){ h ^= texto.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return function(min, max){ h = (Math.imul(h ^ (h >>> 15), 2246822507) + 0x9E3779B9) >>> 0; return Math.round(min + (h / 4294967296) * (max - min)); };
 }
+// Biblioteca de fotos: o app registra aqui como ler/guardar (as capas usam "foto:<id>").
+let armazem = null;
+export function defineArmazemFotos(a){ armazem = a; }
+function resolveFoto(v){ if (v && v.indexOf("foto:") === 0){ const f = armazem && armazem.pega(v.slice(5)); return f || null; } return v; }
+
 export function capa(nome, foto){
+  if (foto && foto.indexOf("foto:") === 0) foto = resolveFoto(foto);
   // foto pode ser uma imagem ou um degradê escolhido à mão ("paleta:Menta").
   const escolhida = foto && foto.indexOf("paleta:") === 0 ? PALETAS.find(function(x){ return x.nome === foto.slice(7); }) : null;
   if (foto && !escolhida) return 'url("' + foto + '")';
@@ -113,7 +121,7 @@ export const DOCURA = [["pouco","Pouco"],["media","Média"],["ideal","Ideal"],["
 export function docuraAtual(v){ return v === "muito" ? "doce" : v; }
 
 // Degradês na ordem por cor (a mesma da paleta no Figma).
-export const ORDEM_CAPAS = ["Cacau","Café","Chocolate","Avelã","Caramelo","Amendoim","Manga","Maracujá","Banana","Limão","Pistache","Manjericão","Chocomenta","Menta","Blue ice","Blueberry","Uva","Figo","Sensação","Framboesa","Chiclete","Morango","Melancia","Maçã","Creme","Base branca","Baunilha","Flocos","Coco","Fior di latte"];
+export const ORDEM_CAPAS = ["Cacau","Café","Chocolate","Avelã","Caramelo","Amendoim","Manga","Maracujá","Banana","Limão","Pistache","Manjericão","Chocomenta","Menta","Blue ice","Blueberry","Uva","Figo","Sensação","Framboesa","Chiclete","Morango","Melancia","Maçã","Creme","Base branca","Baunilha","Flocos","Coco","Fior di latte","Neutro 1","Neutro 2","Neutro 3","Neutro 4"];
 
 function escHtml(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -135,26 +143,63 @@ function reduzFoto(arquivo){
 // Folha para escolher capa: "Automática" (ou o padrão), os degradês por cor e, se permitido, uma foto.
 // opts: {titulo, semente, atual, rotuloPadrao, foto:true|false, aoEscolher(valor)}  valor "" = padrão.
 export function escolheCapa(opts){
+  // Seletor único de capa/fundo: Upload · Fotos (todas as já enviadas, reaproveitáveis) · Automática · degradês.
   const atual = opts.atual || "";
-  const temFoto = atual && atual.indexOf("paleta:") !== 0;
+  const legado = atual && atual.indexOf("data:") === 0;   // foto antiga guardada dentro do item
+  const fotos = armazem ? armazem.lista() : [];
   const veu = document.createElement("div"); veu.className = "ui-veu";
   const f = document.createElement("div"); f.className = "ui-folha"; f.setAttribute("role", "dialog"); f.setAttribute("aria-label", opts.titulo || "Capa");
-  const op = function(valor, rotulo){ return '<button type="button" class="capa-op" data-capa="' + escHtml(valor) + '" aria-pressed="' + (valor === atual) + '" style="--capa:' + capa(opts.semente, valor || opts.padrao || null) + '"><span>' + rotulo + '</span></button>'; };
+  const op = function(valor, rotulo){ return '<button type="button" class="capa-op" data-capa="' + escHtml(valor) + '" aria-pressed="' + (valor === atual) + '" style="--capa:' + capa(opts.semente, valor || opts.padrao || null) + '">' + (rotulo ? '<span>' + rotulo + '</span>' : '') + '</button>'; };
   f.innerHTML = '<span class="puxador"></span><h2>' + escHtml(opts.titulo || "Capa") + '</h2>' +
-    (opts.foto ? '<button type="button" class="ui-botao vidro largo" id="capaFoto">' + (temFoto ? 'Trocar foto' : 'Escolher foto') + '</button><input type="file" id="capaArquivo" accept="image/*" hidden>' : '') +
-    '<div class="capa-grade">' + (temFoto ? op(atual, "Foto") : '') + op("", escHtml(opts.rotuloPadrao || "Automática")) +
+    '<div class="capa-grade">' +
+      '<button type="button" class="capa-op capa-enviar" id="capaFoto">' + icone("imagem") + '<span>Upload</span></button>' +
+      (legado ? op(atual, "Atual") : '') +
+      fotos.map(function(x){ return op("foto:" + x.id, ""); }).join("") +
+      '<span class="capa-sec">Degradês</span>' +
+      op("", escHtml(opts.rotuloPadrao || "Automática")) +
       ORDEM_CAPAS.map(function(n){ return op("paleta:" + n, escHtml(n)); }).join("") + '</div>' +
-    '<div class="capa-rodape"><button type="button" class="ui-botao preto largo" id="fechaCapa">Fechar</button></div>';
+    '<input type="file" id="capaArquivo" accept="image/*" hidden>';
+  if (fotos.length || legado) f.querySelector(".capa-grade").insertAdjacentHTML("afterbegin", '<span class="capa-sec">Fotos</span>');
   document.body.append(veu, f);
   const fecha = function(){ veu.remove(); f.remove(); };
-  veu.addEventListener("click", fecha); f.querySelector("#fechaCapa").addEventListener("click", fecha);
-  f.querySelectorAll(".capa-op").forEach(function(b){ b.addEventListener("click", function(){ fecha(); opts.aoEscolher(b.dataset.capa); }); });
-  if (opts.foto){
-    const arq = f.querySelector("#capaArquivo");
-    f.querySelector("#capaFoto").addEventListener("click", function(){ arq.click(); });
-    arq.addEventListener("change", async function(){
-      const a = arq.files && arq.files[0]; if (!a) return;
-      try { const dado = await reduzFoto(a); fecha(); opts.aoEscolher(dado); } catch (e) { alert(e.message); }
-    });
-  }
+  veu.addEventListener("click", fecha);
+  f.querySelectorAll(".capa-op[data-capa]").forEach(function(b){ b.addEventListener("click", function(){ fecha(); opts.aoEscolher(b.dataset.capa); }); });
+  const arq = f.querySelector("#capaArquivo");
+  f.querySelector("#capaFoto").addEventListener("click", function(){ arq.click(); });
+  arq.addEventListener("change", async function(){
+    const a = arq.files && arq.files[0]; if (!a) return;
+    try { const dado = await reduzFoto(a); fecha(); opts.aoEscolher(armazem ? "foto:" + armazem.guarda(dado) : dado); } catch (e) { alert(e.message); }
+  });
+}
+
+// Vidro dos controles sobre capa: tom claro da própria capa (translúcido), em vez de branco (que acinzenta).
+// Degradê: usa o tom claro da paleta. Foto: cor média da imagem, clareada (calculada no aparelho).
+function rgba(hex, a){ const n = parseInt(hex.slice(1), 16); return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"; }
+const TOM_ALFA = 0.42;
+export function tomVidro(nome, foto){
+  if (foto && foto.indexOf("foto:") === 0) foto = resolveFoto(foto);
+  const esc = foto && foto.indexOf("paleta:") === 0 ? PALETAS.find(function(x){ return x.nome === foto.slice(7); }) : null;
+  if (foto && !esc) return null;   // foto: calcular à parte
+  return rgba((esc ? esc.cores : paletaDe(nome))[2], TOM_ALFA);
+}
+const cacheTom = {};
+export function aplicaTom(alvo, nome, foto){
+  if (foto && foto.indexOf("foto:") === 0) foto = resolveFoto(foto);
+  const t = tomVidro(nome, foto);
+  if (t){ alvo.style.setProperty("--ui-tom", t); return; }
+  alvo.style.setProperty("--ui-tom", "rgba(255,255,255,.24)");
+  if (cacheTom[foto]){ alvo.style.setProperty("--ui-tom", cacheTom[foto]); return; }
+  const img = new Image();
+  img.onload = function(){
+    try {
+      const c = document.createElement("canvas"); c.width = c.height = 16;
+      const g = c.getContext("2d"); g.drawImage(img, 0, 0, 16, 16);
+      const d = g.getImageData(0, 0, 16, 16).data; let r = 0, gg = 0, b = 0;
+      for (let i = 0; i < d.length; i += 4){ r += d[i]; gg += d[i + 1]; b += d[i + 2]; }
+      const k = d.length / 4, mix = function(v){ return Math.round(v / k + (255 - v / k) * 0.45); };
+      cacheTom[foto] = "rgba(" + mix(r) + "," + mix(gg) + "," + mix(b) + "," + TOM_ALFA + ")";
+      alvo.style.setProperty("--ui-tom", cacheTom[foto]);
+    } catch (e) {}
+  };
+  img.src = foto;
 }

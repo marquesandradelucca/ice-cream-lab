@@ -124,3 +124,4 @@ Referência: Figma "Ice Cream Lab · Redesign", página 05. Plano: `PLANO-REDESI
 - **Vidro escuro pequeno com desfoque**: etiquetas, pílulas, seletores e botões de vidro escuro sobre capa/foto sempre levam o desfoque (blur 30 + saturação).
 - **Sombra única** (`--ui-sombra`): a mesma em cartões, blocos com degradê, botões, filtros e barra de abas.
 - **Controles de vidro sobre capa/foto**: botões secundários, redondos, etiquetas, seletores, campos e ˅ usam branco translúcido 16% (`--ui-vidro-interno`), dentro ou fora de painel. Só os painéis grandes são vidro escuro.
+- **Brilho de borda**: só em elementos soltos de vidro ou brancos sobre fundo branco (nunca nos pretos). Dentro de cartões/painéis e em telas com fundo de capa/degradê, botões ficam só com a sombra (etiquetas e ˅ sem efeito).

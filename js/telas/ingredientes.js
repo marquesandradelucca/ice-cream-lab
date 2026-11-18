@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261118040421";
-import { confirma } from "../ui.js?v=20261118040421";
-import { icone, capa, escolheCapa } from "../visual.js?v=20261118040421";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261118040421";
-import { n } from "../calculo.js?v=20261118040421";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261118132934";
+import { confirma } from "../ui.js?v=20261118132934";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261118132934";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261118132934";
+import { n } from "../calculo.js?v=20261118132934";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -82,6 +82,7 @@ function lista(el){
     const q = norm(buscaIng.trim());
     const ok = function(i){ return !q || norm(i.nome).indexOf(q) >= 0 || norm(i.longo).indexOf(q) >= 0; };
     const itens = db.ingredientes.filter(function(i){ return ok(i) && (!catIng || categoria(i) === catIng); });
+    itens.sort(function(a, b){ return String(a.nome).localeCompare(String(b.nome), "pt", {sensitivity:"base"}); });   // ordem alfabética
     el.querySelector("#grade").innerHTML = itens.length ? '<div class="ing-grade tres">' + itens.map(bloco).join("") + '</div>' :
       '<p class="ui-sec ideias-vazio">' + (buscaIng.trim() ? 'Nada encontrado para “' + esc(buscaIng.trim()) + '”.' : 'Nenhum ingrediente nesta categoria.') + '</p>';
   }
@@ -133,12 +134,13 @@ function editor(el, id){
           (ing.nota ? '<p class="ui-sec">' + esc(ing.nota) + '</p>' : '') +
         '</section>' +
       '</div></div>';
+    aplicaTom(el, ing.nome, ing.capa);
     el.querySelector("#opcoes").addEventListener("click", function(){
       const veu = document.createElement("div"); veu.className = "ui-veu";
       const f = document.createElement("div"); f.className = "ui-folha"; f.setAttribute("role", "dialog"); f.setAttribute("aria-label", "Opções do ingrediente");
       f.innerHTML = '<span class="puxador"></span><h2>' + esc(ing.nome) + '</h2>' +
-        '<button type="button" class="ui-botao vidro largo" id="editar">Editar composição</button>' +
-        '<button type="button" class="ui-botao vidro largo" id="trocaCapa">Capa</button>' +
+        '<div class="ideia-acoes"><button type="button" class="ui-botao vidro" id="editar">Editar composição</button>' +
+          '<button type="button" class="ui-botao vidro ideia-capa-bt" id="trocaCapa" aria-label="Trocar capa">' + icone("imagem") + '</button></div>' +
         '<button type="button" class="ui-botao vidro largo perigo" id="excluir">Excluir ingrediente</button>' +
         '<button type="button" class="ui-botao preto largo" id="fechar">Fechar</button>';
       document.body.append(veu, f);

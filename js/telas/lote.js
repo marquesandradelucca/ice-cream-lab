@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261118040421";
-import { n } from "../calculo.js?v=20261118040421";
-import { confirma } from "../ui.js?v=20261118040421";
-import { atualizaVoltar } from "../app.js?v=20261118040421";
-import { icone, capa, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261118040421";
+import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261118132934";
+import { n } from "../calculo.js?v=20261118132934";
+import { confirma } from "../ui.js?v=20261118132934";
+import { atualizaVoltar } from "../app.js?v=20261118132934";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261118132934";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -146,6 +146,7 @@ export function render(el, rota){
         '</section>' +
         '<div id="conteudo" class="lote-conteudo"></div>' +
       '</div></div>';
+    aplicaTom(el, r ? r.nome : "", r && r.capa);
     el.querySelectorAll(".lote-abas [data-i]").forEach(function(b){ b.addEventListener("click", function(){
       const i = Number(b.dataset.i);
       if (i === 1 && l.status === "em andamento") l.status = "aguardando";

@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261118040421";
-import { icone, capa } from "../visual.js?v=20261118040421";
-import { confirma, LAPIS } from "../ui.js?v=20261118040421";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261118040421";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261118132934";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261118132934";
+import { confirma, LAPIS } from "../ui.js?v=20261118132934";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261118132934";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -102,7 +102,8 @@ export function render(el, rota){
     // Cartão do nome: nome editável, estado e Salvar.
     '<section class="ui-cartao ui-vidro calc-nome">' +
       '<div class="calc-nome-linha"><div class="calc-nome-texto">' +
-        '<textarea id="nome" class="calc-nome-campo" rows="1" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita"></textarea>' +
+        '<div class="calc-nome-edita">' + '<textarea id="nome" class="calc-nome-campo" rows="1" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita"></textarea>' +
+          '<button type="button" class="calc-lapis" id="lapisNome" aria-label="Editar nome">' + icone("editar") + '</button></div>' +
         '<div class="ui-sec" id="estadoReceita"></div></div>' +
         '<button type="button" class="ui-botao preto" id="salvar">Salvar</button></div>' +
       '<a class="ui-botao vidro largo" id="irReceita" hidden>Ver versões e lotes</a>' +
@@ -158,7 +159,7 @@ export function render(el, rota){
       '<h2>Salvar receita</h2>' +
       // Com uma receita aberta: escolher entre nova versão e nova receita; um botão Salvar só.
       '<div class="ui-opcoes salvar-modo" id="modoSalvar" role="group" aria-label="Como salvar"><button type="button" data-m="versao" id="optVersao"></button><button type="button" data-m="nova">Nova receita</button></div>' +
-      '<div id="campoNomeNova" hidden><label class="ui-sec" for="nomeNova">Nome da nova receita</label>' +
+      '<div id="campoNomeNova" hidden><label class="ui-sec" for="nomeNova" id="rotuloNomeNova">Nome da nova receita</label>' +
         '<input id="nomeNova" class="ui-campo" type="text" maxlength="60" enterkeyhint="next"></div>' +
       '<label class="ui-sec" for="notaVersao" id="rotuloNota">O que mudou? (opcional)</label>' +
       '<input id="notaVersao" class="ui-campo" type="text" maxlength="140" enterkeyhint="done" placeholder="Ex.: menos dextrose, mais creme">' +
@@ -218,7 +219,14 @@ export function render(el, rota){
   // O nome aqui é o do rascunho. Ele só renomeia algo quando vira uma receita nova;
   // para renomear uma receita existente, use a página dela.
   // Nome em várias linhas (nome longo não corta): cresce com o texto; Enter só confirma.
-  function alturaNome(){ elNome.style.height = "auto"; elNome.style.height = elNome.scrollHeight + "px"; }
+  // Largura do campo = largura do texto (o lápis fica logo depois do nome); quebra linha se passar do espaço.
+  const medida = document.createElement("span"); medida.className = "calc-nome-medida"; elNome.parentNode.appendChild(medida);
+  function alturaNome(){
+    medida.textContent = elNome.value || elNome.placeholder;
+    const max = elNome.parentNode.clientWidth - 30;
+    elNome.style.width = Math.min(max, Math.ceil(medida.getBoundingClientRect().width) + 4) + "px";
+    elNome.style.height = "auto"; elNome.style.height = elNome.scrollHeight + "px";
+  }
   elNome.addEventListener("input", function(){ elNome.value = elNome.value.replace(/\n/g, " "); calc.nome = elNome.value; alturaNome(); persiste(); });
   elNome.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); elNome.blur(); } });
 
@@ -237,11 +245,13 @@ export function render(el, rota){
   function abrePainel(nova){
     const r = calc.receitaId && receita(calc.receitaId);
     modoNova = nova || !r;
-    elCampoNova.hidden = !(modoNova && r);
+    // Nome sempre editável na folha quando cria receita (rascunho ou variação).
+    elCampoNova.hidden = !modoNova;
+    el.querySelector("#rotuloNomeNova").textContent = r ? "Nome da nova receita" : "Nome da receita";
     if (modoNova && r){
       const nome = calc.nome.trim();
       elNomeNova.value = nome && nome !== r.nome ? nome : r.nome + " (variação)";
-    }
+    } else if (modoNova && elPainel.hidden) elNomeNova.value = calc.nome.trim();
     if (elPainel.hidden) elNota.value = calc.notaSugerida || "";
     el.querySelector("#rotuloNota").textContent = modoNova ? "Nota da v1 (opcional)" : "O que mudou? (opcional)";
     elConfirma.textContent = "Salvar";
@@ -256,6 +266,7 @@ export function render(el, rota){
     elPainel.hidden = false; el.querySelector("#veuSalvar").hidden = false;
     if (modoNova && r){ elNomeNova.focus(); elNomeNova.select(); }
   }
+  el.querySelector("#lapisNome").addEventListener("click", function(){ elNome.focus(); const t = elNome.value.length; elNome.setSelectionRange(t, t); });
   el.querySelector("#salvar").addEventListener("click", function(){
     if (!calc.linhas.length) return;
     // Se o nome foi trocado (ex.: abriu "Gelato de baunilha" e escreveu "Gelato de menta"),
@@ -272,7 +283,7 @@ export function render(el, rota){
   elConfirma.addEventListener("click", function(){
     let r = calc.receitaId && receita(calc.receitaId);
     if (modoNova){
-      const nome = (r ? elNomeNova.value : calc.nome).trim() || "Receita sem nome";
+      const nome = elNomeNova.value.trim() || calc.nome.trim() || "Receita sem nome";
       if (r && !elNomeNova.value.trim()){ elNomeNova.focus(); return; }
       r = criaReceita(nome, calc.estilo, calc.ideiaId || null);
       // Se o rascunho começou numa ideia, a ideia passa a apontar para a receita.
@@ -311,7 +322,10 @@ export function render(el, rota){
     // Rascunho também fica sobre um degradê (grafite neutro), para a tela ter o mesmo visual da receita.
     card.classList.add("com-capa", "ui-vidro-escuro"); card.classList.remove("ui-vidro");
     fundo.style.setProperty("--capa", r ? capa(r.nome, r.capa) : FUNDO_RASCUNHO);
+    if (r) aplicaTom(el, r.nome, r.capa); else el.style.setProperty("--ui-tom", "rgba(203,206,216,.42)");   // rascunho: tom claro do Neutro 2
     document.body.classList.add("calc-capa");
+    el.querySelector("#lapisNome").hidden = !!r;   // lápis só no rascunho
+    el.querySelector("#salvar").textContent = r ? "Atualizar" : "Salvar";   // receita aberta: atualizar (nova versão)
     ir.classList.add("vidro-escuro"); ir.classList.remove("vidro");
   }
 

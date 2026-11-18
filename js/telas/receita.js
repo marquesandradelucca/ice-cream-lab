@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261118040421";
-import { icone, capa, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261118040421";
-import { confirma, LAPIS } from "../ui.js?v=20261118040421";
-import { atualizaVoltar } from "../app.js?v=20261118040421";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261118040421";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261118040421";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261118132934";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261118132934";
+import { confirma, LAPIS } from "../ui.js?v=20261118132934";
+import { atualizaVoltar } from "../app.js?v=20261118132934";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261118132934";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261118132934";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -120,6 +120,7 @@ function detalhe(el, r, abertas){
     inp.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); ok(); } });
     inp.addEventListener("blur", ok);
   }); });
+  aplicaTom(el, r.nome, r.capa);
   const btLote = el.querySelector("#fazerLote");
   if (btLote) btLote.addEventListener("click", function(){ const l = criaLote(vLote.id); salva(); if (l) location.hash = "#/lote/" + encodeURIComponent(l.id); });
   el.querySelector("#preparo").addEventListener("input", function(ev){ r.preparo = ev.target.value; salva(); });
@@ -129,8 +130,9 @@ function detalhe(el, r, abertas){
     const veu = document.createElement("div"); veu.className = "ui-veu";
     const f = document.createElement("div"); f.className = "ui-folha"; f.setAttribute("role", "dialog"); f.setAttribute("aria-label", "Opções da receita");
     f.innerHTML = '<span class="puxador"></span><h2>' + esc(r.nome) + '</h2>' +
-      '<button type="button" class="ui-botao vidro largo" id="editarNome">Editar nome</button>' +
-      '<button type="button" class="ui-botao vidro largo" id="trocaCapa">Capa</button>' +
+      // Editar nome + botão redondo de foto/capa ao lado (mesmo padrão do editor de ideia).
+      '<div class="ideia-acoes"><button type="button" class="ui-botao vidro" id="editarNome">Editar nome</button>' +
+        '<button type="button" class="ui-botao vidro ideia-capa-bt" id="trocaCapa" aria-label="Trocar capa">' + icone("imagem") + '</button></div>' +
       '<button type="button" class="ui-botao vidro largo perigo" id="excluir">Excluir receita</button>' +
       '<button type="button" class="ui-botao preto largo" id="fechar">Fechar</button>';
     document.body.append(veu, f);
@@ -150,8 +152,9 @@ function detalhe(el, r, abertas){
     // Capa: escolher um degradê (ou voltar ao automático, que segue o nome).
     f.querySelector("#trocaCapa").addEventListener("click", function(){
       fecha();
-      escolheCapa({titulo:"Capa", semente:r.nome, atual:r.capa && r.capa.indexOf("paleta:") === 0 ? r.capa : "",
-        aoEscolher:function(valor){ if (valor) r.capa = valor; else delete r.capa; salva(); redesenha(); }});
+      escolheCapa({titulo:"Capa", semente:r.nome, atual:r.capa || "",
+        aoEscolher:function(valor){ const antes = r.capa; if (valor) r.capa = valor; else delete r.capa;
+          if (!salva()){ if (antes) r.capa = antes; else delete r.capa; alert("A foto é grande demais para guardar. Tente outra."); } redesenha(); }});
     });
     f.querySelector("#excluir").addEventListener("click", async function(){
       fecha();
@@ -218,6 +221,7 @@ function pronta(el, r){
       '</details></section>' +
     '</div></div>';
 
+  aplicaTom(el, r.nome, r.capa);
   const elLote = el.querySelector("#lote");
   function desenha(foco){
     const f = alvo / base;

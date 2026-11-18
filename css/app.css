@@ -811,3 +811,148 @@ body.calc-capa.calcui .calc-abrir,body.calc-capa.calcui #estilo .ui-filtro:not([
 .ui-abas a svg{transition:transform .25s ease}
 .ui-abas a[aria-current="page"] svg{transform:scale(1.08)}
 @media (prefers-reduced-motion: reduce){.abas-indicador,.ui-abas a svg{transition:none}}
+
+/* Folhas: ✕ redondo no canto superior direito no lugar do botão "Fechar" */
+.ui-folha{position:fixed}
+.ui-folha .folha-fechar{position:absolute; top:12px; right:16px; width:32px; height:32px; background:var(--ui-vidro-claro); box-shadow:none}
+.ui-folha .folha-fechar svg{width:12px !important; height:12px !important}
+.ui-folha > h2{padding-right:40px}
+.ui-folha #fechar,.ui-folha #fechaAjustes,.ui-folha .capa-rodape{display:none !important}
+.ui-folha .puxador{cursor:grab; touch-action:none}
+
+/* Seletor de capa: 4 por linha; 1º quadro = enviar foto */
+.capa-grade{grid-template-columns:repeat(4,1fr); gap:8px}
+.capa-op{padding:6px; font-size:10px}
+.capa-op span{line-height:1.15}
+.capa-enviar{background:var(--ui-vidro-claro); color:var(--ui-tinta); flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center}
+.capa-enviar::before{display:none}
+.capa-enviar svg{width:22px; height:22px}
+/* Abas com a mesma largura (ícones igualmente espaçados, como no iOS) */
+.ui-abas a{flex:1 1 0; padding:0 4px}
+/* Ícones das abas na escala natural dos SF Symbols (mesmo fator para todos = mesmo peso visual), centrados numa linha de 26px */
+.ui-abas a[data-aba="home"] svg{width:24.5px; height:21.6px; margin:2.2px 0}
+.ui-abas a[data-aba="ideias"] svg{width:21.4px; height:32.9px; margin:-3.4px 0}
+.ui-abas a[data-aba="calculadora"] svg{width:17.2px; height:22.0px; margin:2.0px 0}
+.ui-abas a[data-aba="receitas"] svg{width:22.8px; height:19.1px; margin:3.5px 0}
+.ui-abas a[data-aba="biblioteca"] svg{width:25.3px; height:23.4px; margin:1.3px 0}
+.ui-abas a[aria-current="page"] svg{transform:scale(1.04)}
+/* Barra de abas mais transparente (vidro): deixa o conteúdo aparecer por trás, com desfoque */
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{background:rgba(255,255,255,.62) !important; -webkit-backdrop-filter:blur(24px) saturate(1.8); backdrop-filter:blur(24px) saturate(1.8)}
+/* Mesmo tom para os controles de vidro claro dentro dos painéis e direto sobre a capa:
+   dentro do painel (que já escurece 12%) o branco precisa ser um pouco mais forte para dar o mesmo resultado */
+:root{--ui-vidro-interno-painel:rgba(255,255,255,.24)}
+.ui-vidro-escuro .ui-botao.vidro-escuro,.ui-vidro-escuro .ui-botao.vidro,.ui-vidro-escuro .ui-etiqueta:not(.final),.ui-vidro-escuro .rec-seta,
+.ui-vidro-escuro .rec-tamanhos button:not([aria-pressed="true"]),.ui-vidro-escuro .rec-outro,.ui-vidro-escuro .lote-chips button:not([aria-pressed="true"]),
+.ui-vidro-escuro .ui-opcoes,.ui-vidro-escuro .lote-obs-campo,.ui-vidro-escuro .ideia-campo,
+body.calc-capa.calcui .ui-tela .ui-cartao .campo-g,body.calc-capa.calcui .ui-tela .ui-cartao .calc-seta,body.calc-capa.calcui .ui-tela .ui-cartao .info,
+body.calc-capa.calcui .ui-tela .ui-cartao .ui-botao.vidro,body.calc-capa.calcui .ui-tela .ui-cartao .ui-botao.vidro-escuro,
+body.calc-capa.calcui .ui-tela .ui-cartao #modoExcluir.ui-botao.vidro.perigo{background:var(--ui-vidro-interno-painel) !important}
+/* Brilho mais suave nos elementos escuros sólidos (filtro escolhido, botão preto): o branco forte ficava exagerado no preto */
+:root{--ui-brilho-escuro:inset 0 1px 1px rgba(255,255,255,.22), inset 0 -1px 1px rgba(255,255,255,.06)}
+.ui-filtro[aria-pressed="true"],.ui-botao.preto,.ui-opcoes button[aria-pressed="true"]{box-shadow:var(--ui-brilho-escuro), var(--ui-sombra)}
+body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui .ui-tela .ui-botao.preto,body.calc-capa .calc-nome .ui-botao.preto,
+body.calc-capa.calcui #estilo .ui-filtro[aria-pressed="true"]{box-shadow:var(--ui-brilho-branco), var(--ui-sombra)}
+.rec-painel .ui-opcoes button[aria-pressed="true"]{box-shadow:var(--ui-brilho-branco)}
+.nova-ideia .ui-rotulo{margin-bottom:-6px; color:var(--ui-texto2)}
+.nova-ideia .ideia-capa-bt{background:var(--ui-vidro-claro) !important; color:var(--ui-tinta)}
+/* Folhas: botões de ação (Cancelar / Salvar) sempre embaixo, lado a lado */
+.ui-folha .acoes{order:99; display:flex; gap:var(--ui-e2); margin-top:var(--ui-e1)}
+.ui-folha .acoes > *{flex:1}
+/* Nome do rascunho com lápis ao lado */
+body.calcui .calc-nome-edita{display:flex; align-items:flex-start; gap:6px}
+body.calcui .calc-nome-edita .calc-nome-campo{flex:0 1 auto; width:auto; min-width:40px; field-sizing:content}
+.calc-lapis{flex:none; display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; padding:0; border:0; background:none; color:rgba(255,255,255,.8); cursor:pointer}
+.calc-lapis svg{width:14px; height:14px}
+.calc-lapis[hidden]{display:none}
+.calc-nome-medida{position:absolute; visibility:hidden; white-space:pre; font-size:var(--ui-t-cartao); font-weight:600; pointer-events:none}
+body.calcui .calc-nome-edita{position:relative}
+body.calcui .calc-nome-edita .calc-nome-campo{field-sizing:fixed}
+/* Folhas: espaçamento padronizado — 16px entre blocos, 8px do rótulo até o campo */
+.ui-folha{gap:var(--ui-e4)}
+body.calcui .ui-folha label.ui-sec,.ui-folha > label.ui-sec,.ui-folha > .ui-rotulo{margin:0 0 calc(var(--ui-e2) - var(--ui-e4))}
+body.calcui .ui-folha #campoNomeNova{gap:var(--ui-e2)}
+body.calcui .ui-folha #campoNomeNova label.ui-sec{margin:0}
+.ui-folha .acoes{margin-top:0}
+body.calcui .ui-folha #campoNomeNova{margin:0}
+/* O medidor do nome não pode alargar a página */
+.calc-nome-medida{left:0; top:0; max-width:none}
+body.calcui .calc-nome-edita{overflow:hidden}
+/* Regra: elementos dentro de cartões/painéis não têm brilho de borda (só os que ficam soltos na tela) */
+:is(.ui-cartao,.ui-bloco,.rec-painel) :is(.ui-botao,.ui-redondo,.ui-filtro,.rec-tamanhos button,.rec-outro,.lote-chips button,.calc-abrir){box-shadow:var(--ui-sombra) !important}
+:is(.ui-cartao,.ui-bloco,.rec-painel) :is(.ui-etiqueta,.receitas-selo,.rec-seta,.calc-seta,.campo-g,.ui-opcoes,.ui-opcoes button,.info){box-shadow:none !important}
+/* Telas com fundo de capa/degradê: nenhum botão leva brilho de borda (fica só a sombra) */
+:is(body.rec,body.calc-capa) :is(.ui-botao,.ui-redondo,.ui-filtro,.calc-abrir,.rec-tamanhos button,.rec-outro,.lote-chips button){box-shadow:var(--ui-sombra) !important}
+:is(body.rec,body.calc-capa) :is(.ui-etiqueta,.rec-seta,.ui-opcoes){box-shadow:none !important}
+/* Pílulas de peso (gramas) com a sombra padrão */
+body.calcui .campo-g,body.calc-capa.calcui .ui-tela .ui-cartao .campo-g{box-shadow:var(--ui-sombra) !important}
+/* Gráficos com a sombra padrão (trilho das barras da Calculadora e do widget da Home) */
+body.calcui .bar,.ui-faixa.mini .trilho{box-shadow:var(--ui-sombra)}
+/* Bolinhas ˅ de abrir/fechar são botões: mesma sombra dos outros botões */
+.rec-seta,body.calcui .calc-seta,:is(.ui-cartao,.ui-bloco,.rec-painel) :is(.rec-seta,.calc-seta),:is(body.rec,body.calc-capa) .rec-seta{box-shadow:var(--ui-sombra) !important}
+/* Etiquetas também com a sombra padrão (em todo lugar, sem brilho) */
+.ui-etiqueta,.receitas-selo,:is(.ui-cartao,.ui-bloco,.rec-painel) :is(.ui-etiqueta,.receitas-selo),:is(body.rec,body.calc-capa) .ui-etiqueta{box-shadow:var(--ui-sombra) !important}
+/* Caixas de texto dentro de cartões: mesma cor dos botões de vidro do mesmo lugar */
+.ui-cartao .ui-campo,.ui-cartao .campo-branco,.ui-cartao .ing-num,.ui-folha .ui-campo{background:var(--ui-vidro-claro) !important}
+.ui-vidro-escuro :is(.ideia-campo,.lote-obs-campo,.rec-nota-campo,.rec-outro,textarea,input),body.rec #preparo.rec-preparo,
+body.calc-capa.calcui .ui-tela .ui-cartao :is(.campo-g,textarea,input:not([type=checkbox])){background:var(--ui-vidro-interno-painel) !important}
+body.calcui .calc-nome-campo{background:transparent !important}
+/* Vidro sobre capa = tom claro da própria capa (--ui-tom, definido por tela/cartão); sem capa, cai no branco translúcido */
+*{--ui-vidro-interno:var(--ui-tom, rgba(255,255,255,.16)); --ui-vidro-interno-painel:var(--ui-tom, rgba(255,255,255,.24))}
+body.calc-capa.calcui .ui-tela .ui-cartao .calc-nome-campo,body.calc-capa.calcui .ui-tela .ui-cartao .campo-g input{background:transparent !important}
+body.calcui .ui-tela .calc-nome .calc-nome-edita textarea.calc-nome-campo{background:transparent !important}
+.ui-vidro-escuro .rec-outro input,.ui-vidro-escuro .lote-real input,.ui-vidro-escuro .calc-nome-campo{background:transparent !important}
+/* Elementos pretos sólidos: sem efeito de luz (só a sombra) */
+.ui-filtro[aria-pressed="true"],.ui-botao.preto,.ui-opcoes button[aria-pressed="true"]{box-shadow:var(--ui-sombra) !important}
+body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui .ui-tela .ui-botao.preto,body.calc-capa .calc-nome .ui-botao.preto{box-shadow:var(--ui-sombra) !important}
+/* Seletores com pílula deslizante */
+.ui-filtros,.ui-opcoes{position:relative}
+.seletor-ind{position:absolute; left:0; top:0; border-radius:var(--ui-r-pilula); pointer-events:none; z-index:0; box-shadow:var(--ui-sombra);
+  transition:transform .42s cubic-bezier(.3,1.4,.5,1), width .42s cubic-bezier(.3,1.4,.5,1), height .42s ease}
+.tem-ind > :not(.seletor-ind){position:relative; z-index:1}
+.tem-ind > [aria-pressed="true"]{background:transparent !important; box-shadow:none !important; border-color:transparent !important}
+@media (prefers-reduced-motion: reduce){.seletor-ind{transition:none}}
+/* Cor da pílula deslizante por contexto: preta no fundo claro; branca sobre capa/painel escuro */
+.seletor-ind{background:var(--ui-tinta)}
+:is(body.calc-capa,body.rec) .seletor-ind,.rec-painel .seletor-ind,.ui-vidro-escuro .seletor-ind{background:#fff}
+.ui-folha .seletor-ind{background:var(--ui-tinta)}
+.ui-folha .ideia-capa-bt{background:var(--ui-vidro-claro) !important; color:var(--ui-tinta)}
+/* Temas do Estudo: um por linha, cartões finos */
+.temas-lista{display:flex; flex-direction:column; gap:var(--ui-e2)}
+.temas-lista .tema-bloco{min-height:64px; justify-content:center; padding:var(--ui-e3) var(--ui-e4)}
+.temas-lista .tema-bloco .titulo{font-size:var(--ui-t-cartao) !important}
+.temas-lista{gap:var(--ui-e3)}
+/* Seções do Estudo sobre a capa da seção: cabeçalho branco, busca e temas em vidro */
+body.est-capa{background:transparent}
+body.est-capa .ui-cabecalho h1,body.est-capa .estudo-desc,body.est-capa .ing-sec{color:#fff}
+body.est-capa .estudo-desc{color:rgba(255,255,255,.85)}
+body.est-capa #buscaEstudo{background:var(--ui-tom, rgba(255,255,255,.24)) !important; color:#fff; box-shadow:none}
+body.est-capa #buscaEstudo::placeholder{color:rgba(255,255,255,.75)}
+body.est-capa .ui-redondo.escuro{box-shadow:var(--ui-sombra) !important}
+body.est-capa .temas-lista .tema-bloco{background:var(--ui-vidro-escuro) !important; -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4); box-shadow:var(--ui-sombra) !important}
+body.est-capa .temas-lista .tema-bloco::before{display:none}
+body.est-capa .ui-cartao.ui-vidro{background:var(--ui-vidro-escuro); color:#fff}
+body.est-capa .ui-cartao.ui-vidro .ui-sec,body.est-capa .estudo-cab .ui-sec{color:rgba(255,255,255,.8)}
+body.est-capa .estudo-linha{color:#fff}
+body.est-capa .ui-abas{background:rgba(255,255,255,.62)}
+#buscaEstudo[hidden]{display:none}
+/* Teste: fundos de capa sem o véu escuro (cor real do degradê) */
+.rec-fundo::after,body.calc-capa .calc-fundo::after{display:none !important}
+/* Texto do tema sobre vidro escuro: branco, tabelas com linhas claras */
+body.est-capa .tema-texto{color:#fff}
+body.est-capa .tema-texto td,body.est-capa .tema-texto th{border-bottom-color:rgba(255,255,255,.18)}
+body.est-capa .tema-texto a{color:#fff; text-decoration:underline}
+body.est-capa .tema-texto table,body.est-capa .tema-texto th{background:transparent !important; color:#fff}
+body.est-capa .tema-texto .tabela-rolagem{background:var(--ui-tom, rgba(255,255,255,.16)) !important; border-color:transparent !important}
+body.est-capa .tema-texto .tabela-rolagem *{color:#fff}
+body.est-capa .tema-texto td,body.est-capa .tema-texto th,body.est-capa .tema-texto tr{border:0 !important}
+/* Tabela = mesmo vidro das etiquetas (tom da capa + desfoque + sombra) */
+body.est-capa .tema-texto .tabela-rolagem{-webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque); box-shadow:var(--ui-sombra); border-radius:var(--ui-r-medio)}
+/* Tabelas do Estudo: respiro de 12px nas laterais, 8px por linha, valores à direita */
+.tema-texto .tabela-rolagem{padding:var(--ui-e2) var(--ui-e3); margin:var(--ui-e1) 0 var(--ui-e4)}
+.tema-texto td,.tema-texto th{padding:var(--ui-e2) var(--ui-e1) !important; font-size:var(--ui-t-sec)}
+.tema-texto th{font-weight:600}
+.tema-texto td:last-child,.tema-texto th:last-child{text-align:right}
+/* Seletor de capa: títulos de seção (Fotos / Degradês) ocupando a linha toda */
+.capa-sec{grid-column:1/-1; font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto2); margin-top:var(--ui-e2)}
+.capa-sec:first-child{margin-top:0}
+.capa-op{background-size:cover !important; background-position:center !important}

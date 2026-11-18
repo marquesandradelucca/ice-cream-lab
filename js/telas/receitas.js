@@ -1,8 +1,8 @@
 // Receitas (redesign): testes e finais juntos, com filtro Todas / Em teste / Finais.
 // Rotas: #/receitas, #/receitas/teste, #/receitas/finais (o filtro fica no endereço para o voltar lembrar).
-import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261118040421";
-import { NOMES_ESTILO } from "../calculo.js?v=20261118040421";
-import { icone, capa, estrelas } from "../visual.js?v=20261118040421";
+import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261118132934";
+import { NOMES_ESTILO } from "../calculo.js?v=20261118132934";
+import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261118132934";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
@@ -79,7 +79,7 @@ export function render(el, rota){
       else if (avaliado) extra = estrelas(avaliado.avaliacao.nota);
       else if (!ultimo) info += ' · sem lote';
       const href = "#/receita/" + encodeURIComponent(r.id) + (x.final ? "/pronta" : "");
-      return '<a class="ui-bloco receitas-cartao" href="' + href + '" style="--capa:' + capa(r.nome, r.capa) + '">' +
+      return '<a class="ui-bloco receitas-cartao" href="' + href + '" style="--capa:' + capa(r.nome, r.capa) + ';--ui-tom:' + (tomVidro(r.nome, r.capa) || 'rgba(255,255,255,.24)') + '">' +
         '<span class="titulo">' + esc(r.nome) + '</span>' +
         '<span class="ui-sec receitas-info">' + esc(info) + extra + '</span>' +
         // Etiquetas lado a lado: situação (Final/Teste) e selos (com leite / vegana).
