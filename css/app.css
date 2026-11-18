@@ -964,3 +964,5 @@ html{min-height:100%}
 body{min-height:calc(100vh + env(safe-area-inset-top,0px))}
 /* Ícones das abas: sem corte nas bordas do desenho */
 .ui-abas a svg{overflow:visible}
+/* Fileira de filtros: espaço maior embaixo para a sombra não ser cortada */
+.estudo-filtros{padding-bottom:20px; margin-bottom:-20px}
