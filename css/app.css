@@ -956,3 +956,10 @@ body.est-capa .tema-texto .tabela-rolagem{-webkit-backdrop-filter:var(--ui-desfo
 .capa-sec{grid-column:1/-1; font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto2); margin-top:var(--ui-e2)}
 .capa-sec:first-child{margin-top:0}
 .capa-op{background-size:cover !important; background-position:center !important}
+/* App instalado: barra de status transparente (ícones brancos do iOS). Nas telas de fundo branco,
+   um véu cinza suave atrás do relógio/bateria para os ícones aparecerem. */
+@media (display-mode: standalone){
+body.ui:not(.rec):not(.calc-capa):not(.est-capa)::before{content:""; position:fixed; left:0; right:0; top:0; z-index:30; pointer-events:none;
+  height:calc(env(safe-area-inset-top,0px) + 12px);
+  background:linear-gradient(180deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,.14) 60%, rgba(0,0,0,0) 100%)}
+}
