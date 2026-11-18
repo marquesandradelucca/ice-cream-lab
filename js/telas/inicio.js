@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118175617";
-import { abreAjustes } from "./ajustes.js?v=20261118175617";
-import { dataCurta } from "./lote.js?v=20261118175617";
-import { icone, capa, tomVidro } from "../visual.js?v=20261118175617";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118175959";
+import { abreAjustes } from "./ajustes.js?v=20261118175959";
+import { dataCurta } from "./lote.js?v=20261118175959";
+import { icone, capa, tomVidro } from "../visual.js?v=20261118175959";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }

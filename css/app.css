@@ -914,7 +914,7 @@ body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui
 /* Cor da pílula deslizante por contexto: preta no fundo claro; branca sobre capa/painel escuro */
 .seletor-ind{background:var(--ui-tinta)}
 :is(body.calc-capa,body.rec) .seletor-ind,.rec-painel .seletor-ind,.ui-vidro-escuro .seletor-ind{background:#fff}
-.ui-folha .seletor-ind{background:var(--ui-tinta)}
+body .ui-folha .seletor-ind{background:var(--ui-tinta) !important}
 .ui-folha .ideia-capa-bt{background:var(--ui-vidro-claro) !important; color:var(--ui-tinta)}
 /* Temas do Estudo: um por linha, cartões finos */
 .temas-lista{display:flex; flex-direction:column; gap:var(--ui-e2)}
