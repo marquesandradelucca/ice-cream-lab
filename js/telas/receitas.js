@@ -1,8 +1,8 @@
 // Receitas (redesign): testes e finais juntos, com filtro Todas / Em teste / Finais.
 // Rotas: #/receitas, #/receitas/teste, #/receitas/finais (o filtro fica no endereço para o voltar lembrar).
-import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261118180656";
-import { NOMES_ESTILO } from "../calculo.js?v=20261118180656";
-import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261118180656";
+import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261118181457";
+import { NOMES_ESTILO } from "../calculo.js?v=20261118181457";
+import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261118181457";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
@@ -90,12 +90,13 @@ export function render(el, rota){
   const filtroBtn = function(id, nome){ return '<a class="ui-filtro" href="#/receitas' + (id === "todas" ? "" : "/" + id) + '" aria-pressed="' + (filtro === id) + '">' + nome + '</a>'; };
   el.innerHTML =
     '<div class="ui-app">' +
-    '<header class="ui-cabecalho"><h1>Receitas</h1>' +
+    '<header class="ui-cabecalho com-extras"><h1>Receitas</h1>' +
       '<button class="ui-redondo" type="button" id="buscar" aria-label="Buscar receita">' + icone("buscar") + '</button>' +
-      '<a class="ui-redondo" href="#/calculadora" aria-label="Nova receita">' + icone("mais") + '</a></header>' +
-    '<div class="ui-tela">' +
+      '<a class="ui-redondo" href="#/calculadora" aria-label="Nova receita">' + icone("mais") + '</a>' +
       '<input id="campoBusca" class="ui-campo" type="search" placeholder="Buscar receita" aria-label="Buscar receita" value="' + esc(busca) + '"' + (busca ? '' : ' hidden') + '>' +
       '<div class="ui-filtros estudo-filtros">' + filtroBtn("todas", "Todas") + filtroBtn("teste", "Em teste") + filtroBtn("finais", "Finais") + filtroBtn("leite", "Com leite") + filtroBtn("vegana", "Veganas") + '</div>' +
+    '</header>' +
+    '<div class="ui-tela">' +
       '<div id="lista" class="receitas-lista"></div>' +
     '</div></div>';
 
