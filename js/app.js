@@ -1,20 +1,20 @@
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261118134917";
-import { iniciaSync } from "./sync.js?v=20261118134917";
-import * as inicio from "./telas/inicio.js?v=20261118134917";
-import * as calculadora from "./telas/calculadora.js?v=20261118134917";
-import * as ingredientes from "./telas/ingredientes.js?v=20261118134917";
-import * as embreve from "./telas/embreve.js?v=20261118134917";
-import * as receitas from "./telas/receitas.js?v=20261118134917";
-import * as receita from "./telas/receita.js?v=20261118134917";
-import * as testes from "./telas/testes.js?v=20261118134917";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261118134917";
-import * as loteTela from "./telas/lote.js?v=20261118134917";
-import * as estudo from "./telas/estudo.js?v=20261118134917";
-import * as ideias from "./telas/ideias.js?v=20261118134917";
-import * as ajustes from "./telas/ajustes.js?v=20261118134917";
-import * as biblioteca from "./telas/biblioteca.js?v=20261118134917";
-import * as guia from "./telas/guia.js?v=20261118134917";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261118135627";
+import { iniciaSync } from "./sync.js?v=20261118135627";
+import * as inicio from "./telas/inicio.js?v=20261118135627";
+import * as calculadora from "./telas/calculadora.js?v=20261118135627";
+import * as ingredientes from "./telas/ingredientes.js?v=20261118135627";
+import * as embreve from "./telas/embreve.js?v=20261118135627";
+import * as receitas from "./telas/receitas.js?v=20261118135627";
+import * as receita from "./telas/receita.js?v=20261118135627";
+import * as testes from "./telas/testes.js?v=20261118135627";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261118135627";
+import * as loteTela from "./telas/lote.js?v=20261118135627";
+import * as estudo from "./telas/estudo.js?v=20261118135627";
+import * as ideias from "./telas/ideias.js?v=20261118135627";
+import * as ajustes from "./telas/ajustes.js?v=20261118135627";
+import * as biblioteca from "./telas/biblioteca.js?v=20261118135627";
+import * as guia from "./telas/guia.js?v=20261118135627";
 
 const TELAS = {
   "": inicio,
@@ -42,21 +42,56 @@ export function atualizaVoltar(href, rotulo){
 
 // Topo: "Ice Cream Lab" sempre visível e leva à home. Logo abaixo, o voltar
 // sobe para a tela de cima (com o nome do destino) e o título da tela.
+// Nível de cada tela no mapa do app (para a animação de troca: entrar = push, voltar = pop, abas = troca).
+const ABAS = {"":1, ideias:1, calculadora:1, receitas:1, biblioteca:1, testes:1};
+function nivelDe(nome, args){
+  if (nome === "receita") return args[1] === "pronta" ? 2 : 1;
+  if (nome === "lote") return 2;
+  if (nome === "calculadora") return args[0] === "v" ? 2 : 0;
+  if (nome === "ideias") return args[0] ? 1 : 0;
+  if (nome === "ingredientes") return args[0] ? 2 : 1;
+  if (nome === "estudo") return !args[0] ? 1 : args[0] === "grupo" ? 1 : 2;
+  return ABAS[nome] ? 0 : 1;
+}
+let anterior = null;   // {nome, nivel, chave}
+function direcao(atual){
+  if (!anterior) return "nenhuma";
+  if (anterior.chave === atual.chave) return "nenhuma";
+  if (atual.nivel > anterior.nivel) return "push";   // entrar (mesmo vindo de outra aba, ex.: Home › receita)
+  if (anterior.aba !== atual.aba) return "aba";   // mudou de aba: esmaecimento, como no iOS
+  if (atual.nivel < anterior.nivel) return "pop";
+  if (atual.nivel === 0) return anterior.nome === atual.nome ? "nenhuma" : "aba";   // filtro da mesma aba: sem animação
+  return "push";
+}
+
 function rota(){
   const partes = location.hash.replace(/^#\/?/, "").split("/");
   const nome = partes[0] || "";
-  const tela = TELAS[nome] || inicio;
-  if (typeof limpa === "function") limpa();
-  elTela.innerHTML = "";
-  window.scrollTo(0, 0);
-  const res = tela.render(elTela, {area:nome, args:partes.slice(1)}) || {};
-  elTitulo.textContent = res.titulo || "";
-  document.title = res.titulo && nome ? res.titulo + " · Ice Cream Lab" : "Ice Cream Lab";
-  elVoltar.hidden = !nome;
-  if (nome) atualizaVoltar(res.voltar, res.voltarRotulo);
-  else elTitulo.hidden = true;
-  limpa = res.limpa || null;
-  marcaAba(nome, partes[1]);
+  const args = partes.slice(1);
+  const atual = {nome:nome, nivel:nivelDe(nome, args), chave:nome + "/" + (nivelDe(nome, args) ? args.join("/") : ""),
+    aba:nome === "calculadora" && args[0] === "v" ? "receitas" : (ABA_DA_ROTA[nome] || "home")};
+  const dir = direcao(atual);
+  anterior = atual;
+  const desenha = function(){
+    const tela = TELAS[nome] || inicio;
+    if (typeof limpa === "function") limpa();
+    elTela.innerHTML = "";
+    window.scrollTo(0, 0);
+    const res = tela.render(elTela, {area:nome, args:args}) || {};
+    elTitulo.textContent = res.titulo || "";
+    document.title = res.titulo && nome ? res.titulo + " · Ice Cream Lab" : "Ice Cream Lab";
+    elVoltar.hidden = !nome;
+    if (nome) atualizaVoltar(res.voltar, res.voltarRotulo);
+    else elTitulo.hidden = true;
+    limpa = res.limpa || null;
+    marcaAba(nome, partes[1]);
+  };
+  // Transição de telas estilo iOS (View Transitions do navegador); sem suporte, troca direta.
+  if (dir !== "nenhuma" && document.startViewTransition){
+    document.documentElement.dataset.nav = dir;
+    const t = document.startViewTransition(desenha);
+    t.finished.finally(function(){ delete document.documentElement.dataset.nav; });
+  } else desenha();
 }
 
 // Barra de abas: cada rota pertence a uma aba. O modo bancada do lote esconde as abas.

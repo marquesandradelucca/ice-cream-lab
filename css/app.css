@@ -966,3 +966,24 @@ body{min-height:calc(100vh + env(safe-area-inset-top,0px))}
 .ui-abas a svg{overflow:visible}
 /* Fileira de filtros: espaço maior embaixo para a sombra não ser cortada */
 .estudo-filtros{padding-bottom:20px; margin-bottom:-20px}
+
+/* ===== Transição de telas (estilo iOS) ===== */
+.ui-abas{view-transition-name:abas}
+::view-transition-group(abas){animation:none}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.38s; animation-timing-function:cubic-bezier(.2,.8,.2,1); mix-blend-mode:normal}
+/* Entrar (push): a nova vem da direita; a anterior recua um pouco e escurece */
+html[data-nav="push"]::view-transition-new(root){animation-name:vt-entra-dir; z-index:2}
+html[data-nav="push"]::view-transition-old(root){animation-name:vt-recua-esq; z-index:1}
+/* Voltar (pop): a atual sai pela direita; a anterior volta da esquerda */
+html[data-nav="pop"]::view-transition-old(root){animation-name:vt-sai-dir; z-index:2}
+html[data-nav="pop"]::view-transition-new(root){animation-name:vt-volta-esq; z-index:1}
+/* Troca de aba: esmaecimento curto */
+html[data-nav="aba"]::view-transition-old(root),html[data-nav="aba"]::view-transition-new(root){animation-duration:.16s; animation-timing-function:ease}
+@keyframes vt-entra-dir{from{transform:translateX(100%)}}
+@keyframes vt-recua-esq{to{transform:translateX(-30%); filter:brightness(.88)}}
+@keyframes vt-sai-dir{to{transform:translateX(100%)}}
+@keyframes vt-volta-esq{from{transform:translateX(-30%); filter:brightness(.88)}}
+@media (prefers-reduced-motion: reduce){
+  ::view-transition-old(root),::view-transition-new(root){animation:vt-esmaece .15s ease both !important}
+}
+@keyframes vt-esmaece{from{opacity:0}}
