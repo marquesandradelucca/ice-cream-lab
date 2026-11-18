@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118174125";
-import { abreAjustes } from "./ajustes.js?v=20261118174125";
-import { dataCurta } from "./lote.js?v=20261118174125";
-import { icone, capa, tomVidro } from "../visual.js?v=20261118174125";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118175051";
+import { abreAjustes } from "./ajustes.js?v=20261118175051";
+import { dataCurta } from "./lote.js?v=20261118175051";
+import { icone, capa, tomVidro } from "../visual.js?v=20261118175051";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }
@@ -44,13 +44,17 @@ export function render(el){
       '<span class="ui-sec">Lote de ' + dataCurta(l.inicio) + ' · no freezer ' + diasDesde(l.inicio) + '</span></section>';
   }
 
-  // Receitas: todas, das mexidas mais recentemente para as mais antigas.
+  // Receitas: finais primeiro, depois os testes; dentro de cada grupo, das mexidas mais recentemente.
   const ultimaData = function(r){ const vs = versoesDe(r.id); return vs.length ? vs[vs.length - 1].data : ""; };
-  const receitas = db.receitas.slice().sort(function(a, b){ return ultimaData(b).localeCompare(ultimaData(a)); });
+  const ehFinal = function(r){ return !!(r.status === "final" && r.versaoFinal && versao(r.versaoFinal)); };
+  const receitas = db.receitas.slice().sort(function(a, b){
+    if (ehFinal(a) !== ehFinal(b)) return ehFinal(a) ? -1 : 1;
+    return ultimaData(b).localeCompare(ultimaData(a));
+  });
   const faixa = receitas.length ? '<div class="ui-rolagem">' + receitas.map(function(r){
     const final = r.status === "final" && r.versaoFinal && versao(r.versaoFinal);
     const href = "#/receita/" + encodeURIComponent(r.id) + (final ? "/pronta" : "");
-    return '<a class="ui-bloco pequeno home-capa" href="' + href + '" style="--capa:' + capa(r.nome, r.capa) + '"><span class="titulo">' + esc(r.nome) + '</span></a>';
+    return '<a class="ui-bloco pequeno home-capa" href="' + href + '" style="--capa:' + capa(r.nome, r.capa) + '"><span class="ui-etiqueta' + (final ? ' final' : '') + '">' + (final ? 'Final' : 'Teste') + '</span><span class="titulo">' + esc(r.nome) + '</span></a>';
   }).join("") + '</div>' : '<p class="ui-sec">Nenhuma receita ainda. Comece pela Calculadora.</p>';
 
   const paraTestar = db.ideias.filter(function(x){ return !x.receitaId; }).length;

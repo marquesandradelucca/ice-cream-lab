@@ -1026,3 +1026,5 @@ body:has(#tela.arrastando){background:#d9d9d6}
 /* Cartões com capa e quadros do seletor: véu bem suave (multiply 10%) */
 .ui-bloco::before,.capa-op::before{display:block !important; background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.10)) !important; mix-blend-mode:multiply}
 .ui-veu,.confirma-veu{background:transparent !important}
+/* Home: etiqueta Final/Teste no canto dos cartões de receita */
+.home-capa .ui-etiqueta{position:absolute; top:8px; left:8px; z-index:1}
