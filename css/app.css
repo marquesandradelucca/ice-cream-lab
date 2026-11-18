@@ -928,7 +928,7 @@ body.est-capa .estudo-desc{color:rgba(255,255,255,.85)}
 body.est-capa #buscaEstudo{background:var(--ui-tom, rgba(255,255,255,.24)) !important; color:#fff; box-shadow:none}
 body.est-capa #buscaEstudo::placeholder{color:rgba(255,255,255,.75)}
 body.est-capa .ui-redondo.escuro{box-shadow:var(--ui-sombra) !important}
-body.est-capa .temas-lista .tema-bloco{background:var(--ui-vidro-escuro) !important; -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4); box-shadow:var(--ui-sombra) !important}
+body.est-capa .temas-lista .tema-bloco{background:var(--ui-vidro-escuro) !important; box-shadow:var(--ui-sombra) !important}
 body.est-capa .temas-lista .tema-bloco::before{display:none}
 body.est-capa .ui-cartao.ui-vidro{background:var(--ui-vidro-escuro); color:#fff}
 body.est-capa .ui-cartao.ui-vidro .ui-sec,body.est-capa .estudo-cab .ui-sec{color:rgba(255,255,255,.8)}
