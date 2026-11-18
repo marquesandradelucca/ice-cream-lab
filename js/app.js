@@ -1,28 +1,29 @@
-// App instalado: guarda a altura real da tela para posicionar a barra de abas (ver css/app.css).
+// App instalado: marca a página para o <body> ser quem rola (ver css/app.css).
 (function(){
   const inst = window.navigator.standalone || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
   if (!inst) return;
   const r = document.documentElement; r.classList.add("instalado");
-  const mede = function(){ const h = Math.abs(window.orientation) === 90 ? screen.width : screen.height; r.style.setProperty("--tela-h", h + "px"); };
-  mede(); window.addEventListener("orientationchange", mede);
+  // Quem rola é o <body>: "voltar ao topo" precisa zerar ele também.
+  const rolaJanela = window.scrollTo.bind(window);
+  window.scrollTo = function(x, y){ rolaJanela.apply(null, arguments); if (typeof y === "number") document.body.scrollTop = y; };
 })();
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261118185959";
-import { iniciaSync } from "./sync.js?v=20261118185959";
-import * as inicio from "./telas/inicio.js?v=20261118185959";
-import * as calculadora from "./telas/calculadora.js?v=20261118185959";
-import * as ingredientes from "./telas/ingredientes.js?v=20261118185959";
-import * as embreve from "./telas/embreve.js?v=20261118185959";
-import * as receitas from "./telas/receitas.js?v=20261118185959";
-import * as receita from "./telas/receita.js?v=20261118185959";
-import * as testes from "./telas/testes.js?v=20261118185959";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261118185959";
-import * as loteTela from "./telas/lote.js?v=20261118185959";
-import * as estudo from "./telas/estudo.js?v=20261118185959";
-import * as ideias from "./telas/ideias.js?v=20261118185959";
-import * as ajustes from "./telas/ajustes.js?v=20261118185959";
-import * as biblioteca from "./telas/biblioteca.js?v=20261118185959";
-import * as guia from "./telas/guia.js?v=20261118185959";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261118190614";
+import { iniciaSync } from "./sync.js?v=20261118190614";
+import * as inicio from "./telas/inicio.js?v=20261118190614";
+import * as calculadora from "./telas/calculadora.js?v=20261118190614";
+import * as ingredientes from "./telas/ingredientes.js?v=20261118190614";
+import * as embreve from "./telas/embreve.js?v=20261118190614";
+import * as receitas from "./telas/receitas.js?v=20261118190614";
+import * as receita from "./telas/receita.js?v=20261118190614";
+import * as testes from "./telas/testes.js?v=20261118190614";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261118190614";
+import * as loteTela from "./telas/lote.js?v=20261118190614";
+import * as estudo from "./telas/estudo.js?v=20261118190614";
+import * as ideias from "./telas/ideias.js?v=20261118190614";
+import * as ajustes from "./telas/ajustes.js?v=20261118190614";
+import * as biblioteca from "./telas/biblioteca.js?v=20261118190614";
+import * as guia from "./telas/guia.js?v=20261118190614";
 
 const TELAS = {
   "": inicio,
