@@ -960,8 +960,8 @@ body.est-capa .tema-texto .tabela-rolagem{-webkit-backdrop-filter:var(--ui-desfo
 
 /* App instalado (barra de status transparente): no iOS, páginas mais curtas que a tela deslocavam
    os elementos fixos (barra de abas e fundo de capa). Toda página ocupa pelo menos a tela inteira. */
-html{min-height:100%}
-body{min-height:100vh; min-height:100dvh}
+html{height:100%}
+body{min-height:100%}
 /* Ícones das abas: sem corte nas bordas do desenho */
 .ui-abas a svg{overflow:visible}
 /* Fileira de filtros: espaço maior embaixo para a sombra não ser cortada */
@@ -1050,5 +1050,19 @@ body:has(#tela.arrastando){background:#d9d9d6}
 .home-numero{font-size:calc(var(--ui-t-destaque) * .8)}
 .home-mini{gap:var(--ui-e2) !important; padding-top:var(--ui-e2)}
 .home-ingredientes{min-height:64px}
-.home-estudo{min-height:110px}
-.home-tela.com-avaliar .home-estudo{flex:1; min-height:72px}
+.home-estudo{min-height:96px}
+/* Com avaliação: o espaço que sobra vai para a linha Calculadora/Ideias/Ingredientes, não só para o Estudo */
+.home-tela.com-avaliar .home-par{flex:1}
+.home-tela.com-avaliar .home-ideias,.home-tela.com-avaliar .home-ingredientes{flex:1 1 0}
+/* Durante a transição: a barra de abas não faz fusão entre o estado antigo e o novo (gerava um retângulo
+   colorido atrás dela) e o blur do cabeçalho some até a animação terminar */
+::view-transition-old(abas){display:none}
+::view-transition-new(abas){animation:none}
+html[data-nav] .ui-cabecalho::before{display:none}
+/* Na transição, a foto da barra é recortada no formato da pílula: o blur não vaza como retângulo e a barra não muda de cor */
+::view-transition-group(abas){overflow:clip; border-radius:var(--ui-r-pilula)}
+/* Calculadora com capa: sem blur nos cartões e campos (sobre o degradê ele quase não aparece e causava flicker na entrada da tela); o menu flutuante mantém */
+body.calc-capa #tela *:not(.menu-lista){-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
+/* Estudo: cartões de tema iguais aos cartões da Calculadora (vidro com brilho nas bordas, sem véu) */
+body.est-capa .temas-lista .tema-bloco::before{display:none !important}
+body.est-capa .temas-lista .tema-bloco{border:1px solid transparent; border-radius:24px; box-shadow:var(--ui-brilho), var(--ui-sombra) !important}
