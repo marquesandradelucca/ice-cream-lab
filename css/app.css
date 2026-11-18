@@ -960,6 +960,6 @@ body.est-capa .tema-texto .tabela-rolagem{-webkit-backdrop-filter:var(--ui-desfo
    um véu cinza suave atrás do relógio/bateria para os ícones aparecerem. */
 @media (display-mode: standalone){
 body.ui:not(.rec):not(.calc-capa):not(.est-capa)::before{content:""; position:fixed; left:0; right:0; top:0; z-index:30; pointer-events:none;
-  height:calc(env(safe-area-inset-top,0px) + 12px);
+  height:env(safe-area-inset-top,0px);
   background:linear-gradient(180deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,.14) 60%, rgba(0,0,0,0) 100%)}
 }
