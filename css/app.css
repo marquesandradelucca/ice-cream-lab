@@ -1071,3 +1071,7 @@ body.est-capa .temas-lista .tema-bloco{border:1px solid transparent; border-radi
    Assim o iOS usa a tela inteira (barra de abas no lugar) e não sobra rolagem extra. */
 html.instalado{height:100%; overflow:hidden}
 html.instalado body{height:calc(100vh + env(safe-area-inset-top,0px)); min-height:0; overflow-y:auto; overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch}
+/* App instalado: o <body> é mais alto que a tela (altura da barra de status); a folga embaixo garante que o fim do conteúdo suba acima da barra de abas */
+html.instalado body{box-sizing:border-box; padding-bottom:env(safe-area-inset-top,0px)}
+/* Calculadora com capa: barras dos gráficos sem sombra (no iPhone a sombra aparecia como uma linha clara embaixo de algumas barras) */
+body.calc-capa .bar{box-shadow:none !important}
