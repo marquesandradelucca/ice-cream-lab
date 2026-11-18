@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261118191034";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261118191034";
-import { confirma, LAPIS } from "../ui.js?v=20261118191034";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261118191034";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261118191512";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261118191512";
+import { confirma, LAPIS } from "../ui.js?v=20261118191512";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261118191512";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
