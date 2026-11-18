@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118182402";
-import { abreAjustes } from "./ajustes.js?v=20261118182402";
-import { dataCurta } from "./lote.js?v=20261118182402";
-import { icone, capa, tomVidro } from "../visual.js?v=20261118182402";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118183116";
+import { abreAjustes } from "./ajustes.js?v=20261118183116";
+import { dataCurta } from "./lote.js?v=20261118183116";
+import { icone, capa, tomVidro } from "../visual.js?v=20261118183116";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }
@@ -33,16 +33,19 @@ export function render(el){
   // Lote esperando avaliação (o mais antigo primeiro).
   const aguardando = db.lotes.filter(function(l){ return l.status === "aguardando"; })
     .sort(function(a, b){ return a.inicio.localeCompare(b.inicio); });
-  let avaliar = "";
-  if (aguardando.length){
-    const l = aguardando[0], r = receita(l.receitaId), v = versao(l.versaoId);
+  // Um cartão por lote esperando; com mais de um, rolam para o lado.
+  const cartaoAvaliar = function(l){
+    const r = receita(l.receitaId), v = versao(l.versaoId);
     const nome = (r ? r.nome : "Receita") + (v ? " · v" + v.numero : "");
-    avaliar = '<section class="ui-bloco home-avaliar" style="--capa:' + capa(r ? r.nome : "", r && r.capa) + ';--ui-tom:' + ((r && tomVidro(r.nome, r.capa)) || 'rgba(255,255,255,.24)') + '">' +
-      '<span class="ui-rotulo home-avaliar-rotulo">Para avaliar' + (aguardando.length > 1 ? ' · ' + aguardando.length : '') + '</span>' +
+    return '<section class="ui-bloco home-avaliar" style="--capa:' + capa(r ? r.nome : "", r && r.capa) + ';--ui-tom:' + ((r && tomVidro(r.nome, r.capa)) || 'rgba(255,255,255,.24)') + '">' +
+      '<span class="ui-rotulo home-avaliar-rotulo">Para avaliar</span>' +
       '<a class="ui-botao vidro-escuro home-avaliar-botao" href="#/lote/' + encodeURIComponent(l.id) + '/avaliar">Avaliar</a>' +
       '<span class="titulo home-avaliar-nome">' + esc(nome) + '</span>' +
       '<span class="ui-sec">Lote de ' + dataCurta(l.inicio) + ' · no freezer ' + diasDesde(l.inicio) + '</span></section>';
-  }
+  };
+  let avaliar = "";
+  if (aguardando.length === 1) avaliar = cartaoAvaliar(aguardando[0]);
+  else if (aguardando.length > 1) avaliar = '<div class="ui-rolagem home-avaliar-faixa">' + aguardando.map(cartaoAvaliar).join("") + '</div>';
 
   // Receitas: da aberta por último (à esquerda) para a vista há mais tempo; nunca abertas vão ao fim, das mexidas mais recentemente.
   const ultimaData = function(r){ const vs = versoesDe(r.id); return vs.length ? vs[vs.length - 1].data : ""; };
@@ -63,7 +66,7 @@ export function render(el){
   el.innerHTML =
     '<div class="ui-app">' +
     '<header class="ui-cabecalho"><h1>Ice Cream Lab</h1><button class="ui-redondo" type="button" id="abreAjustes" aria-label="Ajustes">' + icone("ajustes") + '</button></header>' +
-    '<div class="ui-tela">' +
+    '<div class="ui-tela home-tela' + (aguardando.length ? ' com-avaliar' : '') + '">' +
       avaliar +
       '<div class="ui-par home-par">' +
         '<a class="ui-cartao ui-vidro home-calc" href="#/calculadora"><h2>Calculadora</h2><div class="home-mini">' + miniGrafico() + '</div></a>' +

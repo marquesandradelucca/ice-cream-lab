@@ -1038,3 +1038,17 @@ body:has(#tela.arrastando){background:#d9d9d6}
 /* Cabeçalho com busca e filtros (Receitas): tudo fica fixo junto no topo */
 .ui-cabecalho.com-extras{flex-wrap:wrap; row-gap:var(--ui-e3)}
 .ui-cabecalho.com-extras > .ui-campo,.ui-cabecalho.com-extras > .ui-filtros{flex:0 0 100%; min-width:0}
+/* Home compacta: tudo cabe na tela; o Estudo estica para preencher o que sobra */
+.home-tela.com-avaliar{min-height:calc(100dvh - 64px - env(safe-area-inset-top,0px)); box-sizing:border-box}
+.home-avaliar{min-height:0; padding-top:calc(var(--ui-e3) + var(--ui-h-botao) + var(--ui-e2)); padding-bottom:var(--ui-e3)}
+.home-avaliar-rotulo{top:calc(var(--ui-e3) + (var(--ui-h-botao) - 14px) / 2)}
+.home-avaliar-botao{top:var(--ui-e3)}
+.home-avaliar-nome{font-size:var(--ui-t-cartao) !important; -webkit-line-clamp:1}
+.home-avaliar-faixa > .home-avaliar{flex:none; width:calc(100% - 28px)}
+.home-calc,.home-ideias{padding-top:var(--ui-e3); padding-bottom:var(--ui-e3)}
+.home-ideias{gap:0}
+.home-numero{font-size:calc(var(--ui-t-destaque) * .8)}
+.home-mini{gap:var(--ui-e2) !important; padding-top:var(--ui-e2)}
+.home-ingredientes{min-height:64px}
+.home-estudo{min-height:110px}
+.home-tela.com-avaliar .home-estudo{flex:1; min-height:72px}
