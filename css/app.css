@@ -1018,3 +1018,6 @@ html[data-nav="zoom"]::view-transition-new(root){animation:vt-esmaece .3s ease .
 #tela.sobe .ui-tela > :nth-child(4){animation-delay:.15s}
 #tela.sobe .ui-tela > :nth-child(n+5){animation-delay:.2s}
 @keyframes vt-sobe{from{transform:translate3d(0,40px,0); opacity:0}}
+/* Arrastar para voltar: a tela ganha sombra na borda esquerda e o fundo por trás escurece levemente */
+#tela.arrastando{box-shadow:-8px 0 24px rgba(0,0,0,.18); background:var(--ui-fundo, #fff); min-height:100vh; will-change:transform}
+body:has(#tela.arrastando){background:#d9d9d6}

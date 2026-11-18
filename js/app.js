@@ -1,20 +1,20 @@
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261118171630";
-import { iniciaSync } from "./sync.js?v=20261118171630";
-import * as inicio from "./telas/inicio.js?v=20261118171630";
-import * as calculadora from "./telas/calculadora.js?v=20261118171630";
-import * as ingredientes from "./telas/ingredientes.js?v=20261118171630";
-import * as embreve from "./telas/embreve.js?v=20261118171630";
-import * as receitas from "./telas/receitas.js?v=20261118171630";
-import * as receita from "./telas/receita.js?v=20261118171630";
-import * as testes from "./telas/testes.js?v=20261118171630";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261118171630";
-import * as loteTela from "./telas/lote.js?v=20261118171630";
-import * as estudo from "./telas/estudo.js?v=20261118171630";
-import * as ideias from "./telas/ideias.js?v=20261118171630";
-import * as ajustes from "./telas/ajustes.js?v=20261118171630";
-import * as biblioteca from "./telas/biblioteca.js?v=20261118171630";
-import * as guia from "./telas/guia.js?v=20261118171630";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261118171907";
+import { iniciaSync } from "./sync.js?v=20261118171907";
+import * as inicio from "./telas/inicio.js?v=20261118171907";
+import * as calculadora from "./telas/calculadora.js?v=20261118171907";
+import * as ingredientes from "./telas/ingredientes.js?v=20261118171907";
+import * as embreve from "./telas/embreve.js?v=20261118171907";
+import * as receitas from "./telas/receitas.js?v=20261118171907";
+import * as receita from "./telas/receita.js?v=20261118171907";
+import * as testes from "./telas/testes.js?v=20261118171907";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261118171907";
+import * as loteTela from "./telas/lote.js?v=20261118171907";
+import * as estudo from "./telas/estudo.js?v=20261118171907";
+import * as ideias from "./telas/ideias.js?v=20261118171907";
+import * as ajustes from "./telas/ajustes.js?v=20261118171907";
+import * as biblioteca from "./telas/biblioteca.js?v=20261118171907";
+import * as guia from "./telas/guia.js?v=20261118171907";
 
 const TELAS = {
   "": inicio,
@@ -54,6 +54,7 @@ function nivelDe(nome, args){
   return ABAS[nome] ? 0 : 1;
 }
 let anterior = null;   // {nome, nivel, chave}
+let semTransicao = false;
 // Zoom cartão → tela (iOS 18): o cartão tocado e o fundo da tela de destino recebem o mesmo nome de transição.
 const CARTOES_ZOOM = ".receitas-cartao, .home-capa, .home-avaliar, .bib-grade .ui-bloco, .ideia-corpo, .tema-bloco, .ing-bloco";
 let zoomDe = null;            // elemento tocado (ida)
@@ -120,6 +121,7 @@ function rota(){
       nomeia(alvo ? (alvo.closest(".ideia-cartao") || alvo) : null);
     }
   };
+  if (semTransicao){ semTransicao = false; modo = "nenhuma"; }   // voltar por arrasto: a animação já aconteceu no dedo
   // Transição de telas estilo iOS (View Transitions do navegador); sem suporte, troca direta.
   if (modo !== "nenhuma" && document.startViewTransition){
     document.documentElement.dataset.nav = modo;
@@ -246,3 +248,49 @@ rota();
 if ("serviceWorker" in navigator && location.protocol !== "file:"){
   navigator.serviceWorker.register("sw.js").catch(function(){});
 }
+
+// Arrastar da borda esquerda para voltar (como no iPhone): a tela acompanha o dedo e, soltando
+// depois de ~1/3 da largura (ou num gesto rápido), sai pela direita e volta para a tela de cima.
+(function(){
+  let x0 = null, y0 = 0, t0 = 0, dx = 0, ativo = false;
+  const borda = 24;
+  function botaoVoltar(){ return document.querySelector("#tela .ui-cabecalho a.ui-redondo[href], #tela .ui-cabecalho .ui-redondo[href]"); }
+  function podeVoltar(){ return anterior && anterior.nivel > 0 && !document.querySelector(".ui-folha") && botaoVoltar(); }
+  document.addEventListener("touchstart", function(ev){
+    const t = ev.touches[0];
+    if (ev.touches.length !== 1 || t.clientX > borda || !podeVoltar()) return;
+    x0 = t.clientX; y0 = t.clientY; t0 = Date.now(); dx = 0; ativo = false;
+  }, {passive:true});
+  document.addEventListener("touchmove", function(ev){
+    if (x0 == null) return;
+    const t = ev.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
+    if (!ativo){
+      if (Math.abs(my) > 12 && Math.abs(my) > Math.abs(mx)){ x0 = null; return; }
+      if (mx < 8) return;
+      ativo = true; elTela.classList.add("arrastando");
+    }
+    dx = Math.max(0, mx);
+    elTela.style.transform = "translate3d(" + dx + "px,0,0)";
+  }, {passive:true});
+  document.addEventListener("touchend", function(){
+    if (x0 == null) return;
+    const w = window.innerWidth, rapido = dx > 40 && dx / Math.max(1, Date.now() - t0) > 0.5;
+    x0 = null;
+    if (!ativo) return;
+    elTela.style.transition = "transform .25s cubic-bezier(.2,.8,.2,1)";
+    if (dx > w / 3 || rapido){
+      elTela.style.transform = "translate3d(" + w + "px,0,0)";
+      setTimeout(function(){
+        const b = botaoVoltar();
+        elTela.style.transition = "none"; elTela.style.transform = ""; elTela.classList.remove("arrastando");
+        semTransicao = true;
+        const destino = b && b.getAttribute("href");
+        if (destino && destino !== location.hash) location.hash = destino; else if (!destino) history.back(); else semTransicao = false;
+        requestAnimationFrame(function(){ elTela.style.transition = ""; });
+      }, 230);
+    } else {
+      elTela.style.transform = "";
+      setTimeout(function(){ elTela.style.transition = ""; elTela.classList.remove("arrastando"); }, 260);
+    }
+  });
+})();
