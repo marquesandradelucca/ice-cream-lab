@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261118175051";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261118175051";
-import { confirma, LAPIS } from "../ui.js?v=20261118175051";
-import { atualizaVoltar } from "../app.js?v=20261118175051";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261118175051";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261118175051";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261118175617";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261118175617";
+import { confirma, LAPIS } from "../ui.js?v=20261118175617";
+import { atualizaVoltar } from "../app.js?v=20261118175617";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261118175617";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261118175617";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -19,6 +19,8 @@ function gramas(g){ return g < 10 ? n(g, 1) : n(Math.round(g), 0); }
 
 export function render(el, rota){
   const r = receita(decodeURIComponent(rota.args[0] || ""));
+  // Guarda quando esta receita foi aberta (só neste aparelho), para a Home ordenar por "vista por último".
+  if (r) try { const m = JSON.parse(localStorage.getItem("icl-vistas") || "{}"); m[r.id] = Date.now(); localStorage.setItem("icl-vistas", JSON.stringify(m)); } catch(e){}
   if (!r){
     el.innerHTML = '<p class="muted">Receita não encontrada.</p><a class="botao" href="#/receitas">Receitas prontas</a>';
     return {titulo:"Receita", voltar:"#/receitas", voltarRotulo:"Receitas"};

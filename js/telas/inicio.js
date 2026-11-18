@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118175051";
-import { abreAjustes } from "./ajustes.js?v=20261118175051";
-import { dataCurta } from "./lote.js?v=20261118175051";
-import { icone, capa, tomVidro } from "../visual.js?v=20261118175051";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118175617";
+import { abreAjustes } from "./ajustes.js?v=20261118175617";
+import { dataCurta } from "./lote.js?v=20261118175617";
+import { icone, capa, tomVidro } from "../visual.js?v=20261118175617";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }
@@ -44,11 +44,12 @@ export function render(el){
       '<span class="ui-sec">Lote de ' + dataCurta(l.inicio) + ' · no freezer ' + diasDesde(l.inicio) + '</span></section>';
   }
 
-  // Receitas: finais primeiro, depois os testes; dentro de cada grupo, das mexidas mais recentemente.
+  // Receitas: da aberta por último (à esquerda) para a vista há mais tempo; nunca abertas vão ao fim, das mexidas mais recentemente.
   const ultimaData = function(r){ const vs = versoesDe(r.id); return vs.length ? vs[vs.length - 1].data : ""; };
-  const ehFinal = function(r){ return !!(r.status === "final" && r.versaoFinal && versao(r.versaoFinal)); };
+  let vistas = {}; try { vistas = JSON.parse(localStorage.getItem("icl-vistas") || "{}"); } catch(e){}
   const receitas = db.receitas.slice().sort(function(a, b){
-    if (ehFinal(a) !== ehFinal(b)) return ehFinal(a) ? -1 : 1;
+    const va = vistas[a.id] || 0, vb = vistas[b.id] || 0;
+    if (va !== vb) return vb - va;
     return ultimaData(b).localeCompare(ultimaData(a));
   });
   const faixa = receitas.length ? '<div class="ui-rolagem">' + receitas.map(function(r){
