@@ -987,3 +987,34 @@ html[data-nav="aba"]::view-transition-old(root),html[data-nav="aba"]::view-trans
   ::view-transition-old(root),::view-transition-new(root){animation:vt-esmaece .15s ease both !important}
 }
 @keyframes vt-esmaece{from{opacity:0}}
+/* Zoom cartão → tela: o fundo cresce a partir do cartão; o resto da tela esmaece */
+html[data-nav="zoom"]::view-transition-old(root){animation:vt-some .3s ease both}
+html[data-nav="zoom"]::view-transition-new(root){animation:vt-esmaece .3s ease .08s both}
+::view-transition-group(zoom){animation-duration:.45s; animation-timing-function:cubic-bezier(.2,.9,.25,1); z-index:3}
+::view-transition-old(zoom),::view-transition-new(zoom){height:100%; width:100%; object-fit:cover}
+@keyframes vt-some{to{opacity:0}}
+/* Barra de abas sempre por cima do zoom */
+::view-transition-group(abas){z-index:10}
+/* Após o zoom: cartões/painéis sobem da base até a posição, um depois do outro */
+#tela.sobe .ui-tela > *{animation:vt-sobe .55s cubic-bezier(.2,.9,.25,1) both}
+#tela.sobe .ui-tela > :nth-child(1){animation-delay:.12s}
+#tela.sobe .ui-tela > :nth-child(2){animation-delay:.18s}
+#tela.sobe .ui-tela > :nth-child(3){animation-delay:.24s}
+#tela.sobe .ui-tela > :nth-child(4){animation-delay:.30s}
+#tela.sobe .ui-tela > :nth-child(n+5){animation-delay:.36s}
+@keyframes vt-sobe{from{transform:translateY(60px); opacity:0}}
+@media (prefers-reduced-motion: reduce){#tela.sobe .ui-tela > *{animation:none}}
+/* Suavidade: sem filtro nas telas que deslizam (pesado no iPhone), animações só de posição/opacidade */
+@keyframes vt-recua-esq{to{transform:translate3d(-30%,0,0); opacity:.85}}
+@keyframes vt-volta-esq{from{transform:translate3d(-30%,0,0); opacity:.85}}
+@keyframes vt-entra-dir{from{transform:translate3d(100%,0,0)}}
+@keyframes vt-sai-dir{to{transform:translate3d(100%,0,0)}}
+::view-transition-group(zoom){animation-duration:.4s}
+#tela.prepara .ui-tela > *{opacity:0}
+#tela.sobe .ui-tela > *{will-change:transform,opacity; animation:vt-sobe .45s cubic-bezier(.2,.9,.25,1) both}
+#tela.sobe .ui-tela > :nth-child(1){animation-delay:0s}
+#tela.sobe .ui-tela > :nth-child(2){animation-delay:.05s}
+#tela.sobe .ui-tela > :nth-child(3){animation-delay:.1s}
+#tela.sobe .ui-tela > :nth-child(4){animation-delay:.15s}
+#tela.sobe .ui-tela > :nth-child(n+5){animation-delay:.2s}
+@keyframes vt-sobe{from{transform:translate3d(0,40px,0); opacity:0}}

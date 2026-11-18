@@ -1,20 +1,20 @@
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261118135627";
-import { iniciaSync } from "./sync.js?v=20261118135627";
-import * as inicio from "./telas/inicio.js?v=20261118135627";
-import * as calculadora from "./telas/calculadora.js?v=20261118135627";
-import * as ingredientes from "./telas/ingredientes.js?v=20261118135627";
-import * as embreve from "./telas/embreve.js?v=20261118135627";
-import * as receitas from "./telas/receitas.js?v=20261118135627";
-import * as receita from "./telas/receita.js?v=20261118135627";
-import * as testes from "./telas/testes.js?v=20261118135627";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261118135627";
-import * as loteTela from "./telas/lote.js?v=20261118135627";
-import * as estudo from "./telas/estudo.js?v=20261118135627";
-import * as ideias from "./telas/ideias.js?v=20261118135627";
-import * as ajustes from "./telas/ajustes.js?v=20261118135627";
-import * as biblioteca from "./telas/biblioteca.js?v=20261118135627";
-import * as guia from "./telas/guia.js?v=20261118135627";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261118140542";
+import { iniciaSync } from "./sync.js?v=20261118140542";
+import * as inicio from "./telas/inicio.js?v=20261118140542";
+import * as calculadora from "./telas/calculadora.js?v=20261118140542";
+import * as ingredientes from "./telas/ingredientes.js?v=20261118140542";
+import * as embreve from "./telas/embreve.js?v=20261118140542";
+import * as receitas from "./telas/receitas.js?v=20261118140542";
+import * as receita from "./telas/receita.js?v=20261118140542";
+import * as testes from "./telas/testes.js?v=20261118140542";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261118140542";
+import * as loteTela from "./telas/lote.js?v=20261118140542";
+import * as estudo from "./telas/estudo.js?v=20261118140542";
+import * as ideias from "./telas/ideias.js?v=20261118140542";
+import * as ajustes from "./telas/ajustes.js?v=20261118140542";
+import * as biblioteca from "./telas/biblioteca.js?v=20261118140542";
+import * as guia from "./telas/guia.js?v=20261118140542";
 
 const TELAS = {
   "": inicio,
@@ -54,6 +54,17 @@ function nivelDe(nome, args){
   return ABAS[nome] ? 0 : 1;
 }
 let anterior = null;   // {nome, nivel, chave}
+// Zoom cartão → tela (iOS 18): o cartão tocado e o fundo da tela de destino recebem o mesmo nome de transição.
+const CARTOES_ZOOM = ".receitas-cartao, .home-capa, .home-avaliar, .bib-grade .ui-bloco, .ideia-corpo, .tema-bloco, .ing-bloco";
+let zoomDe = null;            // elemento tocado (ida)
+const zoomVoltas = {};        // rota de destino → rota de origem, para o zoom inverso ao voltar
+document.addEventListener("click", function(ev){
+  const c = ev.target.closest(CARTOES_ZOOM);
+  if (!c || ev.target.closest("button")) return;
+  zoomDe = c.closest(".ideia-cartao") || c;
+}, true);
+function limpaNomesZoom(){ document.querySelectorAll("[data-vt-zoom]").forEach(function(e){ e.style.viewTransitionName = ""; delete e.dataset.vtZoom; }); }
+function nomeia(e){ if (e){ e.style.viewTransitionName = "zoom"; e.dataset.vtZoom = "1"; } }
 function direcao(atual){
   if (!anterior) return "nenhuma";
   if (anterior.chave === atual.chave) return "nenhuma";
@@ -86,12 +97,41 @@ function rota(){
     limpa = res.limpa || null;
     marcaAba(nome, partes[1]);
   };
+  // Zoom: ida (cartão tocado → fundo da tela nova) e volta (fundo → o mesmo cartão na lista).
+  const hashAtual = location.hash, hashAnterior = rota.ultimo;
+  rota.ultimo = hashAtual;
+  let modo = dir;
+  const fundoDaTela = function(){ return document.querySelector("#tela .rec-fundo") || document.querySelector(".rec-fundo"); };
+  if (dir === "push" && zoomDe && document.startViewTransition){ modo = "zoom"; nomeia(zoomDe); zoomVoltas[hashAtual] = hashAnterior; }
+  else if (dir === "pop" && zoomVoltas[hashAnterior] === hashAtual && document.startViewTransition){ modo = "zoom"; nomeia(fundoDaTela()); }
+  zoomDe = null;
+  const desenhaComZoom = function(){
+    limpaNomesZoom();
+    desenha();
+    if (modo !== "zoom") return;
+    if (dir === "push"){
+      nomeia(fundoDaTela());
+      // Painéis da tela nova ficam escondidos durante o zoom e sobem da base logo depois (uma animação de cada vez = mais suave).
+      elTela.classList.add("prepara");
+    }
+    else {   // volta: acha o cartão que leva à tela de onde saímos
+      const alvo = hashAnterior && Array.prototype.find.call(document.querySelectorAll(CARTOES_ZOOM), function(c){
+        const a = c.closest("a[href]") || c.querySelector("a[href]") || c; return a.getAttribute && a.getAttribute("href") === hashAnterior; });
+      nomeia(alvo ? (alvo.closest(".ideia-cartao") || alvo) : null);
+    }
+  };
   // Transição de telas estilo iOS (View Transitions do navegador); sem suporte, troca direta.
-  if (dir !== "nenhuma" && document.startViewTransition){
-    document.documentElement.dataset.nav = dir;
-    const t = document.startViewTransition(desenha);
-    t.finished.finally(function(){ delete document.documentElement.dataset.nav; });
-  } else desenha();
+  if (modo !== "nenhuma" && document.startViewTransition){
+    document.documentElement.dataset.nav = modo;
+    const t = document.startViewTransition(desenhaComZoom);
+    t.finished.finally(function(){
+      delete document.documentElement.dataset.nav; limpaNomesZoom();
+      if (elTela.classList.contains("prepara")){
+        elTela.classList.remove("prepara"); elTela.classList.add("sobe");
+        setTimeout(function(){ elTela.classList.remove("sobe"); }, 900);
+      }
+    });
+  } else desenhaComZoom();
 }
 
 // Barra de abas: cada rota pertence a uma aba. O modo bancada do lote esconde as abas.
