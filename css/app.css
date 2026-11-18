@@ -961,7 +961,7 @@ body.est-capa .tema-texto .tabela-rolagem{-webkit-backdrop-filter:var(--ui-desfo
 /* App instalado (barra de status transparente): no iOS, páginas mais curtas que a tela deslocavam
    os elementos fixos (barra de abas e fundo de capa). Toda página ocupa pelo menos a tela inteira. */
 html{min-height:100%}
-body{min-height:calc(100vh + env(safe-area-inset-top,0px))}
+body{min-height:100vh; min-height:100dvh}
 /* Ícones das abas: sem corte nas bordas do desenho */
 .ui-abas a svg{overflow:visible}
 /* Fileira de filtros: espaço maior embaixo para a sombra não ser cortada */
