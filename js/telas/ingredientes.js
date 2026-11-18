@@ -1,9 +1,11 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261117042849";
-import { confirma } from "../ui.js?v=20261117042849";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261117042849";
-import { n } from "../calculo.js?v=20261117042849";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261118040421";
+import { confirma } from "../ui.js?v=20261118040421";
+import { icone, capa, escolheCapa } from "../visual.js?v=20261118040421";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261118040421";
+import { n } from "../calculo.js?v=20261118040421";
 
+function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
 function totalAcucar(i){
@@ -22,26 +24,73 @@ function resumo(i){
   return p.length ? p.join(" · ") : "água";
 }
 
+// Partes da composição, na ordem da barra (cores tiradas dos degradês).
+const PARTES = [
+  {k:"gord", nome:"Gordura", cor:"#FFBE3C"},
+  {k:"slng", nome:"SLNG", cor:"#FFFFFF"},
+  {k:"soro", nome:"Soro", cor:"#A2D8EB"},
+  {k:"ac", nome:"Açúcares", cor:"#F6A4B1"},
+  {k:"outros", nome:"Outros", cor:"#A5A0CE"},
+  {k:"agua", nome:"Água", cor:"rgba(255,255,255,.22)"}
+];
+function partes(i){
+  return PARTES.map(function(p){
+    const v = p.k === "ac" ? totalAcucar(i) : p.k === "agua" ? Math.max(0, agua(i)) : (i[p.k] || 0);
+    return {k:p.k, nome:p.nome, cor:p.cor, v:v};
+  });
+}
+function barra(i, pequena){
+  return '<span class="ing-barra' + (pequena ? ' pequena' : '') + '" aria-hidden="true">' + partes(i).filter(function(p){ return p.v > 0; }).map(function(p){
+    return '<span style="flex:' + p.v + ';background:' + p.cor + '"></span>'; }).join("") + '</span>';
+}
+
+let buscaIng = "", catIng = "";
+// Categoria deduzida da composição (não precisa marcar nada no ingrediente).
+const CATEGORIAS = [["", "Todos"], ["lacteos", "Lácteos"], ["acucares", "Açúcares"], ["estab", "Estabilizantes"], ["outros", "Outros"]];
+function categoria(i){
+  if (i.estab) return "estab";
+  if ((i.slng || 0) > 0 || (i.soro || 0) > 0) return "lacteos";
+  if (totalAcucar(i) >= 40) return "acucares";
+  return "outros";
+}
+
 export function render(el, rota){
-  const id = rota.args[0];
-  if (id) return editor(el, decodeURIComponent(id));
+  const id = rota.args[0] ? decodeURIComponent(rota.args[0]) : "";
+  if (id) return editor(el, id);
   return lista(el);
 }
 
+// Lista (redesign): grade de blocos com degradê pelo nome e a barra de composição.
 function lista(el){
+  document.body.classList.add("ui");
   const db = dados();
-  const comuns = db.ingredientes.filter(function(i){ return !i.estab; });
-  const est = db.ingredientes.filter(function(i){ return i.estab; });
-  function item(i){
-    return '<a class="item-lista" href="#/ingredientes/' + encodeURIComponent(i.id) + '">' +
-      '<span class="item-nome">' + esc(i.nome) + '</span><span class="item-desc muted">' + resumo(i) + '</span></a>';
-  }
   el.innerHTML =
-    '<a class="botao largo" href="#/ingredientes/novo">+ novo ingrediente</a>' +
-    '<p class="dica-lista">Toque num ingrediente para ver ou corrigir a composição. A calculadora usa esta lista.</p>' +
-    '<section class="lista-cards">' + comuns.map(item).join("") + '</section>' +
-    '<h2 class="subtitulo">Estabilizantes</h2><section class="lista-cards">' + est.map(item).join("") + '</section>';
-  return {titulo:"Ingredientes"};
+    '<div class="ui-app">' +
+    '<header class="ui-cabecalho nav"><a class="ui-redondo" href="#/biblioteca" aria-label="Voltar para a Biblioteca">' + icone("voltar") + '</a><h1>Ingredientes</h1>' +
+      '<a class="ui-redondo" href="#/ingredientes/novo" aria-label="Novo ingrediente">' + icone("mais") + '</a></header>' +
+    '<div class="ui-tela">' +
+      '<input id="buscaIng" class="ui-campo" type="search" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente" value="' + esc(buscaIng) + '">' +
+      '<div class="ui-filtros estudo-filtros" id="cats">' + CATEGORIAS.map(function(c){ return '<button type="button" class="ui-filtro" data-cat="' + c[0] + '" aria-pressed="' + (catIng === c[0]) + '">' + c[1] + '</button>'; }).join("") + '</div>' +
+      '<div id="grade"></div>' +
+    '</div></div>';
+  const norm = function(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
+  function bloco(i){
+    return '<a class="ui-bloco pequeno ing-bloco" href="#/ingredientes/' + encodeURIComponent(i.id) + '" style="--capa:' + capa(i.nome, i.capa) + '">' +
+      '<span class="titulo">' + esc(i.nome) + '</span></a>';
+  }
+  function desenha(){
+    const q = norm(buscaIng.trim());
+    const ok = function(i){ return !q || norm(i.nome).indexOf(q) >= 0 || norm(i.longo).indexOf(q) >= 0; };
+    const itens = db.ingredientes.filter(function(i){ return ok(i) && (!catIng || categoria(i) === catIng); });
+    el.querySelector("#grade").innerHTML = itens.length ? '<div class="ing-grade tres">' + itens.map(bloco).join("") + '</div>' :
+      '<p class="ui-sec ideias-vazio">' + (buscaIng.trim() ? 'Nada encontrado para “' + esc(buscaIng.trim()) + '”.' : 'Nenhum ingrediente nesta categoria.') + '</p>';
+  }
+  el.querySelectorAll("#cats [data-cat]").forEach(function(b){ b.addEventListener("click", function(){
+    catIng = b.dataset.cat; el.querySelectorAll("#cats [data-cat]").forEach(function(o){ o.setAttribute("aria-pressed", String(o === b)); }); desenha();
+  }); });
+  el.querySelector("#buscaIng").addEventListener("input", function(ev){ buscaIng = ev.target.value; desenha(); });
+  desenha();
+  return {titulo:"Ingredientes", voltar:"#/biblioteca", voltarRotulo:"Biblioteca", limpa:limpaUi};
 }
 
 // Página de um ingrediente: abre só para ver. "Editar" libera os campos numa cópia;
@@ -57,61 +106,98 @@ function editor(el, id){
   if (novo) edita({id:novoId(), nome:"", ac:{}});
   else mostra();
 
-  function linha(rotulo, valor){
-    return '<div class="campo"><span>' + rotulo + '</span><span class="valor-campo num">' + valor + '</span></div>';
-  }
-
   function mostra(){
+    document.body.classList.add("ui", "rec");
     const ac = ing.ac || {};
     const acucares = TIPOS_ACUCAR.filter(function(t){ return ac[t[0]]; });
+    const linha = function(cor, rotulo, valor){ return '<div class="ui-linha"><span class="ing-legenda">' + (cor ? '<i style="background:' + cor + '"></i>' : '') + rotulo + '</span><b class="ui-num">' + valor + '</b></div>'; };
     el.innerHTML =
-      '<div class="cabeca-receita"><h2 class="titulo-receita">' + esc(ing.nome || "Ingrediente sem nome") + '</h2>' +
-      (ing.longo ? '<span class="muted pequeno">' + esc(ing.longo) + '</span>' : '') + '</div>' +
-      '<section class="cartao form">' +
-        '<p class="muted pequeno">Gramas por 100 g.</p>' +
-        '<div class="campos">' +
-          linha("Gordura", n(ing.gord || 0, 1) + " g") + linha("SLNG (sólidos lácteos)", n(ing.slng || 0, 1) + " g") +
-          linha("Sólidos de soro", n(ing.soro || 0, 1) + " g") + linha("Outros sólidos", n(ing.outros || 0, 1) + " g") +
-          (acucares.length ? acucares.map(function(t){ return linha("Açúcar: " + t[1].toLowerCase(), n(ac[t[0]], 1) + " g"); }).join("")
-            : linha("Açúcares", "0 g")) +
-          linha("Água", n(Math.max(0, agua(ing)), 1) + " g") +
-        '</div>' +
-        (ing.estab ? '<p class="pequeno">Estabilizante' + (ing.contaTotal === false ? ' (fora da soma de estabilizantes)' : '') + '.</p>' : '') +
-        (ing.nota ? '<p class="muted pequeno">' + esc(ing.nota) + '</p>' : '') +
-      '</section>' +
-      '<button type="button" class="botao largo" id="editar">Editar</button>';
-    el.querySelector("#editar").addEventListener("click", function(){ edita(JSON.parse(JSON.stringify(ing))); });
+      '<div class="rec-fundo" style="--capa:' + capa(ing.nome, ing.capa) + '"></div>' +
+      '<div class="ui-app">' +
+      '<header class="ui-cabecalho nav"><a class="ui-redondo escuro" href="#/ingredientes" aria-label="Voltar para Ingredientes">' + icone("voltar") + '</a>' +
+        '<span style="flex:1"></span><button class="ui-redondo escuro" type="button" id="opcoes" aria-label="Mais opções">' + icone("opcoes") + '</button></header>' +
+      '<div class="ui-tela rec-tela">' +
+        '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
+          (ing.estab ? '<div class="rec-etiquetas"><span class="ui-etiqueta">Estabilizante' + (ing.contaTotal === false ? ' · fora da soma' : '') + '</span></div>' : '') +
+          '<h1 class="rec-nome">' + esc(ing.nome || "Ingrediente sem nome") + '</h1>' +
+          (ing.longo ? '<p class="ui-sec">' + esc(ing.longo) + '</p>' : '') +
+        '</section>' +
+        '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
+          '<div class="rec-cab"><h2>Composição</h2><span class="ui-sec">g por 100 g</span></div>' +
+          barra(ing) +
+          '<div class="ui-linhas">' + partes(ing).map(function(p){
+            if (p.k === "ac") return acucares.length ? acucares.map(function(t, j){ return linha(j ? '' : p.cor, (j ? '' : '') + 'Açúcar · ' + t[1].toLowerCase(), n(ac[t[0]], 1) + ' g'); }).join("") : linha(p.cor, 'Açúcares', '0 g');
+            const nomes = {gord:"Gordura", slng:"SLNG (sólidos lácteos)", soro:"Sólidos de soro", outros:"Outros sólidos", agua:"Água"};
+            return linha(p.cor, nomes[p.k], n(p.v, 1) + ' g');
+          }).join("") + '</div>' +
+          (ing.nota ? '<p class="ui-sec">' + esc(ing.nota) + '</p>' : '') +
+        '</section>' +
+      '</div></div>';
+    el.querySelector("#opcoes").addEventListener("click", function(){
+      const veu = document.createElement("div"); veu.className = "ui-veu";
+      const f = document.createElement("div"); f.className = "ui-folha"; f.setAttribute("role", "dialog"); f.setAttribute("aria-label", "Opções do ingrediente");
+      f.innerHTML = '<span class="puxador"></span><h2>' + esc(ing.nome) + '</h2>' +
+        '<button type="button" class="ui-botao vidro largo" id="editar">Editar composição</button>' +
+        '<button type="button" class="ui-botao vidro largo" id="trocaCapa">Capa</button>' +
+        '<button type="button" class="ui-botao vidro largo perigo" id="excluir">Excluir ingrediente</button>' +
+        '<button type="button" class="ui-botao preto largo" id="fechar">Fechar</button>';
+      document.body.append(veu, f);
+      const fecha = function(){ veu.remove(); f.remove(); };
+      veu.addEventListener("click", fecha); f.querySelector("#fechar").addEventListener("click", fecha);
+      f.querySelector("#editar").addEventListener("click", function(){ fecha(); edita(JSON.parse(JSON.stringify(ing))); });
+      f.querySelector("#excluir").addEventListener("click", function(){ fecha(); exclui(); });
+      f.querySelector("#trocaCapa").addEventListener("click", function(){
+        fecha();
+        const antes = ing.capa;
+        escolheCapa({titulo:"Capa", semente:ing.nome, atual:ing.capa || "", foto:true, aoEscolher:function(valor){
+          if (valor) ing.capa = valor; else delete ing.capa;
+          if (!salva()){ if (antes) ing.capa = antes; else delete ing.capa; alert("A foto é grande demais para guardar. Tente outra."); }
+          mostra();
+        }});
+      });
+    });
+  }
+
+  async function exclui(){
+    const aviso = ingredienteUsado(ing.id) ?
+      "Este ingrediente está no rascunho da calculadora. Excluir mesmo assim? A linha fica marcada como “ingrediente removido”." :
+      "Excluir “" + (ing.nome || "sem nome") + "”?";
+    if (!(await confirma(aviso, "Excluir", true))) return;
+    db.ingredientes = db.ingredientes.filter(function(x){ return x !== ing; });
+    salva(); location.hash = "#/ingredientes";
   }
 
   function edita(rasc){
     rasc.ac = rasc.ac || {};
+    document.body.classList.remove("rec"); document.body.classList.add("ui");
     function campo(chave, rotulo, valor){
-      return '<label class="campo"><span>' + rotulo + '</span>' +
-        '<input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-k="' + chave + '" value="' + (valor || "") + '" placeholder="0"></label>';
+      return '<label class="ui-linha ing-campo"><span>' + rotulo + '</span><span class="ing-num"><input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-k="' + chave + '" value="' + (valor || "") + '" placeholder="0"><span>g</span></span></label>';
     }
     el.innerHTML =
-      '<div class="cabeca-receita"><h2 class="titulo-receita">' + (novo ? 'Novo ingrediente' : 'Editar ingrediente') + '</h2></div>' +
-      '<section class="cartao form">' +
-        '<label class="campo largo"><span>Nome</span><input type="text" class="campo-texto" data-k="nome" maxlength="60" value="' + esc(rasc.nome) + '" placeholder="Ex.: Leite Piracanjuba integral"></label>' +
-        '<label class="campo largo"><span>Nome completo (opcional)</span><input type="text" class="campo-texto" data-k="longo" maxlength="90" value="' + esc(rasc.longo) + '"></label>' +
-        '<p class="muted pequeno">Valores em gramas por 100 g (como no rótulo). O que faltar para 100 é água.</p>' +
-        '<div class="campos">' +
-          campo("gord", "Gordura", rasc.gord) + campo("slng", "SLNG (sólidos lácteos)", rasc.slng) +
-          campo("soro", "Sólidos de soro", rasc.soro) + campo("outros", "Outros sólidos", rasc.outros) +
-        '</div>' +
-        '<p class="muted pequeno">“Outros sólidos” é tudo que não é gordura, SLNG nem açúcar: proteínas, fibras, cacau etc.</p>' +
-        '<h3>Açúcares</h3><p class="muted pequeno">Só a parte que é açúcar, por tipo. A lactose do leite entra sozinha pelo SLNG e pelo soro.</p>' +
-        '<div class="campos">' + TIPOS_ACUCAR.map(function(t){ return campo("ac." + t[0], t[1], rasc.ac[t[0]]); }).join("") + '</div>' +
-        '<p class="agua" id="agua"></p>' +
-        '<label class="check"><input type="checkbox" data-k="estab"' + (rasc.estab ? " checked" : "") + '> É estabilizante</label>' +
-        '<label class="check" id="cxSoma"' + (rasc.estab ? "" : " hidden") + '><input type="checkbox" data-k="contaTotal"' + (rasc.contaTotal === false ? "" : " checked") + '> Entra na soma de estabilizantes</label>' +
-        '<label class="campo largo"><span>Nota (aparece na calculadora)</span><textarea class="campo-texto" data-k="nota" rows="3">' + esc(rasc.nota) + '</textarea></label>' +
-      '</section>' +
-      '<div class="acoes-ing">' +
-        '<button type="button" class="pilula-cinza" id="cancelar">Cancelar</button>' +
-        '<button type="button" class="pilula-preta" id="salvarIng">Salvar</button>' +
-      '</div>' +
-      (novo ? '' : '<div class="acoes-linha"><button type="button" class="botao perigo" id="excluir">Excluir ingrediente</button></div>');
+      '<div class="ui-app">' +
+      '<header class="ui-cabecalho nav"><button class="ui-redondo" type="button" id="fecharEd" aria-label="Cancelar">' + icone("fechar") + '</button><h1>' + (novo ? 'Novo ingrediente' : 'Editar ingrediente') + '</h1></header>' +
+      '<div class="ui-tela">' +
+        '<section class="ui-cartao ui-vidro ideia-form-claro">' +
+          '<label class="ui-rotulo" for="nomeIng">Nome</label><input id="nomeIng" type="text" class="ui-campo campo-branco" data-k="nome" maxlength="60" value="' + esc(rasc.nome) + '" placeholder="Ex.: Leite Piracanjuba integral">' +
+          '<label class="ui-rotulo" for="longoIng">Nome completo (opcional)</label><input id="longoIng" type="text" class="ui-campo campo-branco" data-k="longo" maxlength="90" value="' + esc(rasc.longo) + '">' +
+        '</section>' +
+        '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Composição</h2><span class="ui-sec">g por 100 g</span></div>' +
+          '<div class="ui-linhas">' + campo("gord", "Gordura", rasc.gord) + campo("slng", "SLNG (sólidos lácteos)", rasc.slng) +
+            campo("soro", "Sólidos de soro", rasc.soro) + campo("outros", "Outros sólidos", rasc.outros) + '</div>' +
+          '<p class="ui-sec">“Outros sólidos” é tudo que não é gordura, SLNG nem açúcar: proteínas, fibras, cacau etc.</p></section>' +
+        '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Açúcares</h2></div>' +
+          '<p class="ui-sec">Só a parte que é açúcar, por tipo. A lactose do leite entra sozinha pelo SLNG e pelo soro.</p>' +
+          '<div class="ui-linhas">' + TIPOS_ACUCAR.map(function(t){ return campo("ac." + t[0], t[1], rasc.ac[t[0]]); }).join("") + '</div>' +
+          '<p class="agua ing-agua" id="agua"></p></section>' +
+        '<section class="ui-cartao ui-vidro ideia-form-claro">' +
+          '<label class="ing-check"><input type="checkbox" data-k="estab"' + (rasc.estab ? " checked" : "") + '> É estabilizante</label>' +
+          '<label class="ing-check" id="cxSoma"' + (rasc.estab ? "" : " hidden") + '><input type="checkbox" data-k="contaTotal"' + (rasc.contaTotal === false ? "" : " checked") + '> Entra na soma de estabilizantes</label>' +
+          '<label class="ui-rotulo" for="notaIng">Nota (aparece na calculadora)</label><textarea id="notaIng" class="ui-campo campo-branco ideia-texto" data-k="nota" rows="3">' + esc(rasc.nota) + '</textarea>' +
+        '</section>' +
+        '<div class="rec-acoes"><button type="button" class="ui-botao vidro" id="cancelar">Cancelar</button>' +
+          '<button type="button" class="ui-botao preto" id="salvarIng">Salvar</button></div>' +
+      '</div></div>';
+    window.scrollTo(0, 0);
 
     function mostraAgua(){
       const a = agua(rasc), elA = el.querySelector("#agua");
@@ -140,9 +226,9 @@ function editor(el, id){
       });
     });
 
-    el.querySelector("#cancelar").addEventListener("click", function(){
-      if (novo) location.hash = "#/ingredientes"; else mostra();
-    });
+    const cancela = function(){ if (novo) location.hash = "#/ingredientes"; else mostra(); };
+    el.querySelector("#cancelar").addEventListener("click", cancela);
+    el.querySelector("#fecharEd").addEventListener("click", cancela);
     el.querySelector("#salvarIng").addEventListener("click", function(){
       if (!rasc.nome){ el.querySelector('[data-k="nome"]').focus(); return; }
       if (agua(rasc) < -0.5){ el.querySelector("#agua").scrollIntoView({block:"center"}); return; }
@@ -152,16 +238,7 @@ function editor(el, id){
       Object.assign(ing, rasc);
       salva(); mostra();
     });
-    const exc = el.querySelector("#excluir");
-    if (exc) exc.addEventListener("click", async function(){
-      const aviso = ingredienteUsado(ing.id) ?
-        "Este ingrediente está no rascunho da calculadora. Excluir mesmo assim? A linha fica marcada como “ingrediente removido”." :
-        "Excluir “" + (ing.nome || "sem nome") + "”?";
-      if (!(await confirma(aviso, "Excluir", true))) return;
-      db.ingredientes = db.ingredientes.filter(function(x){ return x !== ing; });
-      salva(); location.hash = "#/ingredientes";
-    });
   }
 
-  return {titulo:novo ? "Novo ingrediente" : "Ingrediente", voltar:"#/ingredientes", voltarRotulo:"Ingredientes"};
+  return {titulo:novo ? "Novo ingrediente" : "Ingrediente", voltar:"#/ingredientes", voltarRotulo:"Ingredientes", limpa:limpaUi};
 }

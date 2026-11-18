@@ -18,6 +18,6 @@ for pasta, _, arquivos in os.walk(os.path.join(raiz, "js")):
             rel = os.path.relpath(os.path.join(pasta, nome), raiz)
             troca(rel, r'from "(\.{1,2}/[^"?]+\.js)(\?v=\d+)?"', r'from "\1?v=' + versao + '"')
 
-troca("index.html", r'(js/app\.js|css/estilo\.css)(\?v=\d+)?"', r'\1?v=' + versao + '"')
+troca("index.html", r'(js/app\.js|css/estilo\.css|css/app\.css)(\?v=\d+)?"', r'\1?v=' + versao + '"')
 troca("sw.js", r'const VERSAO = "[^"]*"', 'const VERSAO = "icelab-' + versao + '"')
 print("versão", versao)

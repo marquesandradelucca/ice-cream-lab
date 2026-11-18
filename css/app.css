@@ -1,0 +1,813 @@
+/* Ice Cream Lab — redesign "cara de app" (Fase 1: fundação).
+   Tokens e componentes novos, usados pelas telas à medida que forem refeitas.
+   Referência: Figma "Ice Cream Lab · Redesign", página 05. Regras em PLANO-REDESIGN.md.
+   Prefixo "ui-" para não conflitar com o estilo antigo (estilo.css) durante a transição. */
+
+/* ===== Tokens ===== */
+:root{
+  /* Cor (só modo claro) */
+  --ui-fundo:#FFFFFF;
+  --ui-tinta:#141414;
+  --ui-texto2:#5C5C5C;
+  --ui-texto3:#8E8E8E;
+  --ui-linha:#ECECEA;
+  --ui-trilho:#E2E2DF;      /* trilho do gráfico de intervalos */
+  --ui-faixa:#C4C4C0;       /* faixa ideal do gráfico */
+  --ui-ok:#3E8A37; --ui-atencao:#B3651E; --ui-fora:#AF3629; /* vêm dos degradês: Manjericão, Caramelo, Maçã (tom escuro) */
+
+  /* Vidro */
+  --ui-vidro-claro:rgba(0,0,0,.04);       /* sobre fundo branco, texto escuro */
+  --ui-vidro-claro-borda:rgba(0,0,0,.06);
+  --ui-vidro-escuro:rgba(0,0,0,.12);      /* sobre imagem, texto branco */
+  --ui-vidro-escuro-borda:rgba(255,255,255,.28);
+  --ui-desfoque:blur(30px) saturate(1.4);
+
+  /* Espaço: só 4 / 8 / 12 / 16 / 24 */
+  --ui-e1:4px; --ui-e2:8px; --ui-e3:12px; --ui-e4:16px; --ui-e5:24px;
+  --ui-margem:16px;          /* lateral da tela */
+
+  /* Cantos */
+  --ui-r-grande:24px;        /* cartões, painéis, blocos */
+  --ui-r-medio:16px;         /* blocos pequenos, campos */
+  --ui-r-pequeno:12px;       /* seletores internos */
+  --ui-r-pilula:999px;
+
+  /* Alturas */
+  --ui-h-botao:48px; --ui-h-filtro:34px; --ui-h-etiqueta:26px; --ui-h-redondo:40px;
+
+  /* Texto */
+  --ui-t-tela:34px;          /* título da tela */
+  --ui-t-destaque:28px;      /* nome em destaque (telas com capa) */
+  --ui-t-nav:20px;           /* título de navegação */
+  --ui-t-cartao:17px;        /* título de cartão */
+  --ui-t-texto:15px;
+  --ui-t-sec:13px;           /* secundário */
+  --ui-t-rotulo:11px;        /* rótulos e abas */
+
+  --ui-fonte:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+  --ui-abas:62px;            /* altura da barra de abas (sem a área segura) */
+}
+
+/* ===== Base para telas novas (classe no <body>) ===== */
+body.ui{
+  background:var(--ui-fundo); color:var(--ui-tinta);
+  font-family:var(--ui-fonte); font-size:var(--ui-t-texto); line-height:1.35;
+  letter-spacing:-.01em;
+}
+.ui-num{font-variant-numeric:tabular-nums}
+
+/* Telas novas escondem a moldura antiga (barra do topo e título) */
+body.ui .barra-topo, body.ui #titulo{display:none !important}
+body.ui .wrap{max-width:none; padding:0}
+/* Telas antigas: espaço no rodapé para a barra de abas não cobrir o conteúdo */
+body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + env(safe-area-inset-bottom,0px))}
+.ui-abas{font-family:var(--ui-fonte)}
+.ui-par{display:flex; gap:var(--ui-e3)}
+.ui-par > *{flex:1; min-width:0}
+
+/* ===== Tela e cabeçalho ===== */
+.ui-tela{padding:0 var(--ui-margem) calc(var(--ui-abas) + var(--ui-e3) + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:var(--ui-e3)}
+.ui-cabecalho{display:flex; align-items:flex-end; gap:var(--ui-e2);
+  padding:calc(env(safe-area-inset-top,0px) + var(--ui-e2)) var(--ui-margem) var(--ui-e4)}
+.ui-cabecalho h1{flex:1; min-width:0; margin:0; font-size:var(--ui-t-tela); font-weight:700; line-height:1.15; letter-spacing:-.02em}
+.ui-cabecalho.nav{align-items:center}
+.ui-cabecalho.nav h1{font-size:var(--ui-t-nav)}
+
+/* ===== Vidro ===== */
+.ui-vidro{background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda);
+  -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
+.ui-vidro-escuro{background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); color:#fff;
+  -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4)}
+
+/* ===== Cartões ===== */
+.ui-cartao{border-radius:var(--ui-r-grande); padding:var(--ui-e4); display:flex; flex-direction:column; gap:var(--ui-e3)}
+.ui-cartao h2,.ui-cartao h3{margin:0; font-size:var(--ui-t-cartao); font-weight:700; line-height:1.25}
+.ui-sec{font-size:var(--ui-t-sec); color:var(--ui-texto3)}
+.ui-vidro-escuro .ui-sec{color:rgba(255,255,255,.78)}
+.ui-rotulo{font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase}
+
+/* Bloco de imagem: capa (foto ou degradê) + escurecimento suave + texto branco embaixo */
+.ui-bloco{position:relative; overflow:hidden; border-radius:var(--ui-r-grande); padding:var(--ui-e4);
+  display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1); color:#fff;
+  background:var(--capa, #C9B79A) center/cover no-repeat; text-decoration:none; min-height:96px}
+.ui-bloco.pequeno{border-radius:var(--ui-r-medio); padding:var(--ui-e3)}
+.ui-bloco::before{content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,.22) 100%)}
+.ui-bloco > *{position:relative}
+.ui-bloco .titulo{font-size:var(--ui-t-cartao); font-weight:700; line-height:1.25; overflow-wrap:anywhere}
+.ui-bloco.pequeno .titulo{font-size:var(--ui-t-sec)}
+.ui-bloco .ui-sec{color:rgba(255,255,255,.85)}
+
+/* ===== Botões ===== */
+.ui-botao{display:inline-flex; align-items:center; justify-content:center; gap:var(--ui-e2);
+  height:var(--ui-h-botao); padding:0 20px; border-radius:var(--ui-r-pilula); border:0;
+  font:inherit; font-size:var(--ui-t-texto); font-weight:600; text-decoration:none; cursor:pointer;
+  white-space:nowrap; -webkit-tap-highlight-color:transparent; transition:transform .12s ease}
+.ui-botao:active{transform:scale(.97)}
+.ui-botao.preto{background:var(--ui-tinta); color:#fff}
+.ui-botao.vidro{background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda); color:var(--ui-tinta);
+  -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
+.ui-botao.vidro-escuro{background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); color:#fff;
+  -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
+.ui-botao.largo{width:100%}
+.ui-redondo{display:inline-flex; align-items:center; justify-content:center; flex:none;
+  width:var(--ui-h-redondo); height:var(--ui-h-redondo); border-radius:50%; padding:0; border:1px solid var(--ui-vidro-claro-borda);
+  background:var(--ui-vidro-claro); color:var(--ui-tinta); cursor:pointer;
+  -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
+.ui-redondo.escuro{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff}
+.ui-redondo svg{width:20px; height:20px}
+
+/* Filtros e etiquetas */
+.ui-filtros{display:flex; gap:var(--ui-e2)}
+.ui-filtro{height:var(--ui-h-filtro); padding:0 14px; border-radius:var(--ui-r-pilula); border:1px solid var(--ui-vidro-claro-borda);
+  background:var(--ui-vidro-claro); color:var(--ui-tinta); font:inherit; font-size:var(--ui-t-sec); font-weight:600; cursor:pointer}
+.ui-filtro[aria-pressed="true"]{background:var(--ui-tinta); border-color:var(--ui-tinta); color:#fff}
+.ui-filtros.dividir .ui-filtro{flex:1}
+.ui-etiqueta{display:inline-flex; align-items:center; height:var(--ui-h-etiqueta); padding:0 10px; border-radius:var(--ui-r-pilula);
+  font-size:var(--ui-t-sec); font-weight:600; background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); color:#fff}
+.ui-etiqueta.final{background:var(--ui-tinta); border-color:var(--ui-tinta)}
+
+/* Seletor de opções sem fundo: só a escolhida fica preta */
+.ui-opcoes{display:flex; gap:var(--ui-e1)}
+.ui-opcoes button{flex:1; min-width:0; height:36px; padding:0 4px; border:0; border-radius:var(--ui-r-pilula); background:transparent;
+  font:inherit; font-size:var(--ui-t-sec); font-weight:600; color:var(--ui-tinta); cursor:pointer; white-space:nowrap}
+.ui-opcoes button[aria-pressed="true"]{background:var(--ui-tinta); color:#fff}
+
+/* Estrelas */
+.ui-estrelas{display:inline-flex; gap:2px}
+.ui-estrelas svg{width:14px; height:14px; fill:currentColor}
+.ui-estrelas .vazia{opacity:.35}
+.ui-estrelas.grandes{display:flex; justify-content:space-between; width:100%}
+.ui-estrelas.grandes button{border:0; background:none; padding:0; cursor:pointer; color:var(--ui-tinta)}
+.ui-estrelas.grandes svg{width:48px; height:48px}
+.ui-estrelas.grandes .vazia svg{fill:var(--ui-trilho); opacity:1}
+
+/* Gráfico de intervalos (faixa ideal + traço da receita) */
+.ui-faixa{display:flex; flex-direction:column; gap:var(--ui-e2)}
+.ui-faixa .topo{display:flex; justify-content:space-between; font-size:14px}
+.ui-faixa .topo span:first-child{color:var(--ui-texto2)}
+.ui-faixa .topo b{font-weight:600}
+.ui-faixa .topo b.atencao{color:var(--ui-atencao)}
+.ui-faixa .trilho{position:relative; height:6px; border-radius:3px; background:var(--ui-trilho)}
+.ui-faixa .ideal{position:absolute; top:0; bottom:0; border-radius:3px; background:var(--ui-faixa)}
+.ui-faixa .traco{position:absolute; top:-4px; width:3px; height:14px; margin-left:-1.5px; border-radius:2px; background:var(--ui-tinta)}
+
+/* Faixa lateral rolável, sem barra de rolagem */
+.ui-rolagem{display:flex; gap:var(--ui-e3); overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin:0 calc(var(--ui-e4) * -1); padding:0 var(--ui-e4); scroll-snap-type:x proximity; scroll-padding-inline:var(--ui-e4)}
+.ui-rolagem::-webkit-scrollbar{display:none}
+.ui-rolagem > *{flex:none; scroll-snap-align:start}
+.ui-faixa.mini .topo{display:none}
+
+/* Linhas dentro de cartão (chave → valor) */
+.ui-linhas{display:flex; flex-direction:column}
+.ui-linha{display:flex; align-items:center; justify-content:space-between; gap:var(--ui-e2); padding:10px 0; border-top:1px solid rgba(0,0,0,.06)}
+.ui-linha:first-child{border-top:0}
+.ui-vidro-escuro .ui-linha{border-top-color:rgba(255,255,255,.15)}
+
+/* Campo de texto */
+.ui-campo{width:100%; min-height:48px; padding:14px; border-radius:var(--ui-r-medio); border:1px solid var(--ui-vidro-claro-borda);
+  background:var(--ui-vidro-claro); font:inherit; font-size:16px; color:var(--ui-tinta)}
+.ui-campo::placeholder{color:var(--ui-texto3)}
+
+/* ===== Barra de abas ===== */
+.ui-abas{position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; justify-content:space-around;
+  padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);
+  background:rgba(255,255,255,.78); border-top:1px solid var(--ui-linha);
+  -webkit-backdrop-filter:blur(30px) saturate(1.6); backdrop-filter:blur(30px) saturate(1.6)}
+.ui-abas a{display:flex; flex-direction:column; align-items:center; gap:3px; width:70px; text-decoration:none;
+  font-size:10px; font-weight:500; color:#9A9A9A}
+.ui-abas a svg{width:24px; height:24px}
+.ui-abas a[aria-current="page"]{color:var(--ui-tinta); font-weight:600}
+
+/* ===== Folha (sheet) ===== */
+.ui-veu{position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.3); animation:ui-aparece .2s ease}
+.ui-folha{position:fixed; left:0; right:0; bottom:0; z-index:41; max-height:92vh; overflow:auto;
+  display:flex; flex-direction:column; gap:14px; padding:10px 20px calc(env(safe-area-inset-bottom,0px) + 24px);
+  border-radius:32px 32px 0 0; background:rgba(255,255,255,.9); border-top:1px solid rgba(255,255,255,.9);
+  box-shadow:0 -4px 24px rgba(0,0,0,.08);
+  -webkit-backdrop-filter:blur(48px) saturate(1.4); backdrop-filter:blur(48px) saturate(1.4);
+  animation:ui-sobe .28s cubic-bezier(.2,.8,.2,1)}
+.ui-folha .puxador{align-self:center; width:36px; height:5px; border-radius:3px; background:var(--ui-trilho)}
+.ui-folha .acoes{display:flex; justify-content:space-between; align-items:center}
+.ui-folha h2{margin:0; font-size:var(--ui-t-nav); font-weight:700}
+@keyframes ui-sobe{from{transform:translateY(100%)} to{transform:none}}
+@keyframes ui-aparece{from{opacity:0} to{opacity:1}}
+
+/* ===== Desktop provisório: largura de celular, centralizada ===== */
+@media (min-width: 600px){
+  body.ui .ui-app{max-width:430px; margin:0 auto}
+  body.ui .ui-abas{max-width:430px; margin:0 auto}
+  body.ui .ui-folha{max-width:430px; margin:0 auto}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .ui-folha,.ui-veu{animation:none}
+  .ui-botao{transition:none}
+}
+
+/* Aviso (toast) acima da barra de abas */
+body:not(.sem-abas) .toast{bottom:calc(var(--ui-abas) + 12px + env(safe-area-inset-bottom,0px)); z-index:25}
+
+/* ===== Home ===== */
+a.ui-cartao{color:inherit; text-decoration:none}
+.home-avaliar{min-height:140px; padding-top:calc(var(--ui-e4) + var(--ui-h-botao) + var(--ui-e3))}
+.home-avaliar-nome{display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden}
+.home-avaliar-rotulo{position:absolute; left:var(--ui-e4); top:calc(var(--ui-e4) + (var(--ui-h-botao) - 14px) / 2)}
+.home-avaliar-botao{position:absolute; top:var(--ui-e4); right:var(--ui-e4)}
+.home-avaliar-nome{font-size:var(--ui-t-nav) !important}
+.home-par{align-items:stretch}
+.home-calc{justify-content:flex-start}
+.home-mini{display:flex; flex-direction:column; gap:14px; padding-top:6px}
+.home-coluna{display:flex; flex-direction:column; gap:var(--ui-e3)}
+.home-ideias{gap:var(--ui-e1)}
+.home-numero{font-size:var(--ui-t-destaque); font-weight:700; line-height:1.1}
+.home-ingredientes{flex:1; min-height:88px}
+.home-receitas{overflow:hidden}
+.home-titulo-link{color:inherit; text-decoration:none}
+.home-capa{width:92px; height:112px; min-height:0}
+.home-estudo{min-height:110px}
+/* Nome longo na capa pequena: até 4 linhas, com reticências */
+.ui-bloco.pequeno .titulo{display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden}
+
+/* ===== Receitas ===== */
+a.ui-filtro{display:inline-flex; align-items:center; text-decoration:none}
+.receitas-lista{display:flex; flex-direction:column; gap:var(--ui-e3)}
+.receitas-cartao{min-height:200px}
+.receitas-topo{display:flex; align-items:flex-end; gap:var(--ui-e2)}
+.receitas-topo .titulo{flex:1; min-width:0}
+.receitas-topo .ui-etiqueta{flex:none}
+.receitas-info{display:flex; align-items:center; gap:var(--ui-e2)}
+.receitas-vazio{padding:var(--ui-e5) var(--ui-e1)}
+
+/* ===== Receita ===== */
+.rec-fundo{position:fixed; inset:0; z-index:-1; background:var(--capa) center/cover no-repeat}
+.rec-fundo::after{content:""; position:absolute; inset:0; background:rgba(0,0,0,.16)}
+body.rec{background:transparent}
+body.rec .ui-abas{background:rgba(255,255,255,.72)}
+body.rec .ui-app{min-height:100vh; min-height:100dvh; display:flex; flex-direction:column}
+.rec-tela{padding-top:0; justify-content:flex-end; flex:1}
+.rec-nota-campo{border-color:var(--ui-vidro-escuro-borda) !important; background:var(--ui-vidro-escuro) !important}
+.rec-versao-nome{display:flex; flex-direction:column; gap:2px}
+.rec-seta{display:inline-flex; flex:none; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; transition:transform .2s ease;
+  background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
+.rec-seta svg{width:16px; height:16px; transform:rotate(-90deg)}
+.rec-versao[open] .rec-seta,.rec-dobra[open] .rec-seta{transform:rotate(180deg)}
+.rec-dobra summary{display:flex; justify-content:space-between; align-items:center; list-style:none; cursor:pointer}
+.rec-dobra summary::-webkit-details-marker{display:none}
+.rec-dobra[open] summary{margin-bottom:var(--ui-e3)}
+.rec-painel{color:#fff}
+.rec-painel h2{color:#fff}
+.rec-etiquetas{display:flex; flex-wrap:wrap; gap:var(--ui-e2)}
+.rec-nome{margin:0; color:#fff; font-size:var(--ui-t-destaque); font-weight:700; line-height:1.15; letter-spacing:-.02em; overflow-wrap:anywhere}
+.rec-acoes{display:flex; gap:var(--ui-e2)}
+.rec-acoes > *{flex:1}
+.rec-versoes{display:flex; flex-direction:column}
+.rec-versao{border-top:1px solid rgba(255,255,255,.15)}
+.rec-versao:first-child{border-top:0}
+.rec-versao summary{display:flex; justify-content:space-between; align-items:center; padding:var(--ui-e3) 0; list-style:none; cursor:pointer}
+.rec-versao summary::-webkit-details-marker{display:none}
+.rec-versao-corpo{display:flex; flex-direction:column; gap:var(--ui-e3); padding-bottom:var(--ui-e3)}
+.rec-versao:first-child summary{padding-top:0}
+.rec-versao:last-child .rec-versao-corpo{padding-bottom:0}
+.rec-versao:last-child:not([open]) summary{padding-bottom:0}
+.rec-nota.vazia{opacity:.6}
+.rec-nota-campo{width:100%; min-height:44px; padding:10px 12px; border-radius:var(--ui-r-pequeno); border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.12); color:#fff; font:inherit; font-size:16px}
+.rec-difs{display:flex; flex-wrap:wrap; gap:var(--ui-e1)}
+.rec-dif{font-size:var(--ui-t-sec); padding:3px 8px; border-radius:var(--ui-r-pilula); background:rgba(255,255,255,.14)}
+.rec-lotes{display:flex; flex-direction:column; gap:var(--ui-e2)}
+.rec-lote{display:flex; flex-direction:column; gap:var(--ui-e1); padding:var(--ui-e3) 0; border-top:1px solid rgba(255,255,255,.15); color:#fff; text-decoration:none}
+.rec-lote-topo{display:flex; justify-content:space-between; align-items:center}
+.rec-lote-obs{font-size:var(--ui-t-sec)}
+.rec-versao-acoes{display:flex; flex-wrap:wrap; gap:var(--ui-e2)}
+.rec-versao-acoes > *{flex:1}
+.rec-versao-acoes .rec-largo{flex-basis:100%}
+body.rec #preparo.rec-preparo{display:block; margin:0; width:100%; min-height:120px; border:1px solid var(--ui-vidro-escuro-borda); border-radius:var(--ui-r-medio); padding:var(--ui-e3); background:var(--ui-vidro-escuro); -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4); color:#fff; font:inherit; font-size:16px; resize:vertical}
+body.rec .rec-preparo::placeholder{color:rgba(255,255,255,.6)}
+
+/* Receita final */
+.rec-cab{display:flex; justify-content:space-between; align-items:baseline}
+.rec-cab .ui-sec{color:rgba(255,255,255,.78)}
+.rec-estrelas{display:inline-flex; align-items:center; color:#fff}
+.rec-tamanhos{display:flex; gap:var(--ui-e2)}
+.rec-tamanhos button,.rec-outro{flex:1; min-width:0; height:var(--ui-h-filtro); border-radius:var(--ui-r-pilula); font:inherit; font-size:var(--ui-t-sec); font-weight:600; color:#fff; cursor:pointer;
+  background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda)}
+.rec-tamanhos button[aria-pressed="true"]{background:#fff; color:var(--ui-tinta); border-color:#fff}
+.rec-outro{display:flex; align-items:center; justify-content:center; gap:2px; padding:0 10px; cursor:text}
+.rec-outro input{width:100%; min-width:0; border:0; background:transparent; color:#fff; font:inherit; font-size:16px; text-align:right; padding:0}
+.rec-outro input::placeholder{color:rgba(255,255,255,.6)}
+.rec-outro input:focus{outline:none}
+.rec-preparo-texto{font-size:var(--ui-t-texto); line-height:1.5}
+.rec-total{font-weight:600}
+.rec-total span{font-weight:600}
+.rec-outro.ativo{background:#fff; border-color:#fff}
+.rec-outro.ativo, .rec-outro.ativo input{color:var(--ui-tinta)}
+
+/* ===== Calculadora ===== */
+body.calcui .calc-nome-linha{display:flex; align-items:center; gap:var(--ui-e3)}
+body.calcui .calc-nome-texto{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
+body.calcui .calc-nome-campo{width:100%; border:0; background:transparent; padding:0; font:inherit; font-size:var(--ui-t-cartao); font-weight:600; color:var(--ui-tinta); min-height:24px}
+body.calcui .calc-nome-campo:focus{outline:none}
+body.calcui .calc-nome-campo::placeholder{color:var(--ui-texto3); font-weight:500}
+body.calcui #estadoReceita .nao-salvo{color:var(--ui-atencao)}
+body.calcui #estadoReceita b{font-weight:600; color:var(--ui-tinta)}
+body.calcui .calc-cab{display:flex; justify-content:space-between; align-items:baseline}
+body.calcui .resultado{margin:0}
+/* Avisos */
+body.calcui .notes{gap:var(--ui-e2)}
+body.calcui .notes:empty{display:none}
+body.calcui .notes li{color:var(--ui-texto2); font-size:14px; padding-left:16px}
+body.calcui #avisoEstab{margin:0; font-size:var(--ui-t-sec)}
+/* Gráficos de intervalo */
+body.calcui .metric .name{color:var(--ui-texto2); font-size:14px; text-decoration:none}
+body.calcui .metric-valor{font-size:14px; font-weight:600}
+body.calcui .metric-valor.status-atencao{color:var(--ui-atencao)}
+body.calcui .metric-valor.status-critico{color:var(--ui-fora)}
+body.calcui .bar{height:6px; border-radius:3px; margin:var(--ui-e2) 0 26px; background:var(--ui-trilho)}
+body.calcui .metric:last-child .bar{margin-bottom:18px}
+body.calcui .bar .band{border-radius:3px; background:var(--ui-faixa)}
+body.calcui .bar .mark{top:-4px; height:14px; border-radius:2px; background:var(--ui-tinta)}
+body.calcui .bar .mark.status-atencao{background:var(--ui-atencao)}
+body.calcui .bar .mark.status-critico{background:var(--ui-fora)}
+body.calcui .bar .range-label{top:10px; font-size:var(--ui-t-rotulo); color:var(--ui-texto3)}
+body.calcui .metric-ajuda .info{background:var(--ui-vidro-claro); color:var(--ui-texto3); border:1px solid var(--ui-vidro-claro-borda)}
+/* Linhas de ingrediente */
+body.calcui #linhas{display:flex; flex-direction:column}
+body.calcui .linha{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--ui-e2); padding:var(--ui-e1) 0; border-top:1px solid rgba(0,0,0,.06)}
+body.calcui #linhas .linha:first-child{border-top:0}
+body.calcui #ingredientes.modo-excluir .linha{grid-template-columns:minmax(0,1fr) auto 32px}
+body.calcui .nome-ing{font-size:var(--ui-t-texto); color:var(--ui-tinta)}
+body.calcui .com-nota .info{background:var(--ui-vidro-claro); color:var(--ui-texto3)}
+body.calcui .nota-ing{color:var(--ui-texto2)}
+body.calcui .qtd{display:flex; align-items:center}
+body.calcui .passo{width:32px; height:var(--ui-h-filtro); border:0; background:transparent; color:var(--ui-texto3); font-size:18px; cursor:pointer}
+body.calcui .campo-g{display:inline-flex; align-items:center; gap:2px; height:var(--ui-h-filtro); padding:0 12px; border-radius:var(--ui-r-pilula);
+  background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda)}
+body.calcui .campo-g input{width:52px; border:0; background:transparent; padding:0; text-align:right; font:inherit; font-size:16px; font-weight:600; color:var(--ui-tinta)}
+body.calcui .campo-g input:focus{outline:none}
+body.calcui .campo-g span{color:var(--ui-texto3); font-size:var(--ui-t-sec)}
+body.calcui .linha-total{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--ui-e2); padding:var(--ui-e1) 0; border-top:1px solid rgba(0,0,0,.06)}
+body.calcui .rotulo-mistura{padding:0; color:var(--ui-tinta); font-weight:600}
+body.calcui .acoes-ing{display:flex; gap:var(--ui-e2); margin:0}
+body.calcui .acoes-ing #adicionar{flex:2}
+body.calcui .acoes-ing #modoExcluir{flex:1}
+body.calcui #ingredientes.modo-excluir #modoExcluir{background:var(--ui-tinta); color:#fff; border-color:var(--ui-tinta)}
+body.calcui .remover{color:var(--ui-fora)}
+/* Notas sobre o cálculo */
+body.calcui .calc-dobra summary{display:flex; justify-content:space-between; align-items:center; list-style:none; cursor:pointer}
+body.calcui .calc-dobra summary::-webkit-details-marker{display:none}
+body.calcui .calc-dobra summary h2{margin:0; font-size:var(--ui-t-cartao); font-weight:700}
+body.calcui .calc-seta{display:inline-flex; flex:none; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; transition:transform .2s ease;
+  background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda)}
+body.calcui .calc-seta svg{width:16px; height:16px; transform:rotate(-90deg)}
+body.calcui .calc-dobra[open] .calc-seta{transform:rotate(180deg)}
+body.calcui .calc-notas{display:flex; flex-direction:column; gap:var(--ui-e3); margin-top:var(--ui-e3); font-size:var(--ui-t-sec); color:var(--ui-texto2); line-height:1.45}
+body.calcui .calc-notas p{margin:0}
+/* Menu Abrir (vidro claro) */
+body.calcui .menu-lista{top:calc(100% + 8px); border-radius:var(--ui-r-medio); padding:var(--ui-e2); background:rgba(255,255,255,.94); border:1px solid var(--ui-vidro-claro-borda);
+  box-shadow:0 12px 32px rgba(0,0,0,.12); -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px)}
+body.calcui .menu-grupo{font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto3)}
+body.calcui .menu-opcao{border-radius:var(--ui-r-pequeno); font-size:var(--ui-t-texto)}
+/* Escolher ingrediente (tela cheia) */
+body.ui .escolha{background:var(--ui-fundo); padding:calc(env(safe-area-inset-top,0px) + var(--ui-e4)) var(--ui-margem) calc(env(safe-area-inset-bottom,0px) + var(--ui-e4)); gap:var(--ui-e3); font-family:var(--ui-fonte)}
+body.ui .escolha-topo input{background:var(--ui-vidro-claro)}
+body.ui .escolha-lista{margin:0}
+body.ui .escolha-item{min-height:48px; padding:0 var(--ui-e1); border:0; border-bottom:1px solid var(--ui-linha); background:transparent; font-size:16px; color:var(--ui-tinta); text-align:left; border-radius:0}
+body.ui .escolha-grupo{font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto3)}
+/* Folha de salvar */
+body.calcui .ui-folha .acoes-salvar{display:flex; flex-direction:column; gap:var(--ui-e2)}
+body.calcui .ui-folha label.ui-sec{margin-bottom:calc(var(--ui-e3) * -1 + var(--ui-e1))}
+body.calcui .ui-folha #campoNomeNova{display:flex; flex-direction:column; gap:var(--ui-e1)}
+body.calcui .ui-folha[hidden],body.calcui .ui-veu[hidden]{display:none}
+body.calcui .calc-nome-campo{text-overflow:ellipsis; white-space:nowrap; overflow:hidden}
+.ui-cabecalho.nav h1{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+body.calcui #ingredientes{padding:var(--ui-e4)}
+
+/* Escolha de capa (folha da receita): grade de degradês. */
+.capa-grade{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; flex-shrink:0}
+.capa-op{position:relative; aspect-ratio:1/1; border:0; border-radius:var(--ui-r3,12px); padding:8px;
+  background:var(--capa); display:flex; align-items:flex-end; overflow:hidden; cursor:pointer;
+  font:600 11px/1.2 var(--ui-fonte, inherit); color:#fff; text-align:left}
+.capa-op::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.22))}
+.capa-op span{position:relative}
+.capa-op[aria-pressed="true"]{box-shadow:0 0 0 2px #fff, 0 0 0 4px #000}
+/* Rodapé fixo: a grade some num degradê do fundo da folha, de ponta a ponta, sem moldura. */
+.capa-rodape{position:sticky; bottom:calc(-1 * (env(safe-area-inset-bottom,0px) + 24px)); flex-shrink:0;
+  margin:-12px -20px calc(-1 * (env(safe-area-inset-bottom,0px) + 24px)); padding:24px 20px calc(env(safe-area-inset-bottom,0px) + 24px);
+  background:linear-gradient(180deg, rgba(246,244,242,0) 0%, rgba(246,244,242,.96) 40%)}
+
+/* Ações destrutivas (excluir, apagar, descartar): texto vermelho no botão de vidro. */
+.ui-botao.perigo{color:var(--ui-fora)}
+
+/* ===== Lote (bancada e avaliação, sobre a capa) ===== */
+.lote-conteudo{display:flex; flex-direction:column; gap:var(--ui-e3)}
+body.loteui .ui-tela{padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(--ui-e4))}
+/* Seletores sobre vidro escuro: fundo de vidro, texto branco; escolhido = branco com texto escuro. */
+.rec-painel .ui-opcoes{padding:4px; border-radius:var(--ui-r-pilula); background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda)}
+.rec-painel .ui-opcoes button{color:#fff; font-size:var(--ui-t-sec); font-weight:600}
+.rec-painel .ui-opcoes button[aria-pressed="true"]{background:#fff; color:var(--ui-tinta)}
+.lote-bancada .lote-ing{font-size:var(--ui-t-destaque); line-height:1.15; letter-spacing:-.02em; overflow-wrap:anywhere}
+.lote-peso{display:flex; justify-content:space-between; align-items:baseline}
+.lote-peso b{font-size:var(--ui-t-tela); font-weight:700; letter-spacing:-.02em}
+.lote-real{display:flex; align-items:center; gap:var(--ui-e2); height:var(--ui-h-botao); padding:0 var(--ui-e4); border-radius:var(--ui-r-medio);
+  background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); cursor:text}
+.lote-real .ui-sec{flex:1}
+.lote-real input{width:96px; border:0; background:transparent; color:#fff; font:inherit; font-size:20px; font-weight:600; text-align:right; padding:0}
+.lote-real input:focus{outline:none}
+.rec-acoes .ui-botao[disabled]{opacity:.45}
+.lote-linha{width:100%; border-left:0; border-right:0; border-bottom:0; background:none; color:#fff; font:inherit; text-align:left; cursor:pointer; gap:var(--ui-e3)}
+.ui-linhas .lote-linha:first-child{border-top:0}
+.lote-linha-nome{flex:1; min-width:0}
+.lote-linha.ok .lote-linha-nome{opacity:.6}
+.lote-linha.atual .lote-linha-nome{font-weight:700}
+.lote-check{flex:none; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,.6); display:inline-flex; align-items:center; justify-content:center}
+.lote-linha.ok .lote-check{background:#fff; border-color:#fff; color:var(--ui-tinta)}
+.lote-check svg{width:14px; height:14px}
+.lote-sugestao{display:flex; flex-direction:column; gap:2px; padding:var(--ui-e2) 0}
+.lote-chips{display:grid; grid-template-columns:1fr 1fr; gap:var(--ui-e2)}
+.lote-chips button{height:var(--ui-h-filtro); border-radius:var(--ui-r-pilula); font:inherit; font-size:var(--ui-t-sec); font-weight:600; color:#fff; cursor:pointer;
+  background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda)}
+.lote-chips button[aria-pressed="true"]{background:#fff; color:var(--ui-tinta); border-color:#fff}
+.rec-painel .ui-estrelas.grandes button{color:#fff}
+.rec-painel .ui-estrelas.grandes svg{fill:#fff}
+.rec-painel .ui-estrelas.grandes .vazia svg{fill:rgba(255,255,255,.28)}
+.rec-painel.travado button[disabled]{cursor:default}
+.lote-obs-campo{display:block; width:100%; min-height:110px; padding:var(--ui-e3); border-radius:var(--ui-r-medio); border:1px solid var(--ui-vidro-escuro-borda);
+  background:var(--ui-vidro-escuro); color:#fff; font:inherit; font-size:16px; resize:vertical}
+.lote-obs-campo::placeholder{color:rgba(255,255,255,.6)}
+.lote-estado{margin:0; text-align:center; color:#fff; font-size:var(--ui-t-sec); font-weight:600}
+.lote-escala{gap:0}
+.lote-escala button{padding:0}
+.lote-bancada{touch-action:pan-y; overflow:hidden}
+.lote-progresso{display:flex; gap:4px}
+.lote-progresso span{flex:1; height:4px; border-radius:2px; background:rgba(255,255,255,.25)}
+.lote-progresso span.ok{background:rgba(255,255,255,.5)}
+.lote-progresso span.atual{background:#fff}
+.lote-palco{display:flex; align-items:center; gap:var(--ui-e2); min-height:168px}
+.lote-palco .ui-redondo{flex:none}
+.lote-palco .ui-redondo{background:none; border:0; -webkit-backdrop-filter:none; backdrop-filter:none; width:32px}
+.lote-palco .ui-redondo svg{width:24px; height:24px}
+.lote-palco .seta-dir svg{transform:rotate(180deg)}
+.lote-palco .ui-redondo[disabled]{opacity:.35; cursor:default}
+.lote-instrucao{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:var(--ui-e1); text-align:center}
+.lote-g{font-size:56px; line-height:1; font-weight:700; letter-spacing:-.03em}
+.lote-g small{font-size:var(--ui-t-nav); font-weight:600; letter-spacing:0}
+.lote-bancada .lote-ing{font-size:var(--ui-t-nav); font-weight:600; line-height:1.2; overflow-wrap:anywhere}
+.lote-check{cursor:pointer}
+.lote-instrucao.entra-dir{animation:lote-entra-dir .2s ease-out}
+.lote-instrucao.entra-esq{animation:lote-entra-esq .2s ease-out}
+@keyframes lote-entra-dir{from{transform:translateX(60%); opacity:0}}
+@keyframes lote-entra-esq{from{transform:translateX(-60%); opacity:0}}
+
+/* Regra: sobre fundo de foto/degradê, o botão principal é branco (não preto). Folhas brancas mantêm o preto. */
+body.rec .ui-app .ui-botao.preto,
+.ui-bloco .ui-botao.preto{background:#fff; color:var(--ui-tinta)}
+
+/* Ajustes › Personalização */
+.personaliza{display:flex; flex-direction:column; gap:var(--ui-e2)}
+.personaliza-item{display:flex; align-items:center; gap:var(--ui-e3); width:100%; padding:var(--ui-e2) 0; border:0; border-top:1px solid var(--ui-vidro-claro-borda); background:none; font:inherit; color:inherit; text-align:left; cursor:pointer}
+.personaliza-item:first-of-type{border-top:0}
+.personaliza-capa{flex:none; width:48px; height:48px; border-radius:var(--ui-r-pequeno,12px); background:var(--capa) center/cover no-repeat}
+.personaliza-nome{flex:1; display:flex; flex-direction:column; gap:2px; font-weight:600}
+.personaliza-nome .muted{font-weight:400}
+.ui-folha{font-family:var(--ui-fonte); color:var(--ui-tinta)}
+.ui-folha > .ui-botao{flex-shrink:0}
+.ui-folha h2{font-family:var(--ui-fonte)}
+
+/* ===== Ideias ===== */
+.ideias-anotar{display:flex; gap:var(--ui-e2)}
+.ideias-anotar .ui-campo{flex:1; min-width:0}
+.ideias-anotar .ui-botao{flex:none}
+.ideias-vazio{padding:var(--ui-e2) var(--ui-e1); margin:0}
+.ideia-cartao{min-height:150px; display:flex; flex-direction:column; justify-content:flex-end; padding:0}
+.ideia-corpo{flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1); padding:calc(var(--ui-e4) + var(--ui-h-filtro) + var(--ui-e3)) var(--ui-e4) var(--ui-e4); color:#fff; text-decoration:none}
+.ideia-nota{font-size:var(--ui-t-sec); color:rgba(255,255,255,.85); display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden}
+.ideia-botao{position:absolute !important; top:var(--ui-e4); right:var(--ui-e4); height:var(--ui-h-filtro); padding:0 14px; font-size:var(--ui-t-sec)}
+.ideia-capa{display:block; width:100%; min-height:150px; border:0; cursor:pointer}
+.ideia-form{gap:var(--ui-e2)}
+.ideia-form .ui-rotulo{margin-top:var(--ui-e2)}
+.ideia-form .ui-rotulo:first-child{margin-top:0}
+.ideia-texto{display:block; resize:vertical; font:inherit; font-size:16px}
+.ideia-form .ui-campo{background:#fff}
+/* Editor de ideia: fundo com a capa, painel de vidro escuro */
+.ideia-titulo{color:#fff}
+.ideia-form .ui-rotulo{color:rgba(255,255,255,.85)}
+.ideia-campo{display:block; width:100%; min-height:48px; padding:12px 14px; border-radius:var(--ui-r-medio); border:1px solid var(--ui-vidro-escuro-borda);
+  background:var(--ui-vidro-escuro); color:#fff; font:inherit; font-size:16px}
+.ideia-campo::placeholder{color:rgba(255,255,255,.6)}
+.ideia-campo:focus{outline:none; border-color:rgba(255,255,255,.6)}
+.ideia-acoes{display:flex; gap:var(--ui-e2)}
+.ideia-acoes > .ui-botao{flex:1}
+.ideia-acoes > .ideia-capa-bt{flex:none; width:var(--ui-h-botao); padding:0}
+.ideia-capa-bt svg{width:22px; height:22px}
+.ideia-rodape{display:flex; flex-direction:column; gap:var(--ui-e3)}
+
+/* ===== Biblioteca: Estudo, Tema, Ingredientes ===== */
+.estudo-filtros{overflow-x:auto; margin:0 calc(-1 * var(--ui-margem)); padding:0 var(--ui-margem); scrollbar-width:none}
+.estudo-filtros::-webkit-scrollbar{display:none}
+.estudo-filtros .ui-filtro{flex:none; white-space:nowrap}
+.estudo-lista{display:flex; flex-direction:column; gap:var(--ui-e3)}
+.estudo-cab{display:flex; justify-content:space-between; align-items:baseline; gap:var(--ui-e2)}
+.estudo-desc{margin:0}
+.estudo-linha{color:inherit; text-decoration:none; gap:var(--ui-e3); align-items:center}
+.estudo-linha-texto{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
+.estudo-seta{flex:none; display:inline-flex; color:var(--ui-tinta-3, #999)}
+.estudo-seta svg{width:16px; height:16px; transform:rotate(180deg)}
+.tema-capa{min-height:180px; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e2)}
+.tema-capa .tema-grupo{align-self:flex-start}
+.tema-texto{display:block; margin:0; line-height:1.6; font-size:var(--ui-t-texto)}
+.tema-texto > :first-child{margin-top:0}
+.tema-texto > :last-child{margin-bottom:0}
+.tema-texto h2,.tema-texto h3{font-size:var(--ui-t-cartao); margin:var(--ui-e5) 0 var(--ui-e2)}
+.tema-texto table{width:100%; border-collapse:collapse; font-size:var(--ui-t-sec)}
+.tema-texto td,.tema-texto th{padding:6px 4px; border-bottom:1px solid var(--ui-vidro-claro-borda); text-align:left}
+.ideia-form-claro{gap:var(--ui-e2)}
+.ideia-form-claro .ui-rotulo{margin-top:var(--ui-e2)}
+.ideia-form-claro .ui-rotulo:first-child{margin-top:0}
+.campo-branco{background:#fff !important; font:inherit; font-size:16px}
+.tema-edicao{display:block; min-height:320px; resize:vertical; line-height:1.5}
+.ing-grade{display:grid; grid-template-columns:1fr 1fr; gap:var(--ui-e3)}
+.ing-bloco{min-height:112px; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e2)}
+.ing-bloco .titulo{font-size:var(--ui-t-texto) !important}
+.ing-sec{margin:var(--ui-e3) 0 0; font-size:var(--ui-t-cartao)}
+.ing-barra{display:flex; height:10px; border-radius:var(--ui-r-pilula); overflow:hidden; gap:2px; background:rgba(255,255,255,.12)}
+.ing-barra.pequena{height:6px; gap:1px}
+.ing-barra span{min-width:2px}
+.ing-legenda{display:inline-flex; align-items:center; gap:var(--ui-e2)}
+.ing-legenda i{width:10px; height:10px; border-radius:50%; flex:none}
+.ui-linha .ing-legenda:not(:has(i)){padding-left:18px}
+.ing-campo{align-items:center; gap:var(--ui-e3); cursor:text}
+.ing-campo > span:first-child{flex:1}
+.ing-num{display:inline-flex; align-items:center; gap:4px; padding:0 12px; height:40px; border-radius:var(--ui-r-medio); background:#fff; border:1px solid var(--ui-vidro-claro-borda)}
+.ing-num input{width:64px; border:0; background:transparent; font:inherit; font-size:16px; text-align:right; padding:0}
+.ing-num input:focus{outline:none}
+.ing-agua{margin:0; font-weight:600}
+.ing-agua.erro{color:var(--ui-fora)}
+.ing-check{display:flex; align-items:center; gap:var(--ui-e2); font-size:var(--ui-t-texto)}
+.ing-check input{width:20px; height:20px; accent-color:var(--ui-tinta)}
+.tema-bloco{min-height:120px; display:flex; flex-direction:column; justify-content:flex-end}
+.tema-bloco .titulo{font-size:var(--ui-t-texto) !important}
+.estudo-lista > .ing-sec:first-child{margin-top:0}
+.ing-grade.tres{grid-template-columns:repeat(3,1fr); gap:var(--ui-e2)}
+.ing-grade.tres .ing-bloco{min-height:96px; padding:var(--ui-e3) 10px}
+.ing-grade.tres .ing-bloco .titulo{font-size:var(--ui-t-sec) !important; line-height:1.2}
+.personaliza + .personaliza{margin-top:var(--ui-e3)}
+.salvar-modo button{font-size:var(--ui-t-sec)}
+.salvar-modo{padding:4px; border-radius:var(--ui-r-pilula); background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda)}
+
+/* ===== Ajustes (folha) ===== */
+.ajustes-corpo{display:flex; flex-direction:column; gap:var(--ui-e3)}
+.ajustes-rotulo{color:var(--ui-tinta-2, #666); margin:var(--ui-e3) 0 calc(-1 * var(--ui-e1))}
+.ajustes-rotulo:first-child{margin-top:0}
+.ajustes-cartao{gap:var(--ui-e3)}
+.ajustes-erro{color:var(--ui-fora) !important}
+.personaliza-item{width:100%; border-left:0; border-right:0; border-bottom:0; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; align-items:center; gap:var(--ui-e3)}
+.ui-linhas .personaliza-item:first-child{border-top:0; padding-top:0}
+.ui-linhas .personaliza-item:last-child{padding-bottom:0}
+.personaliza-capa{width:40px !important; height:40px !important}
+.personaliza-nome .ui-sec{font-weight:400}
+.rec-seta.claro{background:var(--ui-vidro-claro); border-color:var(--ui-vidro-claro-borda); color:var(--ui-tinta)}
+.toast{z-index:60 !important}
+.ajustes-cartao [hidden]{display:none !important}
+.ajustes-cartao .bloco-ajustes{margin:0}
+/* Calculadora: cartão do nome com a capa da receita aberta */
+body.calcui .calc-nome.com-capa{display:flex; flex-direction:column; gap:var(--ui-e3); color:#fff}
+body.calcui .calc-nome.com-capa .calc-nome-campo{color:#fff}
+body.calcui .calc-nome.com-capa .calc-nome-campo::placeholder{color:rgba(255,255,255,.7)}
+body.calcui .calc-nome.com-capa .ui-sec,body.calcui .calc-nome.com-capa .ui-sec b{color:rgba(255,255,255,.85)}
+body.calcui textarea.calc-nome-campo{display:block; resize:none; overflow:hidden; line-height:1.25; font-family:inherit; white-space:normal; text-overflow:clip; overflow-wrap:anywhere}
+/* Calculadora: "Abrir" com texto (a pasta sozinha não dizia o que fazia) e Salvar alinhado ao topo do nome */
+body.calcui .calc-abrir{height:var(--ui-h-redondo); padding:0 14px 0 12px; gap:6px; font-size:var(--ui-t-sec)}
+body.calcui .calc-abrir svg{width:18px; height:18px}
+body.calcui .calc-nome-linha{align-items:flex-start}
+/* Gráficos em degradê (cores dos degradês do app): trilho em tons claros de Framboesa → Maracujá (só indicam a direção); faixa ideal forte em Manjericão. */
+body.calcui .bar{height:10px; border-radius:5px; background:linear-gradient(90deg, #FAD0DF 0%, #FFE5B5 var(--a, 30%), #FFE5B5 var(--b, 70%), #FAD0DF 100%)}
+body.calcui .bar .band{top:0; bottom:0; border-radius:5px; background:linear-gradient(90deg, #8DCB72, #56AF38 50%, #8DCB72)}
+body.calcui .bar .mark,body.calcui .bar .mark.status-atencao,body.calcui .bar .mark.status-critico{top:-5px; width:4px; height:20px; border-radius:2px; background:#141414; box-shadow:none}
+body.calcui .bar .range-label{top:14px; color:#2F6B2A; font-weight:600}
+/* Calculadora: fundo em degradê Coco, sem o véu escuro das telas de capa */
+body.calcui{background:transparent}
+.calc-fundo::after{display:none}
+body.calcui .ui-abas{background:rgba(255,255,255,.72)}
+/* Fundo da Calculadora: rascunho = branco/cinza claro; receita = capa dela (com véu leve) */
+.calc-fundo{background:radial-gradient(circle at 20% 8%, #FFFFFF 0%, transparent 55%), linear-gradient(160deg, #FDFDFC 0%, #E6E6E2 55%, #C9C9C4 100%)}
+body.calc-capa .calc-fundo{background:var(--capa) center/cover no-repeat}
+body.calc-capa .calc-fundo::after{display:block; background:rgba(0,0,0,.10)}
+body.calc-capa.calcui .ui-cabecalho h1{color:#fff}
+body.calc-capa.calcui .calc-abrir{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff}
+body.calc-capa .calc-nome .ui-botao.preto{background:#fff; color:var(--ui-tinta)}
+
+/* Calculadora sobre a capa da receita: padrão do ecossistema (vidro escuro, texto branco, botão principal branco) */
+body.calc-capa.calcui .ui-tela .ui-cartao.ui-vidro{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff;
+  -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4)}
+body.calc-capa.calcui .ui-tela h2,
+body.calc-capa.calcui .nome-ing,
+body.calc-capa.calcui .rotulo-mistura,
+body.calc-capa.calcui .metric-valor,
+body.calc-capa.calcui .campo-g input,
+body.calc-capa.calcui #estadoReceita b{color:#fff}
+body.calc-capa.calcui .ui-tela .ui-sec,
+body.calc-capa.calcui .metric .name,
+body.calc-capa.calcui .notes li,
+body.calc-capa.calcui .calc-notas,
+body.calc-capa.calcui .nota-ing,
+body.calc-capa.calcui .campo-g span,
+body.calc-capa.calcui .passo{color:rgba(255,255,255,.78)}
+body.calc-capa.calcui .linha,
+body.calc-capa.calcui .linha-total{border-top-color:rgba(255,255,255,.15)}
+body.calc-capa.calcui .campo-g,
+body.calc-capa.calcui .metric-ajuda .info,
+body.calc-capa.calcui .com-nota .info,
+body.calc-capa.calcui .calc-seta{background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); color:#fff}
+body.calc-capa.calcui .metric-valor.status-atencao{color:var(--ui-atencao)}
+body.calc-capa.calcui .metric-valor.status-critico,
+body.calc-capa.calcui .remover,
+body.calc-capa.calcui .ui-tela .ui-botao.perigo{color:var(--ui-fora)}
+body.calc-capa.calcui .bar .range-label{color:#BEE0A1}
+body.calc-capa.calcui .ui-tela .ui-botao.preto{background:#fff; color:var(--ui-tinta)}
+body.calc-capa.calcui .ui-tela .ui-botao.vidro{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff}
+body.calc-capa.calcui #estilo .ui-filtro{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff}
+body.calc-capa.calcui #estilo .ui-filtro[aria-pressed="true"]{background:#fff; border-color:#fff; color:var(--ui-tinta)}
+body.calc-capa.calcui #ingredientes.modo-excluir #modoExcluir{background:#fff; color:var(--ui-tinta); border-color:#fff}
+body.calc-capa.calcui .ui-tela .ui-botao.vidro.perigo{color:var(--ui-fora)}
+body.calc-capa.calcui .linha,body.calc-capa.calcui .linha-total{border-top-color:rgba(255,255,255,.12)}
+body.calc-capa.calcui #avisoEstab{color:rgba(255,255,255,.78)}
+/* Trilho das barras: branco translúcido (sem o degradê pastel); a faixa ideal continua verde */
+body.calcui .bar{background:rgba(255,255,255,.85)}
+body.calc-capa.calcui .bar{background:rgba(255,255,255,.28)}
+body.calcui #avisoEstab{color:var(--ui-texto2)}
+body.calc-capa.calcui #avisoEstab{color:#fff}
+/* Gráfico: textos em dois níveis só — valor (principal) e nome, limites e avisos (secundário). Cor só no valor fora da faixa. */
+body.calcui .bar .range-label{color:var(--ui-texto2); font-weight:500}
+body.calcui .notes li,body.calcui #avisoEstab{color:var(--ui-texto2)}
+body.calc-capa.calcui .bar .range-label,
+body.calc-capa.calcui .metric .name,
+body.calc-capa.calcui .notes li,
+body.calc-capa.calcui #avisoEstab,
+body.calc-capa.calcui .calc-cab .ui-sec{color:rgba(255,255,255,.78)}
+/* Agulha: branca sobre a capa (no rascunho, fundo claro, continua preta para aparecer) */
+body.calc-capa.calcui .bar .mark,body.calc-capa.calcui .bar .mark.status-atencao,body.calc-capa.calcui .bar .mark.status-critico{background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3)}
+/* Sobre a capa, o vermelho do app (#AF3629) some como texto: vira fundo, com texto branco */
+body.calc-capa.calcui .metric-valor.status-critico,body.calc-capa.calcui .metric-valor.status-atencao{color:#fff; padding:1px 8px; border-radius:var(--ui-r-pilula)}
+body.calc-capa.calcui .metric-valor.status-critico{background:var(--ui-fora)}
+body.calc-capa.calcui .metric-valor.status-atencao{background:var(--ui-atencao)}
+body.calc-capa.calcui .ui-tela .ui-botao.vidro.perigo{background:var(--ui-fora); border-color:var(--ui-fora); color:#fff}
+/* Sobre a capa, o botão que liga o modo de excluir fica em vidro escuro discreto (o × de cada linha é que é vermelho) */
+body.calc-capa.calcui .ui-tela #modoExcluir.ui-botao.vidro.perigo{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff}
+body.calc-capa.calcui #ingredientes.modo-excluir #modoExcluir.ui-botao.vidro.perigo{background:#fff; border-color:#fff; color:var(--ui-tinta)}
+/* Sobre a capa: valor fora da faixa fica branco com uma bolinha de status antes (como nos avisos), sem pílula */
+body.calc-capa.calcui .metric-valor.status-critico,body.calc-capa.calcui .metric-valor.status-atencao{background:none; padding:0; color:#fff; display:inline-flex; align-items:center; gap:6px}
+body.calc-capa.calcui .metric-valor.status-critico::before,body.calc-capa.calcui .metric-valor.status-atencao::before{content:""; width:8px; height:8px; border-radius:50%}
+body.calc-capa.calcui .metric-valor.status-critico::before{background:var(--ui-fora)}
+body.calc-capa.calcui .metric-valor.status-atencao::before{background:var(--ui-atencao)}
+
+/* × de excluir (modo excluir): preto no rascunho, branco sobre a capa */
+body.calcui .remover{color:var(--ui-tinta)}
+body.calc-capa.calcui .remover{color:#fff}
+body.calcui .notes li.status-ok::before{background:#56AF38}   /* mesmo verde da faixa ideal (Manjericão) */
+body.calcui .notes li.status-atencao::before{background:var(--ui-atencao)}
+body.calcui .notes li.status-critico::before{background:var(--ui-fora)}
+/* Regra do preto sobre degradê também na etiqueta "Final": branca com texto escuro sobre capa/foto */
+.ui-bloco .ui-etiqueta.final,body.rec .ui-etiqueta.final{background:#fff; border-color:#fff; color:var(--ui-tinta)}
+/* Biblioteca: as 4 seções do mesmo tamanho preenchendo a tela */
+.bib-tela{min-height:calc(100dvh - 64px - env(safe-area-inset-top,0px)); box-sizing:border-box}
+.bib-grade{flex:1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:var(--ui-e3); min-height:400px}
+.bib-grade .ui-bloco{min-height:0; display:flex; flex-direction:column; justify-content:flex-end}
+/* Bibliografia: um cartão por referência */
+.ref-cartao{min-height:140px; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1); text-decoration:none}
+.ref-site{font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; color:rgba(255,255,255,.85); margin-top:var(--ui-e1)}
+/* Confirmação como folha, acima de outras folhas */
+.confirma-veu{z-index:50}
+.ui-folha.confirma-folha{z-index:51}
+.confirma-folha .confirma-texto{margin:0; font-size:var(--ui-t-cartao); line-height:1.4; color:var(--ui-tinta)}
+.confirma-folha .rec-acoes{display:flex; gap:var(--ui-e2)}
+.confirma-folha .rec-acoes > *{flex:1}
+.ui-botao.confirma-perigo{background:var(--ui-fora); color:#fff}
+/* Widget da Calculadora (Home): mesmo desenho das barras da calculadora, encostado embaixo do cartão */
+.home-calc{display:flex; flex-direction:column; justify-content:space-between}
+.home-mini{margin-top:auto; gap:var(--ui-e3); padding-top:var(--ui-e3)}
+.ui-faixa.mini .trilho{height:10px; border-radius:5px; background:rgba(0,0,0,.07)}
+.ui-faixa.mini .ideal{border-radius:5px; background:linear-gradient(90deg, #8DCB72, #56AF38 50%, #8DCB72)}
+.ui-faixa.mini .traco{top:-5px; width:4px; height:20px; margin-left:-2px; border-radius:2px; background:#141414}
+.home-mini{gap:var(--ui-e4)}
+.ui-faixa.mini .trilho{height:8px; border-radius:4px}
+.ui-faixa.mini .ideal{border-radius:4px}
+.ui-faixa.mini .traco{top:-4px; height:16px; width:3px; margin-left:-1.5px}
+
+/* Barra de abas flutuante (estilo iOS): pílula branca com sombra, só ícones */
+:root{--ui-abas:64px}
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{left:var(--ui-margem); right:var(--ui-margem); bottom:max(8px, env(safe-area-inset-bottom,0px)); height:56px; padding:0 8px;
+  border-radius:var(--ui-r-pilula); border:0; background:rgba(255,255,255,.92); align-items:center;
+  box-shadow:0 8px 28px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.06); -webkit-backdrop-filter:blur(30px) saturate(1.4); backdrop-filter:blur(30px) saturate(1.4)}
+.ui-abas a{width:auto; flex:1; height:56px; justify-content:center; color:#B5B5B5}
+.ui-abas a span{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.ui-abas a svg{width:26px; height:26px}
+.ui-abas a[aria-current="page"]{color:var(--ui-tinta)}
+.ui-tela{padding-bottom:calc(var(--ui-abas) + var(--ui-e3) + max(8px, env(safe-area-inset-bottom,0px)))}
+:root{--ui-abas:56px}
+body:not(.sem-abas) .toast{bottom:calc(var(--ui-abas) + var(--ui-e3) + max(8px, env(safe-area-inset-bottom,0px)))}
+.ui-faixa.mini .traco{background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3)}
+/* Teste: sem contorno nos cartões e botões de vidro claro */
+:root{--ui-vidro-claro-borda:transparent}
+/* Sem contornos também no vidro escuro (sobre capas/fotos) */
+:root{--ui-vidro-escuro-borda:transparent}
+/* Calculadora: ingredientes sem linhas divisórias */
+body.calcui .linha,body.calcui .linha-total,body.calc-capa.calcui .linha,body.calc-capa.calcui .linha-total{border-top:0}
+body.calcui .linha,body.calcui .linha-total{border-bottom:0 !important; border-top:0 !important}
+/* Sem linhas divisórias em nenhuma lista do app */
+.ui-linha,.ui-vidro-escuro .ui-linha,.rec-versao,.rec-lote,.lote-linha,.personaliza-item,.estudo-linha{border-top:0 !important; border-bottom:0 !important}
+.rec-versao summary{align-items:flex-start}
+/* Versões: o ˅ da primeira versão sobe para a linha do título "Versões" */
+.rec-painel:has(.rec-versoes){position:relative}
+.rec-versoes .rec-versao:first-child .rec-seta{position:absolute; top:10px; right:16px}
+/* Título "Versões" na mesma linha de 32px que "Modo de preparo" (mesmo respiro no topo e ˅ na mesma altura) */
+.rec-painel:has(.rec-versoes) > h2{min-height:32px; display:flex; align-items:center; margin:0}
+.rec-versoes .rec-versao:first-child .rec-seta{top:16px}
+.ui-abas a[data-aba="ideias"] svg{width:34px; height:34px}   /* o símbolo da lâmpada tem área vazia em volta: compensa o tamanho */
+/* Ícones preenchidos (SF Symbols) nos botões redondos: tamanho do iOS (~17px) */
+.ui-redondo svg[fill="currentColor"]{width:17px; height:17px}
+.rec-seta svg[fill="currentColor"],.calc-seta svg[fill="currentColor"],.estudo-seta svg[fill="currentColor"]{width:12px; height:12px}
+/* Setas com o símbolo certo (chevron.down / chevron.right): sem girar o desenho; aberto gira 180° */
+.rec-seta svg,body.calcui .calc-seta svg,.estudo-seta svg,.lote-palco .seta-dir svg{transform:none}
+/* Selos de leite / vegana nos cartões de Receitas */
+.receitas-selo{flex:none; display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%;
+  background:var(--ui-vidro-escuro); color:#fff; -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
+.receitas-selo svg{width:14px; height:14px}
+/* Receitas: etiquetas embaixo, lado a lado (Final/Teste + selo) */
+.receitas-cartao{display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1)}
+.receitas-etiquetas{display:flex; flex-wrap:wrap; gap:var(--ui-e2); margin-top:var(--ui-e2)}
+.receitas-selo{width:auto; height:auto; border-radius:var(--ui-r-pilula); display:inline-flex; align-items:center; gap:5px; background:var(--ui-vidro-escuro)}
+.receitas-selo svg{width:auto; height:13px}
+.receitas-selo{background:var(--ui-vidro-escuro); -webkit-backdrop-filter:none; backdrop-filter:none}
+/* Desfoque em tudo que é vidro escuro pequeno sobre capa/foto (etiquetas, pílulas, seletores, botões) */
+.ui-etiqueta:not(.final),.receitas-selo,.rec-tamanhos button,.rec-outro,.lote-chips button,.rec-painel .ui-opcoes,
+.ui-botao.vidro-escuro,.ui-redondo.escuro,.rec-seta,.home-avaliar-botao,
+body.calc-capa.calcui #estilo .ui-filtro,body.calc-capa.calcui .campo-g,body.calc-capa.calcui .calc-seta,body.calc-capa.calcui .calc-abrir{
+  -webkit-backdrop-filter:var(--ui-desfoque) !important; backdrop-filter:var(--ui-desfoque) !important}
+/* Teste: sombras suaves estilo iOS em cartões, blocos e botões */
+:root{--ui-sombra-cartao:0 6px 20px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.05); --ui-sombra-botao:0 3px 10px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06)}
+.ui-cartao,.ui-bloco,.receitas-cartao,.ideia-cartao,.ing-bloco,.tema-bloco,.ref-cartao{box-shadow:var(--ui-sombra-cartao)}
+.ui-botao,.ui-redondo,.ui-filtro,.rec-tamanhos button,.rec-outro,.lote-chips button,.calc-abrir{box-shadow:var(--ui-sombra-botao)}
+.ui-redondo[disabled],.lote-palco .ui-redondo{box-shadow:none}
+/* Fileira de filtros que rola: espaço extra em cima/embaixo para a sombra não ser cortada */
+.estudo-filtros{padding:6px var(--ui-margem) 12px; margin:-6px calc(-1 * var(--ui-margem)) -12px}
+/* Sombra única do app: cartões, blocos com degradê, botões, filtros e barra de abas usam a mesma */
+:root{--ui-sombra:0 4px 14px rgba(0,0,0,.10), 0 1px 3px rgba(0,0,0,.05); --ui-sombra-cartao:var(--ui-sombra); --ui-sombra-botao:var(--ui-sombra)}
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{box-shadow:var(--ui-sombra)}
+/* Faixa de capas que rola (Home): espaço para a sombra não ser cortada */
+.ui-rolagem{padding-top:6px; padding-bottom:14px; margin-top:-6px; margin-bottom:-14px}
+/* Teste: brilho nas bordas do vidro (estilo iOS 26/27) — luz no alto e reflexo fraco embaixo, por dentro */
+:root{--ui-brilho:inset 0 1px 1px rgba(255,255,255,.65), inset 0 -1px 1px rgba(255,255,255,.18), inset 1px 0 1px rgba(255,255,255,.12), inset -1px 0 1px rgba(255,255,255,.12)}
+.ui-vidro,.ui-vidro-escuro,.ui-botao.vidro,.ui-botao.vidro-escuro,.ui-redondo,.ui-filtro,.calc-abrir,.rec-tamanhos button,.rec-outro,.lote-chips button,
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{box-shadow:var(--ui-brilho), var(--ui-sombra)}
+.ui-etiqueta:not(.final),.rec-seta,.campo-g,.rec-painel .ui-opcoes{box-shadow:var(--ui-brilho)}
+.lote-palco .ui-redondo{box-shadow:none}
+/* Brilho de borda nos elementos brancos (botão principal sobre capa, etiqueta Final, selecionados brancos):
+   luz no alto e uma sombra interna leve embaixo, para dar volume no branco */
+:root{--ui-brilho-branco:inset 0 1px 1px rgba(255,255,255,1), inset 0 -1.5px 2px rgba(0,0,0,.10), inset 0 0 0 .5px rgba(0,0,0,.04)}
+body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui .ui-tela .ui-botao.preto,body.calc-capa .calc-nome .ui-botao.preto,
+.rec-tamanhos button[aria-pressed="true"],.lote-chips button[aria-pressed="true"],body.calc-capa.calcui #estilo .ui-filtro[aria-pressed="true"]{box-shadow:var(--ui-brilho-branco), var(--ui-sombra)}
+.ui-bloco .ui-etiqueta.final,body.rec .ui-etiqueta.final,.rec-painel .ui-opcoes button[aria-pressed="true"]{box-shadow:var(--ui-brilho-branco)}
+/* Brilho de borda também nos cartões com degradê/foto e nos menus (barra de abas, menu Abrir, folhas) */
+.ui-bloco,.receitas-cartao,.ideia-cartao,.ing-bloco,.tema-bloco,.ref-cartao{box-shadow:var(--ui-brilho), var(--ui-sombra)}
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas,body.calcui .menu-lista{box-shadow:var(--ui-brilho-branco), var(--ui-sombra)}
+.ui-folha{box-shadow:inset 0 1px 1px rgba(255,255,255,1), 0 -4px 24px rgba(0,0,0,.08)}
+/* ˅ da Calculadora igual ao das outras telas: ícone 12px e brilho de borda */
+body.calcui .calc-seta svg{width:12px; height:12px}
+body.calcui .calc-seta{box-shadow:var(--ui-brilho)}
+/* Vidro dentro de vidro (estilo iOS): controles dentro de painéis de vidro escuro ficam mais claros (branco translúcido), não mais escuros */
+:root{--ui-vidro-interno:rgba(255,255,255,.16)}
+.ui-vidro-escuro .ui-botao.vidro-escuro,.ui-vidro-escuro .ui-botao.vidro,.ui-vidro-escuro .ui-etiqueta:not(.final),.ui-vidro-escuro .rec-seta,
+.ui-vidro-escuro .rec-tamanhos button:not([aria-pressed="true"]),.ui-vidro-escuro .rec-outro,.ui-vidro-escuro .lote-chips button:not([aria-pressed="true"]),
+.ui-vidro-escuro .ui-opcoes,.ui-vidro-escuro .lote-obs-campo,.ui-vidro-escuro .ideia-campo,.ui-vidro-escuro .lote-real,
+body.calc-capa.calcui .ui-vidro-escuro .campo-g,body.calc-capa.calcui .ui-vidro-escuro .calc-seta,body.calc-capa.calcui .ui-vidro-escuro .info,
+body.calc-capa.calcui .ui-tela .ui-vidro-escuro #modoExcluir.ui-botao.vidro.perigo{background:var(--ui-vidro-interno) !important}
+body.calc-capa.calcui .ui-tela .ui-cartao .campo-g,body.calc-capa.calcui .ui-tela .ui-cartao .calc-seta,body.calc-capa.calcui .ui-tela .ui-cartao .info,
+body.calc-capa.calcui .ui-tela .ui-cartao .ui-botao.vidro,body.calc-capa.calcui .ui-tela .ui-cartao .ui-botao.vidro-escuro,
+body.calc-capa.calcui .ui-tela .ui-cartao #modoExcluir.ui-botao.vidro.perigo{background:var(--ui-vidro-interno) !important}
+/* Padronizado: todo controle pequeno de vidro sobre capa/foto (dentro ou fora de painel) usa o branco translúcido */
+.ui-redondo.escuro,.ui-etiqueta:not(.final),.receitas-selo,.ui-botao.vidro-escuro,.home-avaliar-botao,.rec-seta,
+body.calc-capa.calcui .calc-abrir,body.calc-capa.calcui #estilo .ui-filtro:not([aria-pressed="true"]){background:var(--ui-vidro-interno) !important}
+/* Barra de abas estilo App Store: ícone + nome, todos escuros; a aba ativa ganha uma pílula de vidro por trás */
+:root{--ui-abas:64px}
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{height:64px; padding:0 6px}
+.ui-abas a{height:54px; margin:0 2px; border-radius:var(--ui-r-pilula); flex-direction:column; gap:2px; color:var(--ui-tinta); transition:background .2s ease}
+.ui-abas a span{position:static; width:auto; height:auto; overflow:visible; clip:auto; font-size:11px; font-weight:500; line-height:1}
+.ui-abas a svg,.ui-abas a[data-aba="ideias"] svg{width:24px; height:24px}
+.ui-abas a[data-aba="ideias"] svg{width:30px; height:30px; margin:-3px 0}
+.ui-abas a[aria-current="page"]{background:rgba(0,0,0,.06); box-shadow:inset 0 1px 1px rgba(255,255,255,.9), inset 0 -1px 1px rgba(0,0,0,.05)}
+.ui-abas a[aria-current="page"] span{font-weight:600}
+.ui-abas a[aria-current="page"]{background:rgba(0,0,0,.08)}
+/* Cada aba do tamanho do próprio nome (a pílula envolve o texto inteiro) */
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{justify-content:space-between; padding:0 5px}
+.ui-abas a{flex:1 1 auto; min-width:0; width:auto; padding:0 8px; margin:0}
+.ui-abas a span{font-size:10px; letter-spacing:-.1px; white-space:nowrap}
+.ui-abas a[aria-current="page"]{box-shadow:none}
+/* Animação da troca de aba: a pílula desliza com efeito de mola */
+.ui-abas{position:fixed}
+.ui-abas a[aria-current="page"]{background:transparent}
+.abas-indicador{position:absolute; left:0; top:5px; height:54px; border-radius:var(--ui-r-pilula); background:rgba(0,0,0,.08); pointer-events:none;
+  transition:transform .42s cubic-bezier(.3,1.4,.5,1), width .42s cubic-bezier(.3,1.4,.5,1)}
+.ui-abas a{position:relative; z-index:1}
+.ui-abas a svg{transition:transform .25s ease}
+.ui-abas a[aria-current="page"] svg{transform:scale(1.08)}
+@media (prefers-reduced-motion: reduce){.abas-indicador,.ui-abas a svg{transition:none}}

@@ -1,17 +1,19 @@
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega } from "./dados.js?v=20261117042849";
-import { iniciaSync } from "./sync.js?v=20261117042849";
-import * as inicio from "./telas/inicio.js?v=20261117042849";
-import * as calculadora from "./telas/calculadora.js?v=20261117042849";
-import * as ingredientes from "./telas/ingredientes.js?v=20261117042849";
-import * as embreve from "./telas/embreve.js?v=20261117042849";
-import * as receitas from "./telas/receitas.js?v=20261117042849";
-import * as receita from "./telas/receita.js?v=20261117042849";
-import * as testes from "./telas/testes.js?v=20261117042849";
-import * as loteTela from "./telas/lote.js?v=20261117042849";
-import * as estudo from "./telas/estudo.js?v=20261117042849";
-import * as ideias from "./telas/ideias.js?v=20261117042849";
-import * as ajustes from "./telas/ajustes.js?v=20261117042849";
+import { carrega } from "./dados.js?v=20261118040421";
+import { iniciaSync } from "./sync.js?v=20261118040421";
+import * as inicio from "./telas/inicio.js?v=20261118040421";
+import * as calculadora from "./telas/calculadora.js?v=20261118040421";
+import * as ingredientes from "./telas/ingredientes.js?v=20261118040421";
+import * as embreve from "./telas/embreve.js?v=20261118040421";
+import * as receitas from "./telas/receitas.js?v=20261118040421";
+import * as receita from "./telas/receita.js?v=20261118040421";
+import * as testes from "./telas/testes.js?v=20261118040421";
+import * as loteTela from "./telas/lote.js?v=20261118040421";
+import * as estudo from "./telas/estudo.js?v=20261118040421";
+import * as ideias from "./telas/ideias.js?v=20261118040421";
+import * as ajustes from "./telas/ajustes.js?v=20261118040421";
+import * as biblioteca from "./telas/biblioteca.js?v=20261118040421";
+import * as guia from "./telas/guia.js?v=20261118040421";
 
 const TELAS = {
   "": inicio,
@@ -19,7 +21,7 @@ const TELAS = {
   "ingredientes": ingredientes,
   "receitas": receitas, "receita": receita,
   "testes": testes, "lote": loteTela,
-  "ideias": ideias, "estudo": estudo, "ajustes": ajustes
+  "ideias": ideias, "estudo": estudo, "ajustes": ajustes, "guia": guia, "biblioteca": biblioteca
 };
 
 const elTela = document.getElementById("tela");
@@ -53,7 +55,39 @@ function rota(){
   if (nome) atualizaVoltar(res.voltar, res.voltarRotulo);
   else elTitulo.hidden = true;
   limpa = res.limpa || null;
+  marcaAba(nome, partes[1]);
 }
+
+// Barra de abas: cada rota pertence a uma aba. O modo bancada do lote esconde as abas.
+const ABA_DA_ROTA = {"":"home", ajustes:"home", guia:"home", ideias:"ideias", calculadora:"calculadora",
+  receitas:"receitas", receita:"receitas", testes:"receitas", lote:"receitas",
+  biblioteca:"biblioteca", estudo:"biblioteca", ingredientes:"biblioteca"};
+function marcaAba(nome, sub){
+  const aba = nome === "calculadora" && sub === "v" ? "receitas" : (ABA_DA_ROTA[nome] || "home");
+  document.querySelectorAll("#abas a").forEach(function(a){
+    if (a.dataset.aba === aba) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  const semAbas = nome === "lote";
+  document.getElementById("abas").hidden = semAbas;
+  document.body.classList.toggle("sem-abas", semAbas);
+  moveIndicador();
+}
+
+// Pílula da aba ativa: um elemento só, que desliza (e muda de largura) até a aba escolhida.
+function moveIndicador(){
+  const nav = document.getElementById("abas"); if (!nav || nav.hidden) return;
+  let ind = nav.querySelector(".abas-indicador");
+  if (!ind){ ind = document.createElement("span"); ind.className = "abas-indicador"; ind.setAttribute("aria-hidden", "true"); nav.prepend(ind); }
+  const ativo = nav.querySelector('a[aria-current="page"]');
+  if (!ativo){ ind.style.opacity = "0"; return; }
+  const primeira = !ind.dataset.pronto;
+  if (primeira) ind.style.transition = "none";
+  ind.style.opacity = "1";
+  ind.style.width = ativo.offsetWidth + "px";
+  ind.style.transform = "translateX(" + ativo.offsetLeft + "px)";
+  if (primeira){ ind.offsetWidth; ind.style.transition = ""; ind.dataset.pronto = "1"; }
+}
+window.addEventListener("resize", moveIndicador);
 
 let timerToast = null;
 export function toast(msg){

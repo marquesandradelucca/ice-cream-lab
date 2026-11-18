@@ -1,8 +1,8 @@
 // Service worker: guarda o app no aparelho para funcionar sem internet.
 // Ao mudar qualquer arquivo do app, rode: python3 atualiza-versao.py
-const VERSAO = "icelab-20261117042849";
+const VERSAO = "icelab-20261118040421";
 const ARQUIVOS = [
-  "./", "index.html", "manifest.json", "css/estilo.css",
+  "./", "index.html", "manifest.json", "css/estilo.css", "css/app.css", "js/visual.js", "js/icones.js", "js/telas/guia.js", "js/telas/biblioteca.js",
   "js/app.js", "js/ui.js", "js/dados.js", "js/calculo.js", "js/ingredientes-base.js",
   "js/telas/inicio.js", "js/telas/calculadora.js", "js/telas/ingredientes.js", "js/telas/embreve.js",
   "js/telas/receitas.js", "js/telas/testes.js", "js/telas/lote.js", "js/telas/estudo.js", "js/telas/ideias.js", "js/estudo-base.js", "js/sync.js", "js/telas/ajustes.js", "js/telas/receita.js",

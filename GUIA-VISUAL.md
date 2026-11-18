@@ -99,3 +99,28 @@ Título de seção
 - Português do Brasil, frases curtas, sem jargão desnecessário.
 - Botões dizem a ação ("Salvar", "+ ingrediente"), não o objeto.
 - Ações que apagam pedem confirmação dizendo o que será apagado.
+
+---
+
+## Redesign "cara de app" (em implantação)
+
+As telas refeitas usam `css/app.css` (classes `ui-*`) e `js/visual.js` (ícones, capas em degradê, estrelas).
+Referência: Figma "Ice Cream Lab · Redesign", página 05. Plano: `PLANO-REDESIGN.md`. Prévia dos componentes: `#/guia`.
+
+- Só modo claro. Fundo branco, tinta #141414.
+- Espaço: 4 / 8 / 12 / 16 / 24 (margem 16, entre blocos 12, respiro de cartão 16).
+- Cantos: 24 cartões e blocos, 16 blocos pequenos e campos, 12 seletores internos, pílula em botões.
+- Alturas: botão 48, filtro 34, etiqueta 26, botão redondo 40.
+- Texto: 34 tela · 28 destaque · 20 navegação · 17 cartão · 15 texto · 13 secundário · 11 rótulo.
+- Vidro claro sobre branco (texto escuro); vidro escuro sobre imagem (texto branco). Botão que não é preto é vidro.
+- Cartão de imagem para coisas (receitas, ingredientes); cartão de vidro para ferramentas e dados.
+- Sem foto, a capa é um degradê automático pela cor do sabor.
+- Escalas: Dureza Mole · Macia · Ideal · Firme · Dura; Doçura Pouco · Média · Ideal · Doce · Enjoativa.
+
+- **Ações destrutivas** (excluir, apagar, descartar): botão de vidro com texto vermelho (`.ui-botao.perigo`, cor `--ui-fora`). Na confirmação, o botão de confirmar é vermelho cheio.
+- **Botão principal sobre foto/degradê** (telas com capa ao fundo, blocos de imagem): branco com texto escuro, nunca preto. Em fundo branco e dentro de folhas, continua preto.
+- **Sem contornos**: cartões, botões, filtros e campos não têm borda (vidro claro e escuro); a separação vem só do preenchimento do vidro.
+- **Sem linhas divisórias** nas listas (ingredientes, versões, lotes, composição, ajustes): a separação vem do espaçamento.
+- **Vidro escuro pequeno com desfoque**: etiquetas, pílulas, seletores e botões de vidro escuro sobre capa/foto sempre levam o desfoque (blur 30 + saturação).
+- **Sombra única** (`--ui-sombra`): a mesma em cartões, blocos com degradê, botões, filtros e barra de abas.
+- **Controles de vidro sobre capa/foto**: botões secundários, redondos, etiquetas, seletores, campos e ˅ usam branco translúcido 16% (`--ui-vidro-interno`), dentro ou fora de painel. Só os painéis grandes são vidro escuro.

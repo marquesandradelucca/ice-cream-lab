@@ -6,7 +6,7 @@
   color-scheme: light;
   --paper:#FCFCFA; --ink:#1B1D1B; --muted:#686E68; --line:#E5E5DE;
   --surface:color-mix(in srgb, var(--line) 42%, var(--paper));
-  --ok:#4D916A; --atencao:#B07F2C; --critico:#A94F45;
+  --ok:#3E8A37; --atencao:#B3651E; --critico:#AF3629;
   --ink-suave:color-mix(in srgb, var(--paper) 70%, var(--ink)); /* texto secundário sobre fundo preto */
 
   /* Tipografia */
@@ -589,6 +589,8 @@ textarea:disabled{opacity:.7}
   body .cartao-receita{display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:var(--esp-pagina); align-items:center}
   body .cartao-receita > .nome-campo, body .cartao-receita > .nome-fixo{grid-column:1; grid-row:1}
   body .cartao-receita > .estado-receita{grid-column:1; grid-row:2}
+  /* Sem a linha de baixo (ex.: ingrediente sem nome completo), o nome fica centrado na altura dos botões. */
+  body .cartao-receita > .nome-fixo:has(+ .acoes-calc){grid-row:1 / span 2; align-self:center}
   body .cartao-receita > .acoes-calc{grid-column:2; grid-row:1 / span 2; margin:0}
   body .cartao-receita > .acoes-calc > *{width:140px; flex:none}
   body .cartao-receita > .acoes-calc > :only-child{width:auto; padding:0 var(--esp-pagina)}
@@ -644,3 +646,14 @@ textarea:disabled{opacity:.7}
 .lote-obs{font-size:var(--t-pequeno)}
 #preparo{display:block}
 .lr-preparo #preparo{margin-bottom:var(--esp-bloco)}
+
+/* Lista e detalhe lado a lado (Estudo, Ingredientes) em tela larga.
+   A lista fica parada à esquerda, com rolagem própria; o item aberto ocupa a direita. */
+@media (min-width: 960px){
+  .wrap:has(.mestre-detalhe){max-width:1160px}
+  .mestre-detalhe{display:grid; grid-template-columns:minmax(0,2fr) minmax(0,3fr); column-gap:var(--esp-bloco); align-items:start}
+  .md-lista{position:sticky; top:72px; max-height:calc(100vh - 96px); overflow-y:auto; padding-bottom:var(--esp-pagina)}
+  .md-lista .lista-cards:last-child{margin-bottom:0}
+  .md-lista .item-lista.ativo{background:var(--ink); color:var(--paper)}
+  .md-lista .item-lista.ativo .item-desc{color:var(--ink-suave)}
+}

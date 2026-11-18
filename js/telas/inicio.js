@@ -1,62 +1,77 @@
-import { dados, exportaBackup, importaBackup, receita, versao } from "../dados.js?v=20261117042849";
-import { confirma } from "../ui.js?v=20261117042849";
-import { dataCurta } from "./lote.js?v=20261117042849";
-import { situacao, aoMudar } from "../sync.js?v=20261117042849";
-import { textoSituacao } from "./ajustes.js?v=20261117042849";
-import { toast } from "../app.js?v=20261117042849";
+// Home (redesign): hub com blocos de cada área.
+// Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261118040421";
+import { abreAjustes } from "./ajustes.js?v=20261118040421";
+import { dataCurta } from "./lote.js?v=20261118040421";
+import { icone, capa } from "../visual.js?v=20261118040421";
 
-const OFICINA = [
-  {area:"ideias",       nome:"Ideias",           desc:"Sabores para testar",          pronto:true},
-  {area:"calculadora",  nome:"Calculadora",      desc:"Balanço da mistura ao vivo",   pronto:true},
-  {area:"testes",       nome:"Testes",           desc:"Lotes e receitas em teste",    pronto:true},
-  {area:"receitas",     nome:"Receitas",         desc:"Receitas finais",                 pronto:true}
-];
-const BIBLIOTECA = [
-  {area:"estudo",       nome:"Estudo",           desc:"Fundamentos e técnicas",       pronto:true},
-  {area:"ingredientes", nome:"Ingredientes",     desc:"Composição de cada um",        pronto:true}
-];
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }
+function diasDesde(iso){ const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000); return d <= 0 ? "hoje" : d === 1 ? "há 1 dia" : "há " + d + " dias"; }
 
-function bloco(titulo, itens){
-  const lotes = dados().lotes;
-  const preparando = lotes.filter(function(l){ return l.status === "em andamento"; }).length;
-  const avisoTestes = preparando ? preparando + (preparando === 1 ? " lote preparando" : " lotes preparando") : "";
-  // O card de Ideias mostra as últimas anotadas (até 3) e quantas mais existem.
-  const ideias = dados().ideias;
-  const listaIdeias = '<span class="area-ideias">' + ideias.slice(0, 3).map(function(x){
-    return '<span class="area-ideia">' + esc(x.nome) + '</span>';
-  }).join("") + (ideias.length > 3 ? '<span class="area-desc">+ ' + (ideias.length - 3) + ' ' + (ideias.length - 3 === 1 ? 'ideia' : 'ideias') + '</span>' : '') + '</span>';
-  return '<section class="grupo-areas"><h2>' + titulo + '</h2><div class="grade">' +
-    itens.map(function(a){
-      return '<a class="area' + (a.pronto ? "" : " embreve") + '" href="#/' + a.area + '">' +
-        '<span class="area-nome">' + a.nome + '</span>' +
-        (a.area === "ideias" && ideias.length ? listaIdeias :
-        '<span class="area-desc">' + (a.area === "testes" && avisoTestes ? avisoTestes :
-          a.pronto ? a.desc : "Em breve") + '</span>') + '</a>';
-    }).join("") + '</div></section>';
+// Miniatura genérica do gráfico de intervalos (só símbolo, sem receita).
+function miniGrafico(){
+  return [[20,55,40],[35,70,60],[25,60,30],[40,75,55]].map(function(f){
+    return '<div class="ui-faixa mini"><div class="trilho"><span class="ideal" style="left:' + f[0] + '%;width:' + (f[1] - f[0]) + '%"></span><span class="traco" style="left:' + f[2] + '%"></span></div></div>';
+  }).join("");
 }
 
-function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+// Widgets da Home com imagem: o padrão pode ser trocado em Ajustes › Personalização.
+export const WIDGETS_HOME = [
+  {id:"ingredientes", nome:"Ingredientes", padrao:"paleta:Pistache"},
+  {id:"estudo", nome:"Estudo", padrao:"paleta:Baunilha"}
+];
+export function capaHome(db, id){
+  const w = WIDGETS_HOME.find(function(x){ return x.id === id; });
+  return (db.home && db.home[id]) || (w && w.padrao);
+}
 
 export function render(el){
+  document.body.classList.add("ui");
   const db = dados();
-  // Lembrete: lotes preparados que ainda faltam avaliar.
+
+  // Lote esperando avaliação (o mais antigo primeiro).
   const aguardando = db.lotes.filter(function(l){ return l.status === "aguardando"; })
     .sort(function(a, b){ return a.inicio.localeCompare(b.inicio); });
-  const lembrete = aguardando.length ? '<section class="lembrete">' + aguardando.map(function(l){
-    const r = receita(l.receitaId), v = versao(l.versaoId);
-    return '<a class="lembrete-item" href="#/lote/' + encodeURIComponent(l.id) + '/avaliar">' +
-      '<span class="lembrete-rotulo">Avaliar lote</span>' +
-      '<span class="lembrete-nome">' + esc(r ? r.nome : "Receita") + (v ? ' · v' + v.numero : '') + '</span>' +
-      '<span class="lembrete-data">preparado em ' + dataCurta(l.inicio) + '</span></a>';
-  }).join("") + '</section>' : '';
-  el.innerHTML =
-    lembrete +
-    bloco("Oficina", OFICINA) + bloco("Biblioteca", BIBLIOTECA) +
-    // Backup e conta foram para Ajustes; aqui fica só a situação da sincronização.
-    '<a class="item-lista item-ajustes" href="#/ajustes"><span class="item-nome">Ajustes</span>' +
-      '<span class="item-desc" id="situacaoSync">' + esc(textoSituacao(situacao())) + '</span></a>' +
-    '<footer class="creditos muted">Ice Cream Lab · © 2026 Lucca Marques · v2.0 (etapa 5)</footer>';
-  const parar = aoMudar(function(s){ const e = document.getElementById("situacaoSync"); if (e) e.textContent = textoSituacao(s); });
-  return {titulo:"Ice Cream Lab", limpa:parar};
-}
+  let avaliar = "";
+  if (aguardando.length){
+    const l = aguardando[0], r = receita(l.receitaId), v = versao(l.versaoId);
+    const nome = (r ? r.nome : "Receita") + (v ? " · v" + v.numero : "");
+    avaliar = '<section class="ui-bloco home-avaliar" style="--capa:' + capa(r ? r.nome : "", r && r.capa) + '">' +
+      '<span class="ui-rotulo home-avaliar-rotulo">Para avaliar' + (aguardando.length > 1 ? ' · ' + aguardando.length : '') + '</span>' +
+      '<a class="ui-botao vidro-escuro home-avaliar-botao" href="#/lote/' + encodeURIComponent(l.id) + '/avaliar">Avaliar</a>' +
+      '<span class="titulo home-avaliar-nome">' + esc(nome) + '</span>' +
+      '<span class="ui-sec">Lote de ' + dataCurta(l.inicio) + ' · no freezer ' + diasDesde(l.inicio) + '</span></section>';
+  }
 
+  // Receitas: todas, das mexidas mais recentemente para as mais antigas.
+  const ultimaData = function(r){ const vs = versoesDe(r.id); return vs.length ? vs[vs.length - 1].data : ""; };
+  const receitas = db.receitas.slice().sort(function(a, b){ return ultimaData(b).localeCompare(ultimaData(a)); });
+  const faixa = receitas.length ? '<div class="ui-rolagem">' + receitas.map(function(r){
+    const final = r.status === "final" && r.versaoFinal && versao(r.versaoFinal);
+    const href = "#/receita/" + encodeURIComponent(r.id) + (final ? "/pronta" : "");
+    return '<a class="ui-bloco pequeno home-capa" href="' + href + '" style="--capa:' + capa(r.nome, r.capa) + '"><span class="titulo">' + esc(r.nome) + '</span></a>';
+  }).join("") + '</div>' : '<p class="ui-sec">Nenhuma receita ainda. Comece pela Calculadora.</p>';
+
+  const paraTestar = db.ideias.filter(function(x){ return !x.receitaId; }).length;
+
+  el.innerHTML =
+    '<div class="ui-app">' +
+    '<header class="ui-cabecalho"><h1>Ice Cream Lab</h1><button class="ui-redondo" type="button" id="abreAjustes" aria-label="Ajustes">' + icone("ajustes") + '</button></header>' +
+    '<div class="ui-tela">' +
+      avaliar +
+      '<div class="ui-par home-par">' +
+        '<a class="ui-cartao ui-vidro home-calc" href="#/calculadora"><h2>Calculadora</h2><div class="home-mini">' + miniGrafico() + '</div></a>' +
+        '<div class="home-coluna">' +
+          '<a class="ui-cartao ui-vidro home-ideias" href="#/ideias"><h2>Ideias</h2><span class="home-numero ui-num">' + paraTestar + '</span><span class="ui-sec">para testar</span></a>' +
+          '<a class="ui-bloco home-ingredientes" href="#/ingredientes" style="--capa:' + capa("Ingredientes", capaHome(db, "ingredientes")) + '"><span class="titulo">Ingredientes</span></a>' +
+        '</div>' +
+      '</div>' +
+      '<section class="ui-cartao ui-vidro home-receitas"><a class="home-titulo-link" href="#/receitas"><h2>Receitas</h2></a>' + faixa + '</section>' +
+      '<a class="ui-bloco home-estudo" href="#/estudo" style="--capa:' + capa("Estudo", capaHome(db, "estudo")) + '"><span class="titulo">Estudo</span></a>' +
+    '</div></div>';
+
+  // Ajustes em folha; ao fechar, a Home redesenha (as capas podem ter mudado).
+  el.querySelector("#abreAjustes").addEventListener("click", function(){ abreAjustes(function(){ render(el); }); });
+  return {titulo:"Ice Cream Lab", limpa:function(){ document.body.classList.remove("ui"); }};
+}

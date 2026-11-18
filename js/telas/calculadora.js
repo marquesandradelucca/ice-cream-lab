@@ -1,11 +1,15 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261117042849";
-import { confirma, LAPIS } from "../ui.js?v=20261117042849";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261117042849";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261118040421";
+import { icone, capa } from "../visual.js?v=20261118040421";
+import { confirma, LAPIS } from "../ui.js?v=20261118040421";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261118040421";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+// Fundo do rascunho (sem receita): degradê Neutro 2 (azul-acinzentado) da paleta.
+const FUNDO_RASCUNHO = "radial-gradient(circle at 80% 10%, #CBCED8aa 0%, transparent 55%), radial-gradient(circle at 10% 92%, #5F678699 0%, transparent 50%), linear-gradient(160deg, #5F6786 0%, #949AAE 55%, #CBCED8 100%)";
 
 function barra(valor, alvo, escala, texto, casas, estilo){
   const min = escala[0], span = escala[1] - escala[0];
@@ -15,7 +19,8 @@ function barra(valor, alvo, escala, texto, casas, estilo){
   const nivel = nivelFaixa(valor, alvo);
   const ocultarZero = estilo === "sorbet" && alvo[0] === 0;
   const compact = b - a < 18 && !ocultarZero ? " compact" : "";
-  return '<div class="bar"><span class="band" style="left:' + a + '%;width:' + Math.max(b - a, 1) + '%"></span>' +
+  // --a/--b: onde começa e termina a faixa ideal; o trilho usa para o degradê (rosa nas pontas, laranja perto do ideal).
+  return '<div class="bar" style="--a:' + a + '%;--b:' + b + '%"><span class="band" style="left:' + a + '%;width:' + Math.max(b - a, 1) + '%"></span>' +
     '<span class="range-label min num' + compact + (a < 7 && !compact ? ' edge-start' : '') + '" style="left:' + a + '%">' + (ocultarZero ? '' : n(alvo[0], casas)) + '</span>' +
     '<span class="range-label max num' + compact + (b > 93 && !compact ? ' edge-end' : '') + '" style="left:' + b + '%">' + n(alvo[1], casas) + '</span>' +
     '<span class="mark status-' + nivel + borda + '" style="left:calc(' + p + '% - 1.5px)"></span></div>';
@@ -56,8 +61,10 @@ export function render(el, rota){
     }
   }
   // Atalho vindo da página da receita: #/calculadora/v/<id da versão>
+  let daReceita = null;   // aberta a partir de uma receita: o voltar leva de volta a ela
   if (rota && rota.args[0] === "v" && rota.args[1]){
     const v = versao(decodeURIComponent(rota.args[1]));
+    if (v) daReceita = v.receitaId;
     if (v){
       carregaVersao(v);
       // "Criar próxima versão com o que pesei": as quantidades da balança substituem as da versão.
@@ -80,47 +87,32 @@ export function render(el, rota){
   function persiste(){ registraUltima(); salva(); if (typeof desenhaEstado === "function" && elEstadoPronto) desenhaEstado(); }
   let elEstadoPronto = false;
 
+  document.body.classList.add("ui", "calcui");
+  const rOrigem = daReceita && receita(daReceita);
   el.innerHTML =
-    '<div class="bloco-receita">' +
-    // Cartão da receita: nome, estado e ações juntos.
-    '<div class="cartao-receita">' +
-    '<label class="rotulo-nome so-leitor" for="nome">Nome</label>' +
-    // O lápis ao lado avisa que o nome é editável; tocar nele foca o campo.
-    '<label class="nome-campo" for="nome">' +
-    '<input id="nome" class="nome-receita-calc titulo-editavel" type="text" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita">' +
-    LAPIS +
-    '</label>' +
-    '<div class="estado-receita" id="estadoReceita"></div>' +
-    '<div class="acoes-calc">' +
-      '<button type="button" class="pilula-cinza" id="salvar">Salvar</button>' +
-      '<a class="pilula-cinza" id="irReceita" hidden>Versões</a>' +
-      '<div class="menu-abrir" id="menuAbrir">' +
-        '<button type="button" class="pilula-abrir" id="abrir" aria-haspopup="listbox" aria-expanded="false">Abrir<span class="chevron" aria-hidden="true"></span></button>' +
-        '<div class="menu-lista" role="listbox" aria-label="Abrir receita"><div class="menu-rolagem"></div></div>' +
-      '</div>' +
-    '</div>' +
-    '</div>' +
-    '</div>' +
-    '<div class="cartao painel-salvar" id="painelSalvar" hidden>' +
-      '<div id="campoNomeNova" hidden><label class="rotulo" for="nomeNova">Nome da nova receita</label>' +
-        '<input id="nomeNova" class="campo-texto" type="text" maxlength="60" enterkeyhint="next"></div>' +
-      '<label class="rotulo" for="notaVersao" id="rotuloNota">O que mudou? (opcional)</label>' +
-      '<input id="notaVersao" class="campo-texto" type="text" maxlength="140" enterkeyhint="done" placeholder="Ex.: menos dextrose, mais creme">' +
-      '<p class="pequeno muted" id="avisoNome" hidden></p>' +
-      '<div class="acoes-salvar">' +
-        '<button type="button" class="pilula-preta" id="confirmaSalvar">Salvar</button>' +
-        '<button type="button" class="pilula-cinza" id="comoNova">Como nova receita</button>' +
-        '<button type="button" class="pilula-cinza" id="comoVersao" hidden></button>' +
-        '<button type="button" class="pilula-cinza" id="cancelaSalvar">Cancelar</button>' +
-      '</div>' +
-    '</div>' +
-    '<div class="cartao aviso-snap" id="avisoSnap" hidden></div>' +
-    // Em telas largas, ingredientes e composição ficam lado a lado (ver .calc-colunas no CSS).
-    '<div class="calc-colunas"><div class="calc-col-ing">' +
-    '<h2 class="subtitulo">Ingredientes</h2>' +
-    '<section class="cartao" id="ingredientes">' +
+    // Fundo da página: a capa da receita aberta; rascunho sem receita = degradê branco/cinza bem claro.
+    '<div class="rec-fundo calc-fundo" id="calcFundo"></div>' +
+    '<div class="ui-app">' +
+    (rOrigem ?
+      '<header class="ui-cabecalho nav"><a class="ui-redondo" href="#/receita/' + encodeURIComponent(rOrigem.id) + '" aria-label="Voltar para a receita">' + icone("voltar") + '</a><h1>' + esc(rOrigem.nome) + '</h1></header>' :
+      '<header class="ui-cabecalho"><h1>Calculadora</h1>' +
+        '<div class="menu-abrir" id="menuAbrir"><button type="button" class="ui-botao vidro calc-abrir" id="abrir" aria-haspopup="listbox" aria-expanded="false" aria-label="Abrir receita ou exemplo">' + icone("abrir") + 'Abrir</button>' +
+        '<div class="menu-lista" role="listbox" aria-label="Abrir receita"><div class="menu-rolagem"></div></div></div></header>') +
+    '<div class="ui-tela">' +
+    // Cartão do nome: nome editável, estado e Salvar.
+    '<section class="ui-cartao ui-vidro calc-nome">' +
+      '<div class="calc-nome-linha"><div class="calc-nome-texto">' +
+        '<textarea id="nome" class="calc-nome-campo" rows="1" placeholder="Receita sem nome" maxlength="60" enterkeyhint="done" aria-label="Nome da receita"></textarea>' +
+        '<div class="ui-sec" id="estadoReceita"></div></div>' +
+        '<button type="button" class="ui-botao preto" id="salvar">Salvar</button></div>' +
+      '<a class="ui-botao vidro largo" id="irReceita" hidden>Ver versões e lotes</a>' +
+    '</section>' +
+    '<section class="ui-cartao ui-vidro" id="avisoSnap" hidden></section>' +
+    // Ingredientes
+    '<section class="ui-cartao ui-vidro" id="ingredientes">' +
+      '<div class="calc-cab"><h2>Ingredientes</h2></div>' +
       '<div id="linhas"></div>' +
-      '<p class="muted" id="vazio" hidden>Nenhum ingrediente ainda. Adicione o primeiro ou abra uma base.</p>' +
+      '<p class="ui-sec" id="vazio" hidden>Nenhum ingrediente ainda. Adicione o primeiro ou abra uma base.</p>' +
       '<div class="linha-total">' +
         '<span class="rotulo-mistura">Mistura total</span>' +
         '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir o peso total">−</button>' +
@@ -128,24 +120,26 @@ export function render(el, rota){
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o peso total">+</button></div>' +
       '</div>' +
       '<div class="acoes-ing">' +
-        '<button type="button" class="pilula-preta" id="adicionar">+ ingrediente</button>' +
-        '<button type="button" class="pilula-cinza" id="modoExcluir">Excluir</button>' +
+        '<button type="button" class="ui-botao preto" id="adicionar">+ ingrediente</button>' +
+        '<button type="button" class="ui-botao vidro perigo" id="modoExcluir">Excluir</button>' +
       '</div>' +
-    '</section></div>' +
-    '<div class="calc-col-res">' +
-    '<section class="resultado">' +
-      '<div class="resultado-topo"><h2>Composição</h2><span class="muted pequeno">faixas de referência</span></div>' +
-      '<div class="seg seg-faixas" id="estilo" role="group" aria-label="Faixas de referência dos gráficos">' +
+    '</section>' +
+    // Faixas de referência
+    '<div class="ui-filtros dividir" id="estilo" role="group" aria-label="Faixas de referência dos gráficos">' +
       Object.keys(NOMES_ESTILO).map(function(k){
-        return '<button type="button" data-estilo="' + k + '">' + (k === "icecream" ? "Sorvete" : NOMES_ESTILO[k]) + '</button>';
+        return '<button type="button" class="ui-filtro" data-estilo="' + k + '">' + (k === "icecream" ? "Sorvete" : NOMES_ESTILO[k]) + '</button>';
       }).join("") + '</div>' +
-      '<div class="cartao card-avisos" id="cardAvisos">' +
-        '<ul class="notes" id="avisos" aria-live="polite"></ul>' +
-        '<p class="muted pequeno" id="avisoEstab" hidden>O intervalo referente aos estabilizantes é apenas uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>' +
-      '</div>' +
+    // Composição: avisos e gráficos de intervalo
+    '<section class="ui-cartao ui-vidro resultado">' +
+      '<div class="calc-cab"><h2>Composição</h2><span class="ui-sec">faixas de referência</span></div>' +
       '<div id="metricas"></div>' +
-    '</section></div>' +
-    '<details class="notas cartao"><summary>Notas sobre o cálculo<span class="chevron" aria-hidden="true"></span></summary>' +
+      // Feedback depois dos gráficos.
+      '<ul class="notes" id="avisos" aria-live="polite"></ul>' +
+      '<p class="ui-sec" id="avisoEstab" hidden>O intervalo dos estabilizantes é uma estimativa para as gomas clássicas. A quantidade deve ser testada.</p>' +
+    '</section>' +
+    // Notas sobre o cálculo (recolhível)
+    '<section class="ui-cartao ui-vidro"><details class="calc-dobra"><summary><h2>Notas sobre o cálculo</h2><span class="calc-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
+      '<div class="calc-notas">' +
       '<p>As faixas de balanceamento vêm das referências do Ice Cream Lab e valem como ponto de partida: autores e escolas divergem um pouco.</p>' +
       '<p>PAC e POD aparecem por quilo de mistura. A lactose entra na conta automaticamente, como 54,5% dos sólidos lácteos e 76,5% dos sólidos de soro. Os coeficientes valem só para a parte do ingrediente que é açúcar, e a dextrose em pó já entra com os 92% de sólidos da forma mono-hidratada.</p>' +
       '<p>Na glucose em pó e na maltodextrina, todos os sólidos entram como açúcar, com um coeficiente baixo que já embute a mistura de sacarídeos.</p>' +
@@ -154,17 +148,33 @@ export function render(el, rota){
       '<p>A barra de estabilizantes soma os gramas das gomas como se valessem o mesmo; a faixa de 0,1 a 0,5% é a dose total de referência do Estudo. O amido fica fora da soma.</p>' +
       '<p>Esta calculadora avalia o equilíbrio da formulação, não a segurança alimentar.</p>' +
       '<p><b>Fontes</b><br>Goff, H. D.; Hartel, R. W. <i>Ice Cream</i>, 7ª ed. Springer, 2013.<br>Gelatologist, série de artigos sobre PAC, dureza e produção de gelato (Medium).<br>Clarke, C.; Cox, A. <i>The Science of Ice Cream</i>; Caviezel, L. <i>Scienza e tecnologia del gelato artigianale</i>.</p>' +
-    '</details>' + '</div>';
+      '</div></details></section>' +
+    '</div></div>' +
+    // Folha de salvar (sobe de baixo)
+    '<div class="ui-veu" id="veuSalvar" hidden></div>' +
+    '<div class="ui-folha" id="painelSalvar" role="dialog" aria-label="Salvar receita" hidden>' +
+      '<span class="puxador"></span>' +
+      '<div class="acoes"><button type="button" class="ui-botao vidro" id="cancelaSalvar">Cancelar</button><button type="button" class="ui-botao preto" id="confirmaSalvar">Salvar</button></div>' +
+      '<h2>Salvar receita</h2>' +
+      // Com uma receita aberta: escolher entre nova versão e nova receita; um botão Salvar só.
+      '<div class="ui-opcoes salvar-modo" id="modoSalvar" role="group" aria-label="Como salvar"><button type="button" data-m="versao" id="optVersao"></button><button type="button" data-m="nova">Nova receita</button></div>' +
+      '<div id="campoNomeNova" hidden><label class="ui-sec" for="nomeNova">Nome da nova receita</label>' +
+        '<input id="nomeNova" class="ui-campo" type="text" maxlength="60" enterkeyhint="next"></div>' +
+      '<label class="ui-sec" for="notaVersao" id="rotuloNota">O que mudou? (opcional)</label>' +
+      '<input id="notaVersao" class="ui-campo" type="text" maxlength="140" enterkeyhint="done" placeholder="Ex.: menos dextrose, mais creme">' +
+      '<p class="ui-sec" id="avisoNome" hidden></p>' +
+
+    '</div>';
 
   const elLinhas = el.querySelector("#linhas");
   let inputs = [];
   const elPeso = el.querySelector("#peso");
   const elNome = el.querySelector("#nome");
-  const elAbrir = el.querySelector("#abrir");
+  const elAbrir = el.querySelector("#abrir") || document.createElement("button");
 
   // ----- Abrir: exemplos e receitas da calculadora antiga -----
   // Menu próprio (como na v1.1), no lugar do seletor do sistema.
-  const elMenu = el.querySelector("#menuAbrir");
+  const elMenu = el.querySelector("#menuAbrir") || (function(){ const d = document.createElement("div"); d.innerHTML = '<div class="menu-lista"><div class="menu-rolagem"></div></div>'; return d; })();
   function desenhaAbrir(){
     function op(v, t){ return '<button type="button" class="menu-opcao" role="option" data-v="' + esc(v) + '">' + esc(t) + '</button>'; }
     let h = op("novo", "Rascunho vazio") + '<div class="menu-grupo">Exemplos</div>';
@@ -207,7 +217,10 @@ export function render(el, rota){
 
   // O nome aqui é o do rascunho. Ele só renomeia algo quando vira uma receita nova;
   // para renomear uma receita existente, use a página dela.
-  elNome.addEventListener("input", function(){ calc.nome = elNome.value; persiste(); });
+  // Nome em várias linhas (nome longo não corta): cresce com o texto; Enter só confirma.
+  function alturaNome(){ elNome.style.height = "auto"; elNome.style.height = elNome.scrollHeight + "px"; }
+  elNome.addEventListener("input", function(){ elNome.value = elNome.value.replace(/\n/g, " "); calc.nome = elNome.value; alturaNome(); persiste(); });
+  elNome.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); elNome.blur(); } });
 
   // ----- Salvar: cria a receita (v1) ou uma nova versão -----
   const elPainel = el.querySelector("#painelSalvar"), elNota = el.querySelector("#notaVersao");
@@ -218,7 +231,7 @@ export function render(el, rota){
   // Painel de salvar. Com uma receita aberta, há dois caminhos:
   //   "Salvar vN" (nova versão da mesma receita) ou "Salvar como nova receita" (com outro nome, v1).
   const elNomeNova = el.querySelector("#nomeNova"), elCampoNova = el.querySelector("#campoNomeNova");
-  const elConfirma = el.querySelector("#confirmaSalvar"), elComoNova = el.querySelector("#comoNova");
+  const elConfirma = el.querySelector("#confirmaSalvar");
   const elAvisoNome = el.querySelector("#avisoNome");
   let modoNova = false;
   function abrePainel(nova){
@@ -229,19 +242,18 @@ export function render(el, rota){
       const nome = calc.nome.trim();
       elNomeNova.value = nome && nome !== r.nome ? nome : r.nome + " (variação)";
     }
-    elNota.value = calc.notaSugerida || "";
+    if (elPainel.hidden) elNota.value = calc.notaSugerida || "";
     el.querySelector("#rotuloNota").textContent = modoNova ? "Nota da v1 (opcional)" : "O que mudou? (opcional)";
-    elConfirma.textContent = modoNova ? (r ? "Criar nova receita" : "Salvar receita (v1)") : "Salvar v" + proximoNumero();
-    // Com uma receita aberta, as duas saídas ficam sempre lado a lado:
-    // nova versão desta receita e nova receita (variação).
+    elConfirma.textContent = "Salvar";
     elConfirma.hidden = false;
-    elComoNova.hidden = modoNova;
-    const elComoVersao = el.querySelector("#comoVersao");
-    elComoVersao.hidden = !(modoNova && r);
-    if (r) elComoVersao.textContent = "Salvar como v" + proximoNumero();
-    el.querySelector(".acoes-salvar").classList.toggle("sem-receita", !r);
+    const elModo = el.querySelector("#modoSalvar");
+    elModo.hidden = !r;
+    if (r){
+      el.querySelector("#optVersao").textContent = "Nova versão (v" + proximoNumero() + ")";
+      elModo.querySelectorAll("[data-m]").forEach(function(b){ b.setAttribute("aria-pressed", String((b.dataset.m === "nova") === modoNova)); });
+    }
     elAvisoNome.hidden = true;
-    elPainel.hidden = false;
+    elPainel.hidden = false; el.querySelector("#veuSalvar").hidden = false;
     if (modoNova && r){ elNomeNova.focus(); elNomeNova.select(); }
   }
   el.querySelector("#salvar").addEventListener("click", function(){
@@ -251,9 +263,10 @@ export function render(el, rota){
     const r = calc.receitaId && receita(calc.receitaId);
     abrePainel(!!(r && calc.nome.trim() && calc.nome.trim() !== r.nome));
   });
-  el.querySelector("#comoVersao").addEventListener("click", function(){ modoNova = false; elConfirma.click(); });
-  elComoNova.addEventListener("click", function(){ abrePainel(true); });
-  el.querySelector("#cancelaSalvar").addEventListener("click", function(){ elPainel.hidden = true; });
+  el.querySelectorAll("#modoSalvar [data-m]").forEach(function(b){ b.addEventListener("click", function(){ abrePainel(b.dataset.m === "nova"); }); });
+  function fechaPainel(){ elPainel.hidden = true; el.querySelector("#veuSalvar").hidden = true; }
+  el.querySelector("#cancelaSalvar").addEventListener("click", fechaPainel);
+  el.querySelector("#veuSalvar").addEventListener("click", fechaPainel);
   elNota.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); elConfirma.click(); } });
   elNomeNova.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); elNota.focus(); } });
   elConfirma.addEventListener("click", function(){
@@ -270,7 +283,7 @@ export function render(el, rota){
     calc.nome = r.nome;   // versão da base mantém o nome da base; receita nova usa o nome escolhido
     const v = novaVersao(r.id, calc.linhas, calc.estilo, elNota.value.trim(), calc.snapshot);
     calc.receitaId = r.id; calc.versaoId = v.id; delete calc.snapshot; delete calc.notaSugerida;
-    elPainel.hidden = true;
+    fechaPainel();
     persiste(); desenhaTudo();
     desenhaEstado(modoNova ? "Receita “" + r.nome + "” criada (v1)." : "Salvo como v" + v.numero + ".");
   });
@@ -289,8 +302,17 @@ export function render(el, rota){
     elEstado.innerHTML = h;
     // Atalho para a página da receita (versões e lotes), como pílula ao lado de Salvar e Abrir.
     const ir = el.querySelector("#irReceita");
-    ir.hidden = !(r && v);
+    ir.hidden = !(r && v) || !!daReceita;   // vindo da receita, o voltar já leva até ela
     if (r) ir.href = "#/receita/" + encodeURIComponent(r.id);
+    // Receita existente: o cartão do nome ganha a capa dela (degradê ou foto), com texto branco.
+    // Receita existente: a capa vira o fundo da página; o cartão do nome fica em vidro escuro (texto branco)
+    // e os outros cartões em vidro branco, para o texto escuro continuar legível sobre a cor.
+    const card = el.querySelector(".calc-nome"), fundo = el.querySelector("#calcFundo");
+    // Rascunho também fica sobre um degradê (grafite neutro), para a tela ter o mesmo visual da receita.
+    card.classList.add("com-capa", "ui-vidro-escuro"); card.classList.remove("ui-vidro");
+    fundo.style.setProperty("--capa", r ? capa(r.nome, r.capa) : FUNDO_RASCUNHO);
+    document.body.classList.add("calc-capa");
+    ir.classList.add("vidro-escuro"); ir.classList.remove("vidro");
   }
 
   // Aviso de ingrediente atualizado depois da versão.
@@ -303,8 +325,8 @@ export function render(el, rota){
     const nomes = ids.map(function(id){ return (ingrediente(id) || calc.snapshot[id]).nome; });
     elSnap.innerHTML = '<p><b>' + (ids.length > 1 ? "Estes ingredientes foram atualizados" : "Este ingrediente foi atualizado") +
       ' depois da v' + v.numero + ':</b> ' + esc(nomes.join(", ")) + '.</p>' +
-      '<p class="muted pequeno">Os números abaixo usam a composição de quando a versão foi salva.</p>' +
-      '<div class="acoes-linha"><button type="button" class="pilula-preta" id="recalcular">Recalcular com os valores atuais</button></div>';
+      '<p class="ui-sec">Os números abaixo usam a composição de quando a versão foi salva.</p>' +
+      '<button type="button" class="ui-botao preto largo" id="recalcular">Recalcular com os valores atuais</button>';
     elSnap.hidden = false;
     elSnap.querySelector("#recalcular").addEventListener("click", function(){
       delete calc.snapshot; persiste(); desenhaTudo();
@@ -316,24 +338,10 @@ export function render(el, rota){
     const b = ev.target.closest("button"); if (!b) return;
     calc.estilo = b.dataset.estilo; persiste(); desenhaEstilo(); atualiza();
   });
-  const elSeg = el.querySelector("#estilo");
-  const pill = document.createElement("span");
-  pill.className = "pill-indicator"; pill.setAttribute("aria-hidden", "true");
-  elSeg.insertBefore(pill, elSeg.firstChild);
-  function posicionaPill(){
-    const ativo = elSeg.querySelector('button[aria-pressed="true"]');
-    if (!ativo || !ativo.offsetWidth) return;
-    pill.style.width = ativo.offsetWidth + "px";
-    pill.style.transform = "translateX(" + ativo.offsetLeft + "px)";
-    elSeg.classList.add("pill-ready");
-  }
-  window.addEventListener("resize", posicionaPill);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(posicionaPill);
   function desenhaEstilo(){
     el.querySelectorAll("#estilo button").forEach(function(b){
       b.setAttribute("aria-pressed", String(b.dataset.estilo === calc.estilo));
     });
-    posicionaPill();
   }
 
   // ----- Linhas de ingrediente -----
@@ -389,10 +397,10 @@ export function render(el, rota){
   elEscolha.className = "escolha"; elEscolha.hidden = true;
   elEscolha.setAttribute("role", "dialog"); elEscolha.setAttribute("aria-label", "Escolher ingrediente");
   elEscolha.innerHTML =
-    '<div class="escolha-topo"><input type="search" class="campo-texto" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente">' +
-    '<button type="button" class="pilula-cinza" data-fechar>Cancelar</button></div>' +
+    '<div class="escolha-topo"><input type="search" class="ui-campo" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente">' +
+    '<button type="button" class="ui-botao vidro" data-fechar>Cancelar</button></div>' +
     '<div class="escolha-lista"></div>' +
-    '<a class="pilula-cinza escolha-novo" href="#/ingredientes/novo">+ novo ingrediente</a>';
+    '<a class="ui-botao vidro escolha-novo" href="#/ingredientes/novo">+ novo ingrediente</a>';
   document.body.appendChild(elEscolha);
   const elBusca = elEscolha.querySelector("input");
   function semAcento(t){ return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
@@ -524,21 +532,10 @@ export function render(el, rota){
 
   elEstadoPronto = true;
   function desenhaTudo(){
-    elNome.value = calc.nome || "";
+    elNome.value = calc.nome || ""; alturaNome();
     desenhaAbrir(); desenhaEstilo(); desenhaLinhas(); desenhaSnap(); atualiza();
   }
   desenhaTudo();
 
-  document.body.classList.add("tela-calc");
-  // Em tela larga, a caixa de avisos vai para baixo dos ingredientes (coluna esquerda);
-  // no celular volta para dentro da composição, antes dos gráficos.
-  const telaLarga = window.matchMedia("(min-width: 960px)");
-  function posicionaAvisos(){
-    const card = el.querySelector("#cardAvisos");
-    if (telaLarga.matches) el.querySelector(".calc-col-ing").appendChild(card);
-    else el.querySelector(".resultado").insertBefore(card, el.querySelector("#metricas"));
-  }
-  posicionaAvisos();
-  telaLarga.addEventListener("change", posicionaAvisos);
-  return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("tela-calc"); telaLarga.removeEventListener("change", posicionaAvisos); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); window.removeEventListener("resize", posicionaPill); elEscolha.remove(); document.body.classList.remove("travado"); }};
+  return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("ui", "calcui", "calc-capa"); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); elEscolha.remove(); document.body.classList.remove("travado"); }};
 }
