@@ -1021,3 +1021,8 @@ html[data-nav="zoom"]::view-transition-new(root){animation:vt-esmaece .3s ease .
 /* Arrastar para voltar: a tela ganha sombra na borda esquerda e o fundo por trás escurece levemente */
 #tela.arrastando{box-shadow:-8px 0 24px rgba(0,0,0,.18); background:var(--ui-fundo, #fff); min-height:100vh; will-change:transform}
 body:has(#tela.arrastando){background:#d9d9d6}
+/* TESTE: sem nenhum véu (escurecimento dos cartões e capas, fundo das telas e véu atrás das folhas) */
+.rec-fundo::after,.calc-fundo::after{display:none !important}
+/* Cartões com capa e quadros do seletor: véu bem suave (multiply 10%) */
+.ui-bloco::before,.capa-op::before{display:block !important; background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.10)) !important; mix-blend-mode:multiply}
+.ui-veu,.confirma-veu{background:transparent !important}
