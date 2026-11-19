@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261118220512";
-import { PRESETS } from "./calculo.js?v=20261118220512";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261118220512";
-import { notificaMudanca } from "./sync.js?v=20261118220512";
+import { ING_BASE } from "./ingredientes-base.js?v=20261118220533";
+import { PRESETS } from "./calculo.js?v=20261118220533";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261118220533";
+import { notificaMudanca } from "./sync.js?v=20261118220533";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -101,6 +101,20 @@ export function carrega(){
     let mudou = false;
     db.receitas.forEach(function(r){ if (r.status !== "final" && r.status !== "em teste"){ r.status = "em teste"; mudou = true; } });
     if (mudou) salva();
+    // Ingredientes novos da lista base chegam para quem já tem dados (uma vez só; se apagar, não volta).
+    const NOVOS = ["ovo","clara","essBaunilha","essMenta","essLaranja"];
+    db.ingBaseAdicionados = db.ingBaseAdicionados || [];
+    const faltam = NOVOS.filter(function(id){ return db.ingBaseAdicionados.indexOf(id) < 0; });
+    if (faltam.length){
+      faltam.forEach(function(id){
+        if (!db.ingredientes.some(function(i){ return i.id === id; })){
+          const b = ING_BASE.find(function(i){ return i.id === id; });
+          if (b) db.ingredientes.push(copia(b));
+        }
+        db.ingBaseAdicionados.push(id);
+      });
+      salva();
+    }
   } else {
     db = vazio();
     if (migraLegado(db)) db.migradoDoLegado = new Date().toISOString();
