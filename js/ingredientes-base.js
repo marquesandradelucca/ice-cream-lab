@@ -32,6 +32,8 @@ export const ING_BASE = [
   {id:"malto",      nome:"Maltodextrina 18 DE", longo:"Maltodextrina DE 18",       ac:{malto:95}},
   {id:"mascavo",    nome:"Açúcar mascavo",            ac:{sacarose:96}, outros:2},
   {id:"cacau",      nome:"Cacau em pó",               gord:11,  outros:85},
+  {id:"callebaut7030", nome:"Callebaut 70-30-38", longo:"Chocolate Callebaut 70-30-38 (70,5% cacau)", gord:38, ac:{sacarose:29}, outros:32,
+    nota:"Pelo nome do fabricante: 70% de cacau, 30% de açúcar, 38% de gordura total. Cerca de 1% de umidade."},
   {id:"choco70",    nome:"Chocolate 70%",             gord:40,  outros:30, ac:{sacarose:29}},
   {id:"pasta",      nome:"Pasta de castanha", longo:"Pasta de castanha pura",    gord:55,  outros:43},
   {id:"pureDoce",   nome:"Purê fruta doce", longo:"Purê de fruta doce",        ac:{frutose:6, sacarose:6}, outros:2},
