@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261119140856";
-import { PRESETS } from "./calculo.js?v=20261119140856";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261119140856";
-import { notificaMudanca } from "./sync.js?v=20261119140856";
+import { ING_BASE } from "./ingredientes-base.js?v=20261119141022";
+import { PRESETS } from "./calculo.js?v=20261119141022";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261119141022";
+import { notificaMudanca } from "./sync.js?v=20261119141022";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -125,6 +125,20 @@ export function carrega(){
         if (i && b && ac.frutose === v[0] && ac.dextrose === v[1] && ac.sacarose === v[2]) i.ac = copia(b.ac);
       });
       db.frutasTaco = true; salva();
+    }
+    // Frutas revistas pela TBCA: atualiza só as que o usuário não editou desde a versão anterior.
+    if (!db.frutasTbca){
+      const ANTES = {"polpaMelancia": [0.2, 4.4, 2.1, 1.5, 1.2], "sucoLimao": [0.2, 1.1, 1.0, 0.4, 6.0], "polpaMorango": [0.3, 2.5, 2.1, 0.5, 3.0], "polpaMaracuja": [0.2, 5.5, 5.0, 3.0, 4.0], "polpaJabuticaba": [0.1, 6.0, 5.0, 1.0, 3.5], "polpaMelao": [0.2, 1.7, 1.4, 4.1, 1.8], "polpaAbacaxi": [0.1, 2.4, 1.9, 7.0, 2.2], "polpaAmora": [0.5, 2.4, 2.3, 0.1, 7.0], "polpaFramboesa": [0.7, 2.4, 1.9, 0.2, 8.0], "polpaManga": [0.2, 3.6, 1.6, 5.5, 3.3], "sucoLaranja": [0.1, 2.0, 1.8, 3.8, 1.5], "polpaPera": [0.1, 6.9, 3.2, 0.9, 3.8], "polpaTangerina": [0.1, 2.0, 1.7, 5.0, 1.9]};
+      Object.keys(ANTES).forEach(function(id){
+        const i = db.ingredientes.find(function(x){ return x.id === id; });
+        const b = ING_BASE.find(function(x){ return x.id === id; });
+        if (!i || !b) return;
+        const ac = i.ac || {}, v = ANTES[id];
+        if (i.gord === v[0] && ac.frutose === v[1] && ac.dextrose === v[2] && ac.sacarose === v[3] && i.outros === v[4]){
+          i.ac = copia(b.ac); i.outros = b.outros; i.gord = b.gord; if (b.nota) i.nota = b.nota;
+        }
+      });
+      db.frutasTbca = true; salva();
     }
   } else {
     db = vazio();
