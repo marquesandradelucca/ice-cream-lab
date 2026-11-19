@@ -1076,3 +1076,4 @@ html.instalado body{box-sizing:border-box; padding-bottom:env(safe-area-inset-to
 body.calc-capa .bar{box-shadow:none !important}
 /* Faixa de categorias: rolagem horizontal própria, sem disputar o gesto com a página */
 .estudo-filtros{-webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x pan-y; transform:translateZ(0)}
+.ing-cats{flex-wrap:wrap; row-gap:var(--ui-e2)}

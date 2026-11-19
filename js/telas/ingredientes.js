@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261119143400";
-import { confirma } from "../ui.js?v=20261119143400";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261119143400";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261119143400";
-import { n } from "../calculo.js?v=20261119143400";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261119143640";
+import { confirma } from "../ui.js?v=20261119143640";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261119143640";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261119143640";
+import { n } from "../calculo.js?v=20261119143640";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -59,6 +59,13 @@ function categoria(i){
   return "outros";
 }
 
+// Categorias escolhidas no ingrediente (i.cats); sem escolha, vale a deduzida.
+function categorias(i){
+  if (Array.isArray(i.cats) && i.cats.length) return i.estab ? ["estab"].concat(i.cats) : i.cats;
+  return [categoria(i)];
+}
+const nomeCat = function(c){ const x = CATEGORIAS.find(function(k){ return k[0] === c; }); return x ? x[1] : c; };
+
 export function render(el, rota){
   const id = rota.args[0] ? decodeURIComponent(rota.args[0]) : "";
   if (id) return editor(el, id);
@@ -86,7 +93,7 @@ function lista(el){
   function desenha(){
     const q = norm(buscaIng.trim());
     const ok = function(i){ return !q || norm(i.nome).indexOf(q) >= 0 || norm(i.longo).indexOf(q) >= 0; };
-    const itens = db.ingredientes.filter(function(i){ return ok(i) && (!catIng || categoria(i) === catIng); });
+    const itens = db.ingredientes.filter(function(i){ return ok(i) && (!catIng || categorias(i).indexOf(catIng) >= 0); });
     itens.sort(function(a, b){ return String(a.nome).localeCompare(String(b.nome), "pt", {sensitivity:"base"}); });   // ordem alfabética
     el.querySelector("#grade").innerHTML = itens.length ? '<div class="ing-grade tres">' + itens.map(bloco).join("") + '</div>' :
       '<p class="ui-sec ideias-vazio">' + (buscaIng.trim() ? 'Nada encontrado para “' + esc(buscaIng.trim()) + '”.' : 'Nenhum ingrediente nesta categoria.') + '</p>';
@@ -124,7 +131,7 @@ function editor(el, id){
         '<span style="flex:1"></span><button class="ui-redondo escuro" type="button" id="opcoes" aria-label="Mais opções">' + icone("opcoes") + '</button></header>' +
       '<div class="ui-tela rec-tela">' +
         '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
-          (ing.estab ? '<div class="rec-etiquetas"><span class="ui-etiqueta">Estabilizante' + (ing.contaTotal === false ? ' · fora da soma' : '') + '</span></div>' : '') +
+          '<div class="rec-etiquetas">' + categorias(ing).map(function(c){ return '<span class="ui-etiqueta">' + nomeCat(c) + (c === "estab" && ing.contaTotal === false ? ' · fora da soma' : '') + '</span>'; }).join("") + '</div>' +
           '<h1 class="rec-nome">' + esc(ing.nome || "Ingrediente sem nome") + '</h1>' +
           (ing.longo ? '<p class="ui-sec">' + esc(ing.longo) + '</p>' : '') +
         '</section>' +
@@ -177,6 +184,7 @@ function editor(el, id){
   function edita(rasc){
     rasc.ac = rasc.ac || {};
     document.body.classList.remove("rec"); document.body.classList.add("ui");
+    const selCats = Array.isArray(rasc.cats) ? rasc.cats.slice() : (novo ? [] : categorias(rasc).filter(function(c){ return c !== "estab"; }));
     function campo(chave, rotulo, valor){
       return '<label class="ui-linha ing-campo"><span>' + rotulo + '</span><span class="ing-num"><input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-k="' + chave + '" value="' + (valor || "") + '" placeholder="0"><span>g</span></span></label>';
     }
@@ -188,6 +196,10 @@ function editor(el, id){
           '<label class="ui-rotulo" for="nomeIng">Nome</label><input id="nomeIng" type="text" class="ui-campo campo-branco" data-k="nome" maxlength="60" value="' + esc(rasc.nome) + '" placeholder="Ex.: Leite Piracanjuba integral">' +
           '<label class="ui-rotulo" for="longoIng">Nome completo (opcional)</label><input id="longoIng" type="text" class="ui-campo campo-branco" data-k="longo" maxlength="90" value="' + esc(rasc.longo) + '">' +
         '</section>' +
+        '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Categorias</h2><span class="ui-sec">uma ou mais</span></div>' +
+          '<div class="ui-filtros ing-cats" id="catsEd">' + CATEGORIAS.filter(function(c){ return c[0] && c[0] !== "estab"; }).map(function(c){
+            return '<button type="button" class="ui-filtro" data-catEd="' + c[0] + '" aria-pressed="' + (selCats.indexOf(c[0]) >= 0) + '">' + c[1] + '</button>'; }).join("") + '</div>' +
+          '<p class="ui-sec">Sem escolha, o app deduz pela composição e pelo nome. Estabilizante se marca mais abaixo.</p></section>' +
         '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Composição</h2><span class="ui-sec">g por 100 g</span></div>' +
           '<div class="ui-linhas">' + campo("gord", "Gordura", rasc.gord) + campo("slng", "SLNG (sólidos lácteos)", rasc.slng) +
             campo("soro", "Sólidos de soro", rasc.soro) + campo("outros", "Outros sólidos", rasc.outros) + '</div>' +
@@ -230,6 +242,16 @@ function editor(el, id){
           if (v) rasc[k] = v; else delete rasc[k];
         }
         mostraAgua();
+      });
+    });
+
+    el.querySelectorAll("[data-catEd]").forEach(function(b){
+      b.addEventListener("click", function(){
+        const c = b.getAttribute("data-catEd"), k = selCats.indexOf(c);
+        if (k >= 0) selCats.splice(k, 1); else selCats.push(c);
+        b.setAttribute("aria-pressed", String(k < 0));
+        if (selCats.length) rasc.cats = CATEGORIAS.map(function(x){ return x[0]; }).filter(function(x){ return selCats.indexOf(x) >= 0; });
+        else delete rasc.cats;
       });
     });
 
