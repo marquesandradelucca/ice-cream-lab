@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261119141416";
-import { confirma } from "../ui.js?v=20261119141416";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261119141416";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261119141416";
-import { n } from "../calculo.js?v=20261119141416";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261119141623";
+import { confirma } from "../ui.js?v=20261119141623";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261119141623";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261119141623";
+import { n } from "../calculo.js?v=20261119141623";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -46,9 +46,11 @@ function barra(i, pequena){
 
 let buscaIng = "", catIng = "";
 // Categoria deduzida da composição (não precisa marcar nada no ingrediente).
-const CATEGORIAS = [["", "Todos"], ["lacteos", "Lácteos"], ["acucares", "Açúcares"], ["estab", "Estabilizantes"], ["outros", "Outros"]];
+const CATEGORIAS = [["", "Todos"], ["lacteos", "Lácteos"], ["acucares", "Açúcares"], ["frutas", "Frutas"], ["estab", "Estabilizantes"], ["outros", "Outros"]];
 function categoria(i){
   if (i.estab) return "estab";
+  if (/^(polpa|suco|casca)/.test(i.id) || /^(coco|leiteCoco|pureDoce|pureAcida)$/.test(i.id) ||
+      /\b(polpa|suco|purê|fruta|coco)\b/i.test(i.nome || "")) return "frutas";
   if ((i.slng || 0) > 0 || (i.soro || 0) > 0) return "lacteos";
   if (totalAcucar(i) >= 40) return "acucares";
   return "outros";
