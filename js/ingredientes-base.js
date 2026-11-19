@@ -57,6 +57,8 @@ export const ING_BASE = [
     nota:"Base: pera Williams (TACO)."},
   {id:"polpaTangerina", nome:"Polpa de tangerina", gord:0.1, ac:{frutose:2.0, dextrose:1.7, sacarose:5.0}, outros:1.9,
     nota:"Base: tangerina ponkan (TACO)."},
+  {id:"hortela", nome:"Hortelã fresca", longo:"Folhas de hortelã/menta fresca", gord:0.7, outros:13.7,
+    nota:"Use em infusão: 3–6 g de folhas por 100 g de leite, de 30 min a uma noite na geladeira, e coe. Coada, quase nada fica na mistura; só entra na conta se as folhas forem batidas junto."},
   {id:"estab", nome:"Estabilizante (liga)", outros:100, estab:true, longo:"Estabilizante (liga pronta)",
     nota:"Siga o fornecedor: a liga define a temperatura de hidratação e a dose."},
   {id:"guar", nome:"Goma guar", outros:100, estab:true,
