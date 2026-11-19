@@ -1074,3 +1074,5 @@ html.instalado body{height:calc(100vh + env(safe-area-inset-top,0px)); min-heigh
 html.instalado body{box-sizing:border-box; padding-bottom:env(safe-area-inset-top,0px)}
 /* Calculadora com capa: barras dos gráficos sem sombra (no iPhone a sombra aparecia como uma linha clara embaixo de algumas barras) */
 body.calc-capa .bar{box-shadow:none !important}
+/* Faixa de categorias: rolagem horizontal própria, sem disputar o gesto com a página */
+.estudo-filtros{-webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x pan-y; transform:translateZ(0)}
