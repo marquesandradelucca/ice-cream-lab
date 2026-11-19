@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261119142934";
-import { confirma } from "../ui.js?v=20261119142934";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261119142934";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261119142934";
-import { n } from "../calculo.js?v=20261119142934";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261119143400";
+import { confirma } from "../ui.js?v=20261119143400";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261119143400";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261119143400";
+import { n } from "../calculo.js?v=20261119143400";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -46,9 +46,12 @@ function barra(i, pequena){
 
 let buscaIng = "", catIng = "";
 // Categoria deduzida da composição (não precisa marcar nada no ingrediente).
-const CATEGORIAS = [["", "Todos"], ["lacteos", "Lácteos"], ["acucares", "Açúcares"], ["frutas", "Frutas"], ["estab", "Estabilizantes"], ["outros", "Outros"]];
+const CATEGORIAS = [["", "Todos"], ["lacteos", "Lácteos"], ["acucares", "Açúcares"], ["frutas", "Frutas"], ["cacau", "Cacau"], ["castanhas", "Castanhas"], ["aromas", "Aromas"], ["estab", "Estabilizantes"], ["outros", "Outros"]];
 function categoria(i){
   if (i.estab) return "estab";
+  if (/^(ess|hortela|casca)/.test(i.id) || /\b(essência|extrato|aroma|hortelã|raspas?)\b/i.test(i.nome || "")) return "aromas";
+  if (/^(cacau|choco|callebaut)/.test(i.id) || /(cacau|chocolate|callebaut)/i.test(i.nome || "")) return "cacau";
+  if (/^pasta$/.test(i.id) || /(castanha|amêndoa|amendoa|avelã|avela|pistache|nozes|amendoim)/i.test(i.nome || "")) return "castanhas";
   if (/^(polpa|suco|casca)/.test(i.id) || /^(coco|leiteCoco|pureDoce|pureAcida)$/.test(i.id) ||
       /\b(polpa|suco|purê|fruta|coco)\b/i.test(i.nome || "")) return "frutas";
   if ((i.slng || 0) > 0 || (i.soro || 0) > 0) return "lacteos";
