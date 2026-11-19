@@ -1,11 +1,11 @@
 // Estudo (redesign): temas agrupados, trazidos do Notion e editáveis no app.
 // Rotas: #/estudo (todos, com busca), #/estudo/grupo/<grupo> (filtrado pela seção vinda da Biblioteca),
 // #/estudo/<id> (tema) e #/estudo/<id>/calculadora (aberto por um gráfico: o voltar leva à calculadora).
-import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261119145723";
-import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261119145723";
-import { mdParaHtml, confirma } from "../ui.js?v=20261119145723";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261119145723";
-import { capaBiblioteca } from "./biblioteca.js?v=20261119145723";
+import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261119150018";
+import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261119150018";
+import { mdParaHtml, confirma } from "../ui.js?v=20261119150018";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261119150018";
+import { capaBiblioteca } from "./biblioteca.js?v=20261119150018";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }

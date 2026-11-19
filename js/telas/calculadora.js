@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261119145723";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261119145723";
-import { confirma, LAPIS } from "../ui.js?v=20261119145723";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados } from "../dados.js?v=20261119145723";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261119150018";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261119150018";
+import { confirma, LAPIS } from "../ui.js?v=20261119150018";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261119150018";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -158,7 +158,7 @@ export function render(el, rota){
       '<div class="acoes"><button type="button" class="ui-botao vidro" id="cancelaSalvar">Cancelar</button><button type="button" class="ui-botao preto" id="confirmaSalvar">Salvar</button></div>' +
       '<h2>Salvar receita</h2>' +
       // Com uma receita aberta: escolher entre nova versão e nova receita; um botão Salvar só.
-      '<div class="ui-opcoes salvar-modo" id="modoSalvar" role="group" aria-label="Como salvar"><button type="button" data-m="versao" id="optVersao"></button><button type="button" data-m="nova">Nova receita</button></div>' +
+      '<div class="ui-opcoes salvar-modo" id="modoSalvar" role="group" aria-label="Como salvar"><button type="button" data-m="versao" id="optVersao"></button><button type="button" data-m="corrige" id="optCorrige"></button><button type="button" data-m="nova">Nova receita</button></div>' +
       '<div id="campoNomeNova" hidden><label class="ui-sec" for="nomeNova" id="rotuloNomeNova">Nome da nova receita</label>' +
         '<input id="nomeNova" class="ui-campo" type="text" maxlength="60" enterkeyhint="next"></div>' +
       '<label class="ui-sec" for="notaVersao" id="rotuloNota">O que mudou? (opcional)</label>' +
@@ -241,10 +241,13 @@ export function render(el, rota){
   const elNomeNova = el.querySelector("#nomeNova"), elCampoNova = el.querySelector("#campoNomeNova");
   const elConfirma = el.querySelector("#confirmaSalvar");
   const elAvisoNome = el.querySelector("#avisoNome");
-  let modoNova = false;
-  function abrePainel(nova){
+  let modoNova = false, modoCorrige = false;
+  function abrePainel(nova, corrige){
     const r = calc.receitaId && receita(calc.receitaId);
+    const vAberta = r && calc.versaoId && versao(calc.versaoId);
     modoNova = nova || !r;
+    const eraCorrige = modoCorrige;
+    modoCorrige = !modoNova && !!corrige && !!vAberta;
     // Nome sempre editável na folha quando cria receita (rascunho ou variação).
     elCampoNova.hidden = !modoNova;
     el.querySelector("#rotuloNomeNova").textContent = r ? "Nome da nova receita" : "Nome da receita";
@@ -253,14 +256,18 @@ export function render(el, rota){
       elNomeNova.value = nome && nome !== r.nome ? nome : r.nome + " (variação)";
     } else if (modoNova && elPainel.hidden) elNomeNova.value = calc.nome.trim();
     if (elPainel.hidden) elNota.value = calc.notaSugerida || "";
-    el.querySelector("#rotuloNota").textContent = modoNova ? "Nota da v1 (opcional)" : "O que mudou? (opcional)";
+    if (modoCorrige && !eraCorrige) elNota.value = vAberta.nota || "";
+    else if (!modoCorrige && eraCorrige) elNota.value = calc.notaSugerida || "";
+    el.querySelector("#rotuloNota").textContent = modoNova ? "Nota da v1 (opcional)" : modoCorrige ? "Nota da v" + vAberta.numero + " (opcional)" : "O que mudou? (opcional)";
     elConfirma.textContent = "Salvar";
     elConfirma.hidden = false;
     const elModo = el.querySelector("#modoSalvar");
     elModo.hidden = !r;
     if (r){
-      el.querySelector("#optVersao").textContent = "Nova versão (v" + proximoNumero() + ")";
-      elModo.querySelectorAll("[data-m]").forEach(function(b){ b.setAttribute("aria-pressed", String((b.dataset.m === "nova") === modoNova)); });
+      el.querySelector("#optVersao").textContent = "Nova v" + proximoNumero();
+      const oc = el.querySelector("#optCorrige"); oc.hidden = !vAberta; if (vAberta) oc.textContent = "Corrigir v" + vAberta.numero;
+      const atual = modoNova ? "nova" : modoCorrige ? "corrige" : "versao";
+      elModo.querySelectorAll("[data-m]").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.m === atual)); });
     }
     elAvisoNome.hidden = true;
     elPainel.hidden = false; el.querySelector("#veuSalvar").hidden = false;
@@ -274,7 +281,7 @@ export function render(el, rota){
     const r = calc.receitaId && receita(calc.receitaId);
     abrePainel(!!(r && calc.nome.trim() && calc.nome.trim() !== r.nome));
   });
-  el.querySelectorAll("#modoSalvar [data-m]").forEach(function(b){ b.addEventListener("click", function(){ abrePainel(b.dataset.m === "nova"); }); });
+  el.querySelectorAll("#modoSalvar [data-m]").forEach(function(b){ b.addEventListener("click", function(){ abrePainel(b.dataset.m === "nova", b.dataset.m === "corrige"); }); });
   function fechaPainel(){ elPainel.hidden = true; el.querySelector("#veuSalvar").hidden = true; }
   el.querySelector("#cancelaSalvar").addEventListener("click", fechaPainel);
   el.querySelector("#veuSalvar").addEventListener("click", fechaPainel);
@@ -282,6 +289,19 @@ export function render(el, rota){
   elNomeNova.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); elNota.focus(); } });
   elConfirma.addEventListener("click", function(){
     let r = calc.receitaId && receita(calc.receitaId);
+    // Corrigir: reescreve a versão aberta no lugar, sem criar outra.
+    const vc = modoCorrige && calc.versaoId && versao(calc.versaoId);
+    if (vc){
+      vc.linhas = calc.linhas.map(function(l){ return {id:l.id, g:Number(l.g) || 0}; });
+      vc.estilo = calc.estilo; vc.nota = elNota.value.trim();
+      vc.snapshot = snapshotDe(vc.linhas, calc.snapshot);
+      vc.editada = new Date().toISOString();
+      r.estilo = calc.estilo;
+      delete calc.snapshot; delete calc.notaSugerida;
+      modoCorrige = false; fechaPainel(); persiste(); desenhaTudo();
+      desenhaEstado("v" + vc.numero + " corrigida.");
+      return;
+    }
     if (modoNova){
       const nome = elNomeNova.value.trim() || calc.nome.trim() || "Receita sem nome";
       if (r && !elNomeNova.value.trim()){ elNomeNova.focus(); return; }
