@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261119135942";
-import { PRESETS } from "./calculo.js?v=20261119135942";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261119135942";
-import { notificaMudanca } from "./sync.js?v=20261119135942";
+import { ING_BASE } from "./ingredientes-base.js?v=20261119140217";
+import { PRESETS } from "./calculo.js?v=20261119140217";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261119140217";
+import { notificaMudanca } from "./sync.js?v=20261119140217";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -102,7 +102,7 @@ export function carrega(){
     db.receitas.forEach(function(r){ if (r.status !== "final" && r.status !== "em teste"){ r.status = "em teste"; mudou = true; } });
     if (mudou) salva();
     // Ingredientes novos da lista base chegam para quem já tem dados (uma vez só; se apagar, não volta).
-    const NOVOS = ["ovo","clara","essBaunilha","essMenta","essLaranja","polpaMelancia","sucoLimao","polpaMorango","polpaMaracuja","polpaJabuticaba","polpaMelao","polpaAbacaxi","polpaAmora","polpaFramboesa"];
+    const NOVOS = ["ovo","clara","essBaunilha","essMenta","essLaranja","polpaMelancia","sucoLimao","polpaMorango","polpaMaracuja","polpaJabuticaba","polpaMelao","polpaAbacaxi","polpaAmora","polpaFramboesa","polpaManga","sucoLaranja","polpaPera","polpaTangerina"];
     db.ingBaseAdicionados = db.ingBaseAdicionados || [];
     const faltam = NOVOS.filter(function(id){ return db.ingBaseAdicionados.indexOf(id) < 0; });
     if (faltam.length){
@@ -114,6 +114,17 @@ export function carrega(){
         db.ingBaseAdicionados.push(id);
       });
       salva();
+    }
+    // Polpas revistas pela TACO: atualiza só as que o usuário não editou.
+    if (!db.frutasTaco){
+      const ANTES = {polpaMelancia:[3.4,1.6,1.2], polpaMorango:[2.4,2.0,0.5], polpaMelao:[1.9,1.5,4.4], polpaAbacaxi:[2.1,1.7,6.0]};
+      Object.keys(ANTES).forEach(function(id){
+        const i = db.ingredientes.find(function(x){ return x.id === id; });
+        const b = ING_BASE.find(function(x){ return x.id === id; });
+        const v = ANTES[id], ac = (i && i.ac) || {};
+        if (i && b && ac.frutose === v[0] && ac.dextrose === v[1] && ac.sacarose === v[2]) i.ac = copia(b.ac);
+      });
+      db.frutasTaco = true; salva();
     }
   } else {
     db = vazio();
