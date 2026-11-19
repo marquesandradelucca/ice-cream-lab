@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261119141757";
-import { PRESETS } from "./calculo.js?v=20261119141757";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261119141757";
-import { notificaMudanca } from "./sync.js?v=20261119141757";
+import { ING_BASE } from "./ingredientes-base.js?v=20261119142019";
+import { PRESETS } from "./calculo.js?v=20261119142019";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261119142019";
+import { notificaMudanca } from "./sync.js?v=20261119142019";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -140,6 +140,12 @@ export function carrega(){
       });
       db.frutasTbca = true; salva();
     }
+    db.ingredientes.forEach(function(i){
+      if (i.id === "callebaut7030" && i.gord === 38 && i.outros === 32){
+        const b = ING_BASE.find(function(x){ return x.id === "callebaut7030"; });
+        i.gord = b.gord; i.outros = b.outros; i.nota = b.nota; salva();
+      }
+    });
     db.ingredientes.forEach(function(i){ if (i.id === "sucoLaranja" && i.nome === "Suco de laranja"){ i.nome = "Suco de laranja pera"; salva(); } });
   } else {
     db = vazio();
