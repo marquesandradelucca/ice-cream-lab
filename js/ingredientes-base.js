@@ -39,7 +39,7 @@ export const ING_BASE = [
   {id:"polpaMelancia", nome:"Polpa de melancia", gord:0.1, ac:{frutose:3.5, dextrose:1.7, sacarose:1.2}, outros:1.0,
     nota:"Fonte: TBCA (BRC0027C); divisão dos açúcares pela USDA."},
   {id:"sucoLimao", nome:"Suco de limão", gord:0, ac:{frutose:1.1, dextrose:1.0, sacarose:0.4}, outros:3.3,
-    nota:"Suco fresco. Cerca de 5% é ácido cítrico, que está em outros sólidos. Fonte: TBCA (BRC0062C); divisão dos açúcares pela USDA. Suco de limão: o resto dos carboidratos é ácido, contado em outros sólidos."},
+    nota:"Suco fresco de limão cravo. Parte dos carboidratos é ácido cítrico, contado em outros sólidos. Fonte: TBCA (BRC0062C); açúcares pela USDA."},
   {id:"polpaMorango", nome:"Polpa de morango", gord:0.4, ac:{frutose:2.4, dextrose:2.0, sacarose:0.5}, outros:2.9,
     nota:"Fonte: TBCA (BRC0029C); divisão dos açúcares pela USDA."},
   {id:"polpaMaracuja", nome:"Polpa de maracujá", gord:0.2, ac:{frutose:3.7, dextrose:3.4, sacarose:2.0}, outros:1.8,
