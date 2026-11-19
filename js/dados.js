@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261119141241";
-import { PRESETS } from "./calculo.js?v=20261119141241";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261119141241";
-import { notificaMudanca } from "./sync.js?v=20261119141241";
+import { ING_BASE } from "./ingredientes-base.js?v=20261119141416";
+import { PRESETS } from "./calculo.js?v=20261119141416";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261119141416";
+import { notificaMudanca } from "./sync.js?v=20261119141416";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -102,7 +102,7 @@ export function carrega(){
     db.receitas.forEach(function(r){ if (r.status !== "final" && r.status !== "em teste"){ r.status = "em teste"; mudou = true; } });
     if (mudou) salva();
     // Ingredientes novos da lista base chegam para quem já tem dados (uma vez só; se apagar, não volta).
-    const NOVOS = ["ovo","clara","essBaunilha","essMenta","essLaranja","polpaMelancia","sucoLimao","polpaMorango","polpaMaracuja","polpaJabuticaba","polpaMelao","polpaAbacaxi","polpaAmora","polpaFramboesa","polpaManga","sucoLaranja","polpaPera","polpaTangerina","hortela","sucoLaranjaBaia","sucoLaranjaLima","sucoLaranjaValencia","polpaLaranjaSeleta","cascaLaranja"];
+    const NOVOS = ["ovo","clara","essBaunilha","essMenta","essLaranja","polpaMelancia","sucoLimao","polpaMorango","polpaMaracuja","polpaJabuticaba","polpaMelao","polpaAbacaxi","polpaAmora","polpaFramboesa","polpaManga","sucoLaranja","polpaPera","polpaTangerina","hortela","sucoLaranjaBaia","sucoLaranjaLima","sucoLaranjaValencia","polpaLaranjaSeleta","cascaLaranja","polpaMirtilo","polpaLichia","coco","leiteCoco"];
     db.ingBaseAdicionados = db.ingBaseAdicionados || [];
     const faltam = NOVOS.filter(function(id){ return db.ingBaseAdicionados.indexOf(id) < 0; });
     if (faltam.length){
