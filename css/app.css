@@ -1141,9 +1141,3 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-versao[open] summary .rec-vmenu + .rec-seta{margin-left:0 !important}
 .rec-versao summary{justify-content:flex-start !important; gap:8px}
 .rec-versao summary .rec-versao-nome{flex:1; min-width:0}
-/* TESTE: sem sombras (cards, botões, texto); o brilho de borda (sombra interna) continua */
-:root{--ui-sombra:0 0 0 transparent; --ui-sombra-cartao:0 0 0 transparent; --ui-sombra-botao:0 0 0 transparent}
-body.ui *, body.ui *::before, body.ui *::after{text-shadow:none !important}
-.ui-folha{box-shadow:inset 0 1px 1px rgba(255,255,255,1) !important}
-.ui-faixa.mini .traco,body.calc-capa.calcui .bar .mark,#tela.arrastando{box-shadow:none !important}
-.menu-lista,.confirma-folha,.ui-toast,#toast{box-shadow:var(--ui-brilho) !important}
