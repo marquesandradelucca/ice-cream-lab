@@ -1141,3 +1141,5 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-versao[open] summary .rec-vmenu + .rec-seta{margin-left:0 !important}
 .rec-versao summary{justify-content:flex-start !important; gap:8px}
 .rec-versao summary .rec-versao-nome{flex:1; min-width:0}
+/* TESTE: sem sombras no app inteiro */
+body.ui *, body.ui *::before, body.ui *::after{box-shadow:none !important; text-shadow:none !important}
