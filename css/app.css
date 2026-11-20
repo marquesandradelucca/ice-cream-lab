@@ -169,14 +169,9 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
 .ui-campo::placeholder{color:var(--ui-texto3)}
 
 /* ===== Barra de abas ===== */
-.ui-abas{position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; justify-content:space-around;
-  padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);
-  background:rgba(255,255,255,.78); border-top:1px solid var(--ui-linha);
-  -webkit-backdrop-filter:blur(10px) saturate(1.6); backdrop-filter:blur(10px) saturate(1.6)}
-.ui-abas a{display:flex; flex-direction:column; align-items:center; gap:3px; width:70px; text-decoration:none;
-  font-size:10px; font-weight:500; color:#9A9A9A}
-.ui-abas a svg{width:24px; height:24px}
-.ui-abas a[aria-current="page"]{color:var(--ui-tinta); font-weight:600}
+.ui-abas{left:0; right:0; bottom:0; z-index:20; display:flex; justify-content:space-around; padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px); background:rgba(255,255,255,.78); border-top:1px solid var(--ui-linha); -webkit-backdrop-filter:blur(10px) saturate(1.6); backdrop-filter:blur(10px) saturate(1.6)}
+.ui-abas a{display:flex; align-items:center; text-decoration:none; font-size:10px; font-weight:500}
+.ui-abas a[aria-current="page"]{font-weight:600}
 
 /* ===== Folha (sheet) ===== */
 .ui-veu{position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.3); animation:ui-aparece .2s ease}
@@ -196,7 +191,7 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
 }
 
 /* Aviso (toast) acima da barra de abas */
-body:not(.sem-abas) .toast{bottom:calc(var(--ui-abas) + 12px + env(safe-area-inset-bottom,0px)); z-index:25}
+body:not(.sem-abas) .toast{z-index:25}
 
 /* ===== Home ===== */
 a.ui-cartao{color:inherit; text-decoration:none}
@@ -312,7 +307,7 @@ body.calcui #ingredientes.modo-excluir #modoExcluir{background:var(--ui-tinta); 
 body.calcui .calc-dobra summary{display:flex; justify-content:space-between; align-items:center; list-style:none; cursor:pointer}
 body.calcui .calc-dobra summary::-webkit-details-marker{display:none}
 body.calcui .calc-dobra summary h2{margin:0; font-size:var(--ui-t-cartao); font-weight:700}
-body.calcui .calc-seta svg{width:16px; height:16px; transform:rotate(-90deg)}
+body.calcui .calc-seta svg{transform:rotate(-90deg)}
 body.calcui .calc-dobra[open] .calc-seta{transform:rotate(180deg)}
 body.calcui .calc-notas{display:flex; flex-direction:column; gap:var(--ui-e3); margin-top:var(--ui-e3); font-size:var(--ui-t-sec); color:var(--ui-texto2); line-height:1.45}
 body.calcui .calc-notas p{margin:0}
@@ -608,11 +603,8 @@ body.calcui .notes li.status-critico::before{background:var(--ui-fora)}
 .ui-faixa.mini .trilho{background:rgba(0,0,0,.07); height:8px; border-radius:4px}
 .ui-faixa.mini .ideal{background:linear-gradient(90deg, #8DCB72, #56AF38 50%, #8DCB72); border-radius:4px}
 /* Barra de abas flutuante (estilo iOS): pílula branca com sombra, só ícones */
-.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{left:var(--ui-margem); right:var(--ui-margem); bottom:max(8px, env(safe-area-inset-bottom,0px)); height:56px; padding:0 8px;
-  border-radius:var(--ui-r-pilula); border:0; background:rgba(255,255,255,.92); align-items:center;
-  box-shadow:0 8px 28px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.06); -webkit-backdrop-filter:blur(10px) saturate(1.4); backdrop-filter:blur(10px) saturate(1.4)}
-.ui-abas a{width:auto; flex:1; height:56px; justify-content:center; color:#B5B5B5}
-.ui-abas a span{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{left:var(--ui-margem); right:var(--ui-margem); bottom:max(8px, env(safe-area-inset-bottom,0px)); border-radius:var(--ui-r-pilula); border:0; align-items:center}
+.ui-abas a{justify-content:center}
 .ui-abas a svg{width:26px; height:26px}
 .ui-abas a[aria-current="page"]{color:var(--ui-tinta)}
 .ui-tela{padding:0 var(--ui-margem) calc(var(--ui-abas) + var(--ui-e3) + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:var(--ui-e3); padding-bottom:calc(var(--ui-abas) + var(--ui-e3) + max(8px, env(safe-area-inset-bottom,0px)))}
@@ -629,14 +621,12 @@ body.calcui .linha,body.calcui .linha-total{border-bottom:0 !important; border-t
 .rec-painel:has(.rec-versoes){position:relative}
 /* Título "Versões" na mesma linha de 32px que "Modo de preparo" (mesmo respiro no topo e ˅ na mesma altura) */
 .rec-painel:has(.rec-versoes) > h2{min-height:32px; display:flex; align-items:center; margin:0}
-.ui-abas a[data-aba="ideias"] svg{width:34px; height:34px}   /* o símbolo da lâmpada tem área vazia em volta: compensa o tamanho */
 /* Ícones preenchidos (SF Symbols) nos botões redondos: tamanho do iOS (~17px) */
 .ui-redondo svg[fill="currentColor"]{width:17px; height:17px}
 .rec-seta svg[fill="currentColor"],.calc-seta svg[fill="currentColor"],.estudo-seta svg[fill="currentColor"]{width:12px; height:12px}
 /* Setas com o símbolo certo (chevron.down / chevron.right): sem girar o desenho; aberto gira 180° */
 .rec-seta svg,body.calcui .calc-seta svg,.estudo-seta svg,.lote-palco .seta-dir svg{transform:none}
 /* Selos de leite / vegana nos cartões de Receitas */
-.receitas-selo svg{width:14px; height:14px}
 /* Receitas: etiquetas embaixo, lado a lado (Final/Teste + selo) */
 .receitas-cartao{min-height:200px; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1)}
 .receitas-etiquetas{display:flex; flex-wrap:wrap; gap:var(--ui-e2); margin-top:var(--ui-e2)}
@@ -684,27 +674,22 @@ body.calc-capa.calcui .ui-tela .ui-cartao #modoExcluir.ui-botao.vidro.perigo{bac
 .ui-redondo.escuro,.ui-etiqueta:not(.final),.receitas-selo,.ui-botao.vidro-escuro,.home-avaliar-botao,.rec-seta,
 body.calc-capa.calcui .calc-abrir,body.calc-capa.calcui #estilo .ui-filtro:not([aria-pressed="true"]){background:var(--ui-vidro-interno) !important}
 /* Barra de abas estilo App Store: ícone + nome, todos escuros; a aba ativa ganha uma pílula de vidro por trás */
-.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{height:64px; padding:0 6px}
-.ui-abas a{height:54px; margin:0 2px; border-radius:var(--ui-r-pilula); flex-direction:column; gap:2px; color:var(--ui-tinta); transition:background .2s ease}
-.ui-abas a span{position:static; width:auto; height:auto; overflow:visible; clip:auto; font-size:11px; font-weight:500; line-height:1}
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{height:64px}
+.ui-abas a{height:54px}
+.ui-abas a span{width:auto; height:auto; font-weight:500; line-height:1}
 .ui-abas a svg,.ui-abas a[data-aba="ideias"] svg{width:24px; height:24px}
-.ui-abas a[data-aba="ideias"] svg{width:30px; height:30px; margin:-3px 0}
-.ui-abas a[aria-current="page"]{background:rgba(0,0,0,.06); box-shadow:inset 0 1px 1px rgba(255,255,255,.9), inset 0 -1px 1px rgba(0,0,0,.05)}
 .ui-abas a[aria-current="page"] span{font-weight:600}
-.ui-abas a[aria-current="page"]{background:rgba(0,0,0,.08)}
 /* Cada aba do tamanho do próprio nome (a pílula envolve o texto inteiro) */
 .ui-abas,body.rec .ui-abas,body.calcui .ui-abas{justify-content:space-between; padding:0 5px}
-.ui-abas a{flex:1 1 auto; min-width:0; width:auto; padding:0 8px; margin:0}
-.ui-abas a span{font-size:10px; letter-spacing:-.1px; white-space:nowrap}
-.ui-abas a[aria-current="page"]{box-shadow:none}
+.ui-abas a{border-radius:var(--ui-r-pilula); transition:background .2s ease}
+.ui-abas a span{position:static; overflow:visible; clip:auto; font-size:10px; letter-spacing:-.1px; white-space:nowrap}
 /* Animação da troca de aba: a pílula desliza com efeito de mola */
 .ui-abas{position:fixed}
-.ui-abas a[aria-current="page"]{background:transparent}
+.ui-abas a[aria-current="page"]{box-shadow:none; background:transparent}
 .abas-indicador{position:absolute; left:0; top:5px; height:54px; border-radius:var(--ui-r-pilula); background:rgba(0,0,0,.08); pointer-events:none;
   transition:transform .42s cubic-bezier(.3,1.4,.5,1), width .42s cubic-bezier(.3,1.4,.5,1)}
-.ui-abas a{position:relative; z-index:1}
+.ui-abas a{flex-direction:column; gap:2px; color:var(--ui-tinta); width:auto; position:relative}
 .ui-abas a svg{transition:transform .25s ease}
-.ui-abas a[aria-current="page"] svg{transform:scale(1.08)}
 @media (prefers-reduced-motion: reduce){.abas-indicador,.ui-abas a svg{transition:none}}
 
 /* Folhas: ✕ redondo no canto superior direito no lugar do botão "Fechar" */
@@ -721,7 +706,7 @@ body.calc-capa.calcui .calc-abrir,body.calc-capa.calcui #estilo .ui-filtro:not([
 .capa-enviar::before{display:none}
 .capa-enviar svg{width:22px; height:22px}
 /* Abas com a mesma largura (ícones igualmente espaçados, como no iOS) */
-.ui-abas a{flex:1 1 0; padding:0 4px}
+.ui-abas a{min-width:0; margin:0; z-index:1; flex:1 1 0; padding:0 4px}
 /* Ícones das abas na escala natural dos SF Symbols (mesmo fator para todos = mesmo peso visual), centrados numa linha de 26px */
 .ui-abas a[data-aba="home"] svg{width:24.5px; height:21.6px; margin:2.2px 0}
 .ui-abas a[data-aba="ideias"] svg{width:21.4px; height:32.9px; margin:-3.4px 0}
