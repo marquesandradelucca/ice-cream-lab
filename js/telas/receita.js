@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120190440";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120190440";
-import { confirma, LAPIS } from "../ui.js?v=20261120190440";
-import { atualizaVoltar } from "../app.js?v=20261120190440";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120190440";
-import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261120190440";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120190708";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120190708";
+import { confirma, LAPIS } from "../ui.js?v=20261120190708";
+import { atualizaVoltar } from "../app.js?v=20261120190708";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120190708";
+import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261120190708";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
