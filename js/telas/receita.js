@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120174522";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174522";
-import { confirma, LAPIS } from "../ui.js?v=20261120174522";
-import { atualizaVoltar } from "../app.js?v=20261120174522";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120174522";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120174522";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120174712";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174712";
+import { confirma, LAPIS } from "../ui.js?v=20261120174712";
+import { atualizaVoltar } from "../app.js?v=20261120174712";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120174712";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120174712";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -45,7 +45,8 @@ function diferencas(ant, v){
   return out;
 }
 
-const abaDe = {};   // aba escolhida por receita, para manter ao redesenhar
+const abaDe = {};
+const editandoPreparo = {};   // receita com o modo de preparo em edição (aberto pelo ⋯)   // aba escolhida por receita, para manter ao redesenhar
 function detalhe(el, r, abertas, aba){
   document.body.classList.add("ui", "rec");
   const db = dados();
@@ -127,10 +128,15 @@ function detalhe(el, r, abertas, aba){
           : testes.map(versaoCard).join("")) +
       '</div></section></div>') +
       // Modo de preparo em etapas (cada uma vira um passo na hora de preparar); abre e fecha, começa fechado.
-      '<section class="ui-cartao ui-vidro-escuro rec-painel"><details class="rec-dobra">' +
+      // Só se edita pelo ⋯ (Editar modo de preparo); fora disso é uma lista para ler.
+      '<section class="ui-cartao ui-vidro-escuro rec-painel" id="secPreparo"><details class="rec-dobra"' + (editandoPreparo[r.id] ? ' open' : '') + '>' +
         '<summary><h2>Modo de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
-        '<ol class="rec-passos-ed" id="passos"></ol>' +
-        '<button type="button" class="ui-botao vidro-escuro largo" id="maisPasso">+ etapa</button></details></section>' +
+        (editandoPreparo[r.id] ?
+          '<ol class="rec-passos-ed" id="passos"></ol>' +
+          '<div class="rec-acoes"><button type="button" class="ui-botao vidro-escuro" id="maisPasso">+ etapa</button><button type="button" class="ui-botao preto" id="prontoPreparo">Pronto</button></div>' :
+          (passosPreparo(r.preparo).length ? '<ol class="rec-passos">' + passosPreparo(r.preparo).map(function(t){ return '<li>' + esc(t) + '</li>'; }).join("") + '</ol>' :
+            '<p class="ui-sec">Sem modo de preparo. Use ⋯ › Editar modo de preparo.</p>')) +
+        '</details></section>' +
       (pr ? '<button type="button" class="ui-botao preto largo" id="comecar">Preparar</button>' : '') +
     '</div></div>';
 
@@ -191,6 +197,7 @@ function detalhe(el, r, abertas, aba){
   // Editor de etapas: um campo por etapa; guarda como texto, uma etapa por linha.
   const passos = passosPreparo(r.preparo);
   const elPassos = el.querySelector("#passos");
+  if (elPassos){
   function guardaPassos(){ r.preparo = passos.map(function(t){ return t.trim(); }).filter(Boolean).join("\n"); salva(); }
   function desenhaPassos(foco){
     elPassos.innerHTML = passos.map(function(t, i){
@@ -207,6 +214,9 @@ function detalhe(el, r, abertas, aba){
   }
   desenhaPassos();
   el.querySelector("#maisPasso").addEventListener("click", function(){ passos.push(""); desenhaPassos(passos.length - 1); });
+  el.querySelector("#prontoPreparo").addEventListener("click", function(){ delete editandoPreparo[r.id]; redesenha(); });
+  if (!passos.length){ passos.push(""); desenhaPassos(0); }
+  }
 
   // Mais opções: folha com Excluir receita.
   el.querySelector("#opcoes").addEventListener("click", function(){
@@ -216,11 +226,16 @@ function detalhe(el, r, abertas, aba){
       // Editar nome + botão redondo de foto/capa ao lado (mesmo padrão do editor de ideia).
       '<div class="ideia-acoes"><button type="button" class="ui-botao vidro" id="editarNome">Editar nome</button>' +
         '<button type="button" class="ui-botao vidro ideia-capa-bt" id="trocaCapa" aria-label="Trocar capa">' + icone("imagem") + '</button></div>' +
+      '<button type="button" class="ui-botao vidro largo" id="editarPreparo">Editar modo de preparo</button>' +
       (final ? '<button type="button" class="ui-botao vidro largo" id="paraTeste">Voltar para teste</button>' : '') +
       '<button type="button" class="ui-botao vidro largo perigo" id="excluir">Excluir receita</button>' +
       '<button type="button" class="ui-botao preto largo" id="fechar">Fechar</button>';
     document.body.append(veu, f);
     const fecha = function(){ veu.remove(); f.remove(); };
+    f.querySelector("#editarPreparo").addEventListener("click", function(){
+      fecha(); editandoPreparo[r.id] = true; redesenha();
+      const sec = el.querySelector("#secPreparo"); if (sec) sec.scrollIntoView({block:"start", behavior:"smooth"});
+    });
     const btT = f.querySelector("#paraTeste");
     if (btT) btT.addEventListener("click", async function(){
       fecha();
@@ -254,7 +269,7 @@ function detalhe(el, r, abertas, aba){
   });
 
   return {titulo:r.nome, voltar:voltarHref, voltarRotulo:"Receitas",
-    limpa:function(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }};
+    limpa:function(){ delete editandoPreparo[r.id]; document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }};
 }
 
 // Resumo na linha da versão (visível mesmo fechada): quantos lotes e a nota do último avaliado.
