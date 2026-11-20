@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120184459";
-import { confirma } from "../ui.js?v=20261120184459";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120184459";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120184459";
-import { n } from "../calculo.js?v=20261120184459";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120184703";
+import { confirma } from "../ui.js?v=20261120184703";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120184703";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120184703";
+import { n } from "../calculo.js?v=20261120184703";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -204,8 +204,8 @@ function editor(el, id){
           '<div class="ui-opcoes ing-medida" id="medida" role="group" aria-label="Medida"><button type="button" data-m="g" aria-pressed="' + !rasc.un + '">Gramas</button><button type="button" data-m="un" aria-pressed="' + !!rasc.un + '">Unidade</button></div>' +
           '<div id="camposUn"' + (rasc.un ? '' : ' hidden') + '>' +
             '<label class="ui-rotulo" for="unIng">Nome da unidade</label><input id="unIng" type="text" class="ui-campo campo-branco" maxlength="20" value="' + esc(rasc.un || "") + '" placeholder="fava, unidade, folha…">' +
-            '<label class="ui-rotulo">Contar de</label><div class="ui-opcoes ing-medida" id="passoUn" role="group" aria-label="Contar de">' +
-              [[0.25, "¼ em ¼"], [0.5, "½ em ½"], [1, "1 em 1"]].map(function(o){ return '<button type="button" data-p="' + o[0] + '" aria-pressed="' + ((Number(rasc.passoUn) || 0.5) === o[0]) + '">' + o[1] + '</button>'; }).join("") + '</div>' +
+            '<label class="ui-rotulo">Menor quantidade</label><div class="ui-opcoes ing-medida" id="passoUn" role="group" aria-label="Menor quantidade">' +
+              [[0.25, "¼"], [0.5, "½"], [1, "1"]].map(function(o){ return '<button type="button" data-p="' + o[0] + '" aria-pressed="' + ((Number(rasc.passoUn) || 0.5) === o[0]) + '">' + o[1] + '</button>'; }).join("") + '</div>' +
           '</div>' +
           '<p class="ui-sec" id="txtMedida">' + (rasc.un ? 'Contado em unidades. Não entra no peso nem na composição da mistura e fica sempre no fim da lista.' : 'Pesado em gramas; entra no peso e na composição.') + '</p></section>' +
         '<div id="blocoComp"' + (rasc.un ? ' hidden' : '') + '>' +
@@ -271,7 +271,7 @@ function editor(el, id){
       if (un){ rasc.un = elUn.value.trim() || "unidade"; if (!(rasc.gUn > 0)) rasc.gUn = 1; }
       else { delete rasc.un; delete rasc.gUn; delete rasc.passoUn; }
       el.querySelector("#camposUn").hidden = !un; el.querySelector("#blocoComp").hidden = !!un;
-      el.querySelector("#txtMedida").textContent = un ? "Contado em unidades. Não entra no peso nem na composição da mistura e fica sempre no fim da lista." : "Pesado em gramas; entra no peso e na composição.";
+      textoMedida();
     }
     el.querySelectorAll("#medida [data-m]").forEach(function(b){ b.addEventListener("click", function(){
       el.querySelectorAll("#medida [data-m]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
@@ -280,8 +280,16 @@ function editor(el, id){
     el.querySelectorAll("#passoUn [data-p]").forEach(function(b){ b.addEventListener("click", function(){
       el.querySelectorAll("#passoUn [data-p]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
       const p = Number(b.dataset.p); if (p === 0.5) delete rasc.passoUn; else rasc.passoUn = p;
+      textoMedida();
     }); });
-    elUn.addEventListener("input", function(){ if (rasc.un) rasc.un = elUn.value.trim() || "unidade"; });
+    elUn.addEventListener("input", function(){ if (rasc.un) rasc.un = elUn.value.trim() || "unidade"; textoMedida(); });
+    function textoMedida(){
+      const p = ({0.25:"¼", 1:"1"})[rasc.passoUn] || "½";
+      el.querySelector("#txtMedida").textContent = rasc.un ?
+        "Na calculadora, o − e o + andam de " + p + " em " + p + " " + rasc.un + ". Não entra no peso nem na composição da mistura e fica sempre no fim da lista." :
+        "Pesado em gramas; entra no peso e na composição.";
+    }
+    textoMedida();
 
     const cancela = function(){ if (novo) location.hash = "#/ingredientes"; else mostra(); };
     el.querySelector("#cancelar").addEventListener("click", cancela);
