@@ -1084,3 +1084,7 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-aba[hidden]{display:none}
 .rec-versao-acoes .ui-redondo{flex:none}
 .rec-versao-acoes .ui-botao:not(.rec-largo){flex:1}
+.rec-versao summary .rec-vmenu{margin-left:auto; margin-right:8px; border:0; padding:0; cursor:pointer; color:inherit; font:inherit}
+.rec-versao summary .rec-vmenu + .rec-seta{margin-left:0}
+.rec-versao[open] .rec-vmenu{transform:none}
+.rec-acoes > .ui-botao{flex:1}
