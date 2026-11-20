@@ -20,7 +20,7 @@ const PATHS = {
   imagem:'<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
   ok:'<path d="M5 12l5 5L20 7"/>'
 };
-import { ICONES_ARQ } from "./icones.js?v=20261120174712";
+import { ICONES_ARQ } from "./icones.js?v=20261120175449";
 export function icone(nome, extra){
   // Ícone da pasta icons/ (preenchido), quando existir; senão o de traço.
   const arq = ICONES_ARQ[nome];
@@ -203,4 +203,11 @@ export function aplicaTom(alvo, nome, foto){
     } catch (e) {}
   };
   img.src = foto;
+}
+
+// Campo "Outro" (tamanho do lote): com número, a largura acompanha os dígitos para o "g" ficar colado, como em "500 g".
+export function larguraOutro(inp){
+  if (!inp) return;
+  const ativo = inp.closest(".rec-outro") && inp.closest(".rec-outro").classList.contains("ativo");
+  inp.style.width = ativo && inp.value ? (String(inp.value).length * 0.62 + 0.3) + "em" : "";
 }

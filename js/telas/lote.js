@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote, passosPreparo } from "../dados.js?v=20261120174712";
-import { n } from "../calculo.js?v=20261120174712";
-import { confirma } from "../ui.js?v=20261120174712";
-import { atualizaVoltar } from "../app.js?v=20261120174712";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174712";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote, passosPreparo } from "../dados.js?v=20261120175449";
+import { n } from "../calculo.js?v=20261120175449";
+import { confirma } from "../ui.js?v=20261120175449";
+import { atualizaVoltar } from "../app.js?v=20261120175449";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120175449";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -127,7 +127,10 @@ export function render(el, rota){
     if (i < P){ const y = l.pesado[i]; y.ok = v; if (v && y.real == null) y.real = Math.round(y.previsto * l.escala * 10) / 10; }
     else l.etapasOk[i - P] = v;
   }
+  // Receita final: depois da última etapa, um passo a mais com "Concluir preparo".
+  const NF = N + (semAval && N ? 1 : 0);
   let atual = 0; while (atual < N - 1 && okDe(atual)) atual++;
+  if (semAval && N && okDe(N - 1)) atual = N;
   let entrada = 0;   // direção da última troca, para animar a entrada do próximo ingrediente
   let trava = null;
 
@@ -192,7 +195,8 @@ export function render(el, rota){
     const base = l.pesado.reduce(function(s, x){ return s + x.previsto; }, 0) || 1;
     const total = base * l.escala;
     const feitos = l.pesado.filter(function(x){ return x.ok; }).length;
-    if (atual >= N) atual = N - 1;
+    if (atual >= NF) atual = NF - 1;
+    const fim = atual === N;
     const x = atual >= 0 && atual < P ? l.pesado[atual] : null;
     const et = atual >= P ? etapas[atual - P] : null;
     const tamanhos = [250, 500, 1000];
@@ -205,15 +209,19 @@ export function render(el, rota){
         // Progresso: um traço por ingrediente (cheio = pesado, contorno = o da vez).
         '<div class="lote-progresso" aria-hidden="true">' + Array.apply(null, Array(N)).map(function(_, i){
           return '<span class="' + (okDe(i) ? 'ok' : '') + (i === atual ? ' atual' : '') + '"></span>'; }).join("") + '</div>' +
-        '<div class="lote-palco">' +
+        (fim ? '<div class="lote-palco lote-fim"><button type="button" class="ui-redondo escuro" id="anterior" aria-label="Voltar à última etapa">' + icone("voltar") + '</button>' +
+          '<div class="lote-instrucao"><span class="lote-etapa">Tudo pronto!</span>' +
+          (l.status === "concluido" ? '<span class="ui-sec">Preparo concluído</span>' : '<button type="button" class="ui-botao preto" id="concluirFinal">Concluir preparo</button>') + '</div>' +
+          '<span class="lote-fim-vazio"></span></div>' : '') +
+        (fim ? '' : '<div class="lote-palco">' +
           '<button type="button" class="ui-redondo escuro" id="anterior" aria-label="Ingrediente anterior"' + (atual === 0 ? ' disabled' : '') + '>' + icone("voltar") + '</button>' +
           (x ? '<div class="lote-instrucao"><span class="ui-sec">' + (atual + 1) + ' de ' + P + '</span>' +
             '<b class="ui-num lote-g">' + gramas(x.previsto * l.escala) + '<small> g</small></b>' +
             '<span class="lote-ing">' + esc(nomeIng(x.id)) + '</span></div>' :
             '<div class="lote-instrucao"><span class="ui-sec">Etapa ' + (atual - P + 1) + ' de ' + etapas.length + '</span>' +
             '<span class="lote-etapa">' + esc(et) + '</span></div>') +
-          '<button type="button" class="ui-redondo escuro seta-dir" id="proximo" aria-label="Próximo passo"' + (atual === N - 1 && okDe(atual) ? ' disabled' : '') + '>' + icone("direita") + '</button>' +
-        '</div>' +
+          '<button type="button" class="ui-redondo escuro seta-dir" id="proximo" aria-label="Próximo passo"' + (atual === NF - 1 && okDe(atual) ? ' disabled' : '') + '>' + icone("direita") + '</button>' +
+        '</div>') +
       '</section>' : '') +
       // Lista completa: tocar leva o ingrediente para a bancada.
       '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
@@ -238,8 +246,7 @@ export function render(el, rota){
         '<summary><h2>Sugestões de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
         '<div class="ui-linhas">' + SUGESTOES.map(function(s){
           return '<div class="lote-sugestao"><b>' + s[0] + '</b><span class="ui-sec">' + s[1] + '</span></div>'; }).join("") + '</div></details></section>' +
-      (semAval ? (l.status === "concluido" ? '<p class="lote-estado">Preparo concluído' + (l.fim ? ' · ' + dataCurta(l.fim) : '') + '</p>' :
-        '<button type="button" class="ui-botao ' + 'preto largo" id="concluirFinal">Concluir preparo</button>') :
+      (semAval ? '' :
       l.status === "em andamento" ?
         '<button type="button" class="ui-botao ' + (tudo ? 'preto' : 'vidro-escuro') + ' largo" id="avaliarDepois">Pronto, avaliar depois</button>' :
         '<button type="button" class="ui-botao preto largo" id="avaliarAgora">Ir para a avaliação</button>');
@@ -247,6 +254,7 @@ export function render(el, rota){
     function escala(novo){ if (novo > 0){ l.escala = novo / base; l.pesado.forEach(function(y){ if (!y.ok) y.real = null; }); grava(); desenha(); } }
     alvo.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.addEventListener("click", function(){ escala(Number(b.dataset.g)); }); });
     const elTotal = alvo.querySelector("#loteTotal");
+    larguraOutro(elTotal); elTotal.addEventListener("input", function(){ larguraOutro(elTotal); });
     elTotal.addEventListener("change", function(){ escala(Number(elTotal.value)); });
     // Lista: o círculo marca/desmarca como pesado; o resto da linha leva o ingrediente para a bancada.
     alvo.querySelectorAll(".lote-linha").forEach(function(b){ b.addEventListener("click", function(ev){
@@ -266,17 +274,17 @@ export function render(el, rota){
       const passa = function(d){
         // Avançar marca o ingrediente da vez como pesado; voltar desmarca o ingrediente para onde se volta.
         // No último, avançar só marca e, já marcado, voltar primeiro desmarca ele mesmo.
-        if (d > 0 && !okDe(atual)){ marca(atual, true); grava(); }
-        if (d < 0 && atual === N - 1 && okDe(atual)){ marca(atual, false); grava(); desenha(); return; }
+        if (d > 0 && atual < N && !okDe(atual)){ marca(atual, true); grava(); }
+        if (d < 0 && atual === NF - 1 && atual < N && okDe(atual)){ marca(atual, false); grava(); desenha(); return; }
         const i = atual + d;
-        if (d < 0 && i >= 0 && okDe(i)){ marca(i, false); grava(); }
-        if (i < 0 || i >= N){ palco.style.transition = "transform .2s ease, opacity .2s ease"; palco.style.transform = ""; palco.style.opacity = ""; if (d > 0) desenha(); return; }
+        if (d < 0 && i >= 0 && i < N && okDe(i)){ marca(i, false); grava(); }
+        if (i < 0 || i >= NF){ palco.style.transition = "transform .2s ease, opacity .2s ease"; palco.style.transform = ""; palco.style.opacity = ""; if (d > 0) desenha(); return; }
         palco.style.transition = "transform .16s ease-in, opacity .16s ease-in";
         palco.style.transform = "translateX(" + (d > 0 ? -60 : 60) + "%)"; palco.style.opacity = "0";
         setTimeout(function(){ atual = i; entrada = d; desenha(); }, 150);
       };
       alvo.querySelector("#anterior").addEventListener("click", function(){ passa(-1); });
-      alvo.querySelector("#proximo").addEventListener("click", function(){ passa(1); });
+      const bProx = alvo.querySelector("#proximo"); if (bProx) bProx.addEventListener("click", function(){ passa(1); });
       let x0 = null, y0 = 0, lado = false;
       card.addEventListener("touchstart", function(ev){ x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; lado = false; palco.style.transition = "none"; }, {passive:true});
       card.addEventListener("touchmove", function(ev){ if (x0 == null) return;
@@ -284,7 +292,7 @@ export function render(el, rota){
         if (!lado && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) lado = true;
         if (!lado) return;
         // Nas pontas a lista resiste (anda menos).
-        const ponta = (dx > 0 && atual === 0) || (dx < 0 && atual === N - 1 && okDe(atual));
+        const ponta = (dx > 0 && atual === 0) || (dx < 0 && atual === NF - 1);
         palco.style.transform = "translateX(" + (ponta ? dx * 0.25 : dx) + "px)";
         palco.style.opacity = String(Math.max(0.3, 1 - Math.abs(dx) / 400));
       }, {passive:true});

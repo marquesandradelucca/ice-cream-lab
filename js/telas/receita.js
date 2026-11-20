@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120174712";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174712";
-import { confirma, LAPIS } from "../ui.js?v=20261120174712";
-import { atualizaVoltar } from "../app.js?v=20261120174712";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120174712";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120174712";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120175449";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120175449";
+import { confirma, LAPIS } from "../ui.js?v=20261120175449";
+import { atualizaVoltar } from "../app.js?v=20261120175449";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120175449";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120175449";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -321,9 +321,10 @@ function prontaHtml(r, v){
         '<div class="ui-linha rec-total"><span>Peso total</span><b class="ui-num">' + gramas(alvo) + ' g</b></div>';
       el.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.setAttribute("aria-pressed", Number(b.dataset.g) === alvo); });
       el.querySelector(".rec-outro").classList.toggle("ativo", tamanhos.indexOf(alvo) < 0);
+      larguraOutro(elLote);
     }
     el.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.addEventListener("click", function(){ alvo = Number(b.dataset.g); desenha(); }); });
-    elLote.addEventListener("input", function(){ const x = Number(elLote.value); if (x > 0){ alvo = x; desenha(true); } });
+    elLote.addEventListener("input", function(){ const x = Number(elLote.value); if (x > 0){ alvo = x; desenha(true); } larguraOutro(elLote); });
     el.querySelector("#comecar").addEventListener("click", function(){
       // Preparo deixado pela metade é retomado, em vez de criar outro.
       const l = db.lotes.find(function(x){ return x.versaoId === v.id && x.status !== "concluido"; }) || criaLote(v.id); if (!l) return;

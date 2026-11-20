@@ -1118,3 +1118,9 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-passos li::before{margin-top:0}
 .rec-passos li.ok{opacity:.5; text-decoration:line-through}
 .lote-etapa{font-size:20px; font-weight:600; line-height:1.35; text-align:center; color:#fff}
+.lote-fim-vazio{flex:none; width:var(--ui-h-redondo)}
+.lote-fim .lote-instrucao{gap:var(--ui-e3)}
+.lote-fim .ui-botao{padding:0 28px}
+/* Outro tamanho escolhido: número e "g" juntos no centro, como "500 g" */
+.rec-outro.ativo{justify-content:center; gap:3px}
+.rec-outro.ativo input{flex:none; margin:0; transform-origin:right center; text-align:right}
