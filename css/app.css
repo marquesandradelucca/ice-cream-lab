@@ -1141,3 +1141,16 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-versao[open] summary .rec-vmenu + .rec-seta{margin-left:0 !important}
 .rec-versao summary{justify-content:flex-start !important; gap:8px}
 .rec-versao summary .rec-versao-nome{flex:1; min-width:0}
+/* Abas da receita (#abaReceita/#abaVersoes) são invólucros: em vez de animar o invólucro, animam os cartões de dentro,
+   todos juntos, com o mesmo tempo e atraso que o invólucro teria (o movimento fica idêntico).
+   Um vidro dentro de um invólucro animado só desfoca o próprio invólucro (vazio) e aparece cinza até a animação acabar. */
+#tela.prepara .ui-tela > .rec-aba{opacity:1}
+#tela.prepara .ui-tela > .rec-aba > *{opacity:0}
+#tela.sobe .ui-tela > .rec-aba{animation:none; will-change:auto}
+#tela.sobe .ui-tela > .rec-aba > *{will-change:transform,opacity; animation:vt-sobe .45s cubic-bezier(.2,.9,.25,1) both}
+#tela.sobe .ui-tela > .rec-aba:nth-child(1) > *{animation-delay:0s}
+#tela.sobe .ui-tela > .rec-aba:nth-child(2) > *{animation-delay:.05s}
+#tela.sobe .ui-tela > .rec-aba:nth-child(3) > *{animation-delay:.1s}
+#tela.sobe .ui-tela > .rec-aba:nth-child(4) > *{animation-delay:.15s}
+#tela.sobe .ui-tela > .rec-aba:nth-child(n+5) > *{animation-delay:.2s}
+@media (prefers-reduced-motion: reduce){#tela.sobe .ui-tela > .rec-aba > *{animation:none}}
