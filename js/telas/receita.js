@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120165231";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120165231";
-import { confirma, LAPIS } from "../ui.js?v=20261120165231";
-import { atualizaVoltar } from "../app.js?v=20261120165231";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120165231";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120165231";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120172008";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172008";
+import { confirma, LAPIS } from "../ui.js?v=20261120172008";
+import { atualizaVoltar } from "../app.js?v=20261120172008";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120172008";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120172008";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -97,7 +97,7 @@ function detalhe(el, r, abertas, aba){
     if (feitos.length){
       const nota = feitos[0].avaliacao && feitos[0].avaliacao.nota;
       const finalPrimeiro = nota >= 4;
-      const bFinal = '<button type="button" class="ui-botao ' + (finalPrimeiro ? 'preto' : 'vidro-escuro') + '" data-final="' + esc(vUltima.id) + '">Marcar v' + vUltima.numero + ' como final</button>';
+      const bFinal = '<button type="button" class="ui-botao ' + (finalPrimeiro ? 'preto' : 'vidro-escuro') + '" data-final="' + esc(vUltima.id) + '">Marcar como final</button>';
       const bNova = '<a class="ui-botao ' + (finalPrimeiro ? 'vidro-escuro' : 'preto') + '" href="#/calculadora/v/' + encodeURIComponent(vUltima.id) + '">Criar v' + (vUltima.numero + 1) + '</a>';
       return linha('v' + vUltima.numero + ' testada' + (nota ? ' · ' + "★".repeat(nota) : '') + '. E agora?', finalPrimeiro ? bFinal + bNova : bNova + bFinal);
     }
@@ -276,11 +276,11 @@ function prontaHtml(r, v){
   const tamanhos = [250, 500, 1000];
   const html =
       '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
-        '<div class="rec-cab"><h2>Ingredientes · v' + v.numero + '</h2><span class="ui-sec" id="paraTotal"></span></div>' +
+        '<div class="rec-cab"><h2>Ingredientes</h2><span class="ui-sec" id="paraTotal"></span></div>' +
         '<div class="ui-linhas" id="quantidades"></div>' +
         '<div class="rec-tamanhos" role="group" aria-label="Tamanho do lote">' + tamanhos.map(function(g){
           return '<button type="button" data-g="' + g + '" aria-pressed="false">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>'; }).join("") +
-          '<label class="rec-outro"><input type="number" id="lote" inputmode="decimal" min="50" step="50" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
+          '<label class="rec-outro"><input type="number" id="lote" inputmode="decimal" min="50" step="50" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
       '</section>' +
       '<button type="button" class="ui-botao preto largo" id="comecar">Começar lote</button>';
   function liga(el){

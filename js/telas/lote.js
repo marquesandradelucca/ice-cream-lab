@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120165231";
-import { n } from "../calculo.js?v=20261120165231";
-import { confirma } from "../ui.js?v=20261120165231";
-import { atualizaVoltar } from "../app.js?v=20261120165231";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120165231";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120172008";
+import { n } from "../calculo.js?v=20261120172008";
+import { confirma } from "../ui.js?v=20261120172008";
+import { atualizaVoltar } from "../app.js?v=20261120172008";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172008";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -316,7 +316,7 @@ export function render(el, rota){
       (v && r && l.status === "concluido" && r.status !== "final" ? (function(){
         const proxima = 'v' + (Math.max.apply(null, versoesDe(r.id).map(function(x){ return x.numero; })) + 1);
         const finalPrimeiro = (a.nota || 0) >= 4;
-        const bFinal = '<button type="button" class="ui-botao ' + (finalPrimeiro ? 'preto' : 'vidro-escuro') + ' largo" id="marcaFinal">Marcar v' + v.numero + ' como final</button>';
+        const bFinal = '<button type="button" class="ui-botao ' + (finalPrimeiro ? 'preto' : 'vidro-escuro') + ' largo" id="marcaFinal">Marcar como final</button>';
         const bNova = '<button type="button" class="ui-botao ' + (finalPrimeiro ? 'vidro-escuro' : 'preto') + ' largo" id="proximaVersao">Criar ' + proxima + ' com ajustes</button>';
         return '<section class="ui-cartao ui-vidro-escuro rec-painel lote-decisao"><h2>E agora?</h2>' +
           '<p class="ui-sec">' + (finalPrimeiro ? 'Ficou bom: dá para marcar esta versão como a receita final.' : 'Ajuste a mistura numa nova versão; as observações viram a nota dela.') + '</p>' +

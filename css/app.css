@@ -1096,3 +1096,5 @@ body.calc-capa .bar{box-shadow:none !important}
 /* Próximo passo da receita */
 .rec-status{display:flex; flex-direction:column; gap:var(--ui-e2)}
 .rec-status-txt{margin:0; font-size:var(--ui-t-sec); color:rgba(255,255,255,.85)}
+.rec-outro:not(.ativo){border-style:dashed !important}
+.rec-outro input::placeholder{color:rgba(255,255,255,.75)}
