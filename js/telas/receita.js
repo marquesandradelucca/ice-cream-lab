@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261119150018";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261119150018";
-import { confirma, LAPIS } from "../ui.js?v=20261119150018";
-import { atualizaVoltar } from "../app.js?v=20261119150018";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261119150018";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261119150018";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120154854";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120154854";
+import { confirma, LAPIS } from "../ui.js?v=20261120154854";
+import { atualizaVoltar } from "../app.js?v=20261120154854";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120154854";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120154854";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -95,7 +95,7 @@ function detalhe(el, r, abertas){
             (lotes.length ? '<div class="rec-lotes"><span class="ui-rotulo">Lotes desta versão</span>' + lotes.map(loteItem).join("") + '</div>' : '') +
             '<div class="rec-versao-acoes"><button type="button" class="ui-botao vidro-escuro" data-nota="' + esc(v.id) + '">Editar nota</button>' +
               '<a class="ui-botao vidro-escuro" href="#/calculadora/v/' + encodeURIComponent(v.id) + '" aria-label="Nova versão a partir desta">Nova versão</a>' +
-              (ehFinal ? '' : '<button type="button" class="ui-botao preto rec-largo" data-final="' + esc(v.id) + '">Marcar como final</button>') + '</div>' +
+              (ehFinal ? '<button type="button" class="ui-botao vidro-escuro rec-largo" data-teste="1">Voltar para teste</button>' : '<button type="button" class="ui-botao preto rec-largo" data-final="' + esc(v.id) + '">Marcar como final</button>') + '</div>' +
           '</div></details>';
       }).join("") + '</div></section>' +
       // Modo de preparo abre e fecha; começa fechado.
@@ -112,6 +112,10 @@ function detalhe(el, r, abertas){
     const v = versao(b.dataset.final); if (!v) return;
     if (!(await confirma("Marcar a v" + v.numero + " como versão final? Ela vira a receita final.", "Confirmar"))) return;
     r.versaoFinal = v.id; r.status = "final"; salva(); redesenha();
+  }); });
+  el.querySelectorAll("[data-teste]").forEach(function(b){ b.addEventListener("click", async function(){
+    if (!(await confirma("Voltar a receita para teste? Ela deixa de ser final; dá para marcar de novo depois.", "Voltar para teste"))) return;
+    r.status = "em teste"; delete r.versaoFinal; salva(); redesenha();
   }); });
   el.querySelectorAll("[data-nota]").forEach(function(b){ b.addEventListener("click", function(){
     const v = versao(b.dataset.nota); if (!v) return;
