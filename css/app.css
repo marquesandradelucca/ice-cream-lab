@@ -1141,3 +1141,6 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-versao[open] summary .rec-vmenu + .rec-seta{margin-left:0 !important}
 .rec-versao summary{justify-content:flex-start !important; gap:8px}
 .rec-versao summary .rec-versao-nome{flex:1; min-width:0}
+/* Subida dos cartões só com posição: opacidade num cartão com desfoque (backdrop-filter) faz o vidro perder o desfoque
+   por um instante e trocar de cor (o "glitch" ao abrir receitas e outras telas) */
+@keyframes vt-sobe{from{transform:translate3d(0,60px,0)}}
