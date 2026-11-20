@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261120192851";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261120192851";
-import { confirma, LAPIS } from "../ui.js?v=20261120192851";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120192851";
+         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261120193435";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261120193435";
+import { confirma, LAPIS } from "../ui.js?v=20261120193435";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120193435";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -354,6 +354,8 @@ export function render(el, rota){
     // Rascunho também fica sobre um degradê (grafite neutro), para a tela ter o mesmo visual da receita.
     card.classList.add("com-capa", "ui-vidro-escuro"); card.classList.remove("ui-vidro");
     fundo.style.setProperty("--capa", r ? capa(r.nome, r.capa) : FUNDO_RASCUNHO);
+    // Capa com foto precisa do desfoque de verdade; em degradê o vidro é só uma camada de cor (sem desfoque, sem cinza ao abrir).
+    document.body.classList.toggle("capa-foto", !!(r && r.capa && !/^paleta:/.test(r.capa)));
     if (r) aplicaTom(el, r.nome, r.capa); else el.style.setProperty("--ui-tom", "rgba(203,206,216,.42)");   // rascunho: tom claro do Neutro 2
     document.body.classList.add("calc-capa");
     el.querySelector("#lapisNome").hidden = !!r;   // lápis só no rascunho
@@ -594,5 +596,5 @@ export function render(el, rota){
   }
   desenhaTudo();
 
-  return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("ui", "calcui", "calc-capa"); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); elEscolha.remove(); document.body.classList.remove("travado"); }};
+  return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("ui", "calcui", "calc-capa", "capa-foto"); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); elEscolha.remove(); document.body.classList.remove("travado"); }};
 }
