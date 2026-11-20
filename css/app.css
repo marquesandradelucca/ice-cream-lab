@@ -1147,3 +1147,5 @@ body.calc-capa .bar{box-shadow:none !important}
 /* Durante a transição de página o vidro alto (maior que a tela) desfoca uma área vazia e fica cinza:
    sem desfoque só nesse instante; o fundo da capa é um degradê suave, então a cor quase não muda */
 html[data-nav] .ui-cartao,html[data-nav] .rec-painel{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
+/* TESTE: páginas de receita e preparo sem desfoque nos cartões (o vidro alto ficava cinza até o desfoque carregar) */
+body.rec .ui-cartao,body.rec .rec-painel{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
