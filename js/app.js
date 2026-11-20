@@ -8,22 +8,22 @@
   window.scrollTo = function(x, y){ rolaJanela.apply(null, arguments); if (typeof y === "number") document.body.scrollTop = y; };
 })();
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261120195608";
-import { iniciaSync } from "./sync.js?v=20261120195608";
-import * as inicio from "./telas/inicio.js?v=20261120195608";
-import * as calculadora from "./telas/calculadora.js?v=20261120195608";
-import * as ingredientes from "./telas/ingredientes.js?v=20261120195608";
-import * as embreve from "./telas/embreve.js?v=20261120195608";
-import * as receitas from "./telas/receitas.js?v=20261120195608";
-import * as receita from "./telas/receita.js?v=20261120195608";
-import * as testes from "./telas/testes.js?v=20261120195608";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261120195608";
-import * as loteTela from "./telas/lote.js?v=20261120195608";
-import * as estudo from "./telas/estudo.js?v=20261120195608";
-import * as ideias from "./telas/ideias.js?v=20261120195608";
-import * as ajustes from "./telas/ajustes.js?v=20261120195608";
-import * as biblioteca from "./telas/biblioteca.js?v=20261120195608";
-import * as guia from "./telas/guia.js?v=20261120195608";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261120195811";
+import { iniciaSync } from "./sync.js?v=20261120195811";
+import * as inicio from "./telas/inicio.js?v=20261120195811";
+import * as calculadora from "./telas/calculadora.js?v=20261120195811";
+import * as ingredientes from "./telas/ingredientes.js?v=20261120195811";
+import * as embreve from "./telas/embreve.js?v=20261120195811";
+import * as receitas from "./telas/receitas.js?v=20261120195811";
+import * as receita from "./telas/receita.js?v=20261120195811";
+import * as testes from "./telas/testes.js?v=20261120195811";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261120195811";
+import * as loteTela from "./telas/lote.js?v=20261120195811";
+import * as estudo from "./telas/estudo.js?v=20261120195811";
+import * as ideias from "./telas/ideias.js?v=20261120195811";
+import * as ajustes from "./telas/ajustes.js?v=20261120195811";
+import * as biblioteca from "./telas/biblioteca.js?v=20261120195811";
+import * as guia from "./telas/guia.js?v=20261120195811";
 
 const TELAS = {
   "": inicio,
@@ -253,6 +253,8 @@ carrega();
 iniciaSync();
 window.addEventListener("hashchange", rota);
 rota();
+// Primeira tela desenhada: mostra a barra de abas (escondida no index.html até aqui).
+requestAnimationFrame(function(){ document.documentElement.classList.remove("carregando"); });
 
 if ("serviceWorker" in navigator && location.protocol !== "file:"){
   navigator.serviceWorker.register("sw.js").catch(function(){});
