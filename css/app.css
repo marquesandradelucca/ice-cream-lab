@@ -20,7 +20,7 @@
   --ui-vidro-claro-borda:rgba(0,0,0,.06);
   --ui-vidro-escuro:rgba(0,0,0,.12);      /* sobre imagem, texto branco */
   --ui-vidro-escuro-borda:rgba(255,255,255,.28);
-  --ui-desfoque:blur(30px) saturate(1.4);
+  --ui-desfoque:blur(20px) saturate(1.4);
 
   /* Espaço: só 4 / 8 / 12 / 16 / 24 */
   --ui-e1:4px; --ui-e2:8px; --ui-e3:12px; --ui-e4:16px; --ui-e5:24px;
@@ -77,7 +77,7 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
 .ui-vidro{background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda);
   -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
 .ui-vidro-escuro{background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); color:#fff;
-  -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4)}
+  -webkit-backdrop-filter:blur(20px) saturate(1.4); backdrop-filter:blur(20px) saturate(1.4)}
 
 /* ===== Cartões ===== */
 .ui-cartao{border-radius:var(--ui-r-grande); padding:var(--ui-e4); display:flex; flex-direction:column; gap:var(--ui-e3)}
@@ -173,7 +173,7 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
 .ui-abas{position:fixed; left:0; right:0; bottom:0; z-index:20; display:flex; justify-content:space-around;
   padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);
   background:rgba(255,255,255,.78); border-top:1px solid var(--ui-linha);
-  -webkit-backdrop-filter:blur(30px) saturate(1.6); backdrop-filter:blur(30px) saturate(1.6)}
+  -webkit-backdrop-filter:blur(20px) saturate(1.6); backdrop-filter:blur(20px) saturate(1.6)}
 .ui-abas a{display:flex; flex-direction:column; align-items:center; gap:3px; width:70px; text-decoration:none;
   font-size:10px; font-weight:500; color:#9A9A9A}
 .ui-abas a svg{width:24px; height:24px}
@@ -185,7 +185,7 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
   display:flex; flex-direction:column; gap:14px; padding:10px 20px calc(env(safe-area-inset-bottom,0px) + 24px);
   border-radius:32px 32px 0 0; background:rgba(255,255,255,.9); border-top:1px solid rgba(255,255,255,.9);
   box-shadow:0 -4px 24px rgba(0,0,0,.08);
-  -webkit-backdrop-filter:blur(48px) saturate(1.4); backdrop-filter:blur(48px) saturate(1.4);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4); backdrop-filter:blur(20px) saturate(1.4);
   animation:ui-sobe .28s cubic-bezier(.2,.8,.2,1)}
 .ui-folha .puxador{align-self:center; width:36px; height:5px; border-radius:3px; background:var(--ui-trilho)}
 .ui-folha .acoes{display:flex; justify-content:space-between; align-items:center}
@@ -281,7 +281,7 @@ body.rec .ui-app{min-height:100vh; min-height:100dvh; display:flex; flex-directi
 .rec-versao-acoes{display:flex; flex-wrap:wrap; gap:var(--ui-e2)}
 .rec-versao-acoes > *{flex:1}
 .rec-versao-acoes .rec-largo{flex-basis:100%}
-body.rec #preparo.rec-preparo{display:block; margin:0; width:100%; min-height:120px; border:1px solid var(--ui-vidro-escuro-borda); border-radius:var(--ui-r-medio); padding:var(--ui-e3); background:var(--ui-vidro-escuro); -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4); color:#fff; font:inherit; font-size:16px; resize:vertical}
+body.rec #preparo.rec-preparo{display:block; margin:0; width:100%; min-height:120px; border:1px solid var(--ui-vidro-escuro-borda); border-radius:var(--ui-r-medio); padding:var(--ui-e3); background:var(--ui-vidro-escuro); -webkit-backdrop-filter:blur(20px) saturate(1.4); backdrop-filter:blur(20px) saturate(1.4); color:#fff; font:inherit; font-size:16px; resize:vertical}
 body.rec .rec-preparo::placeholder{color:rgba(255,255,255,.6)}
 
 /* Receita final */
@@ -364,7 +364,7 @@ body.calcui .calc-notas{display:flex; flex-direction:column; gap:var(--ui-e3); m
 body.calcui .calc-notas p{margin:0}
 /* Menu Abrir (vidro claro) */
 body.calcui .menu-lista{top:calc(100% + 8px); border-radius:var(--ui-r-medio); padding:var(--ui-e2); background:rgba(255,255,255,.94); border:1px solid var(--ui-vidro-claro-borda);
-  box-shadow:0 12px 32px rgba(0,0,0,.12); -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px)}
+  box-shadow:0 12px 32px rgba(0,0,0,.12); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px)}
 body.calcui .menu-grupo{font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto3)}
 body.calcui .menu-opcao{border-radius:var(--ui-r-pequeno); font-size:var(--ui-t-texto)}
 /* Escolher ingrediente (tela cheia) */
@@ -598,7 +598,7 @@ body.calc-capa .calc-nome .ui-botao.preto{background:#fff; color:var(--ui-tinta)
 
 /* Calculadora sobre a capa da receita: padrão do ecossistema (vidro escuro, texto branco, botão principal branco) */
 body.calc-capa.calcui .ui-tela .ui-cartao.ui-vidro{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff;
-  -webkit-backdrop-filter:blur(36px) saturate(1.4); backdrop-filter:blur(36px) saturate(1.4)}
+  -webkit-backdrop-filter:blur(20px) saturate(1.4); backdrop-filter:blur(20px) saturate(1.4)}
 body.calc-capa.calcui .ui-tela h2,
 body.calc-capa.calcui .nome-ing,
 body.calc-capa.calcui .rotulo-mistura,
@@ -697,7 +697,7 @@ body.calcui .notes li.status-critico::before{background:var(--ui-fora)}
 :root{--ui-abas:64px}
 .ui-abas,body.rec .ui-abas,body.calcui .ui-abas{left:var(--ui-margem); right:var(--ui-margem); bottom:max(8px, env(safe-area-inset-bottom,0px)); height:56px; padding:0 8px;
   border-radius:var(--ui-r-pilula); border:0; background:rgba(255,255,255,.92); align-items:center;
-  box-shadow:0 8px 28px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.06); -webkit-backdrop-filter:blur(30px) saturate(1.4); backdrop-filter:blur(30px) saturate(1.4)}
+  box-shadow:0 8px 28px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.06); -webkit-backdrop-filter:blur(20px) saturate(1.4); backdrop-filter:blur(20px) saturate(1.4)}
 .ui-abas a{width:auto; flex:1; height:56px; justify-content:center; color:#B5B5B5}
 .ui-abas a span{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 .ui-abas a svg{width:26px; height:26px}
@@ -837,7 +837,7 @@ body.calc-capa.calcui .calc-abrir,body.calc-capa.calcui #estilo .ui-filtro:not([
 .ui-abas a[data-aba="biblioteca"] svg{width:25.3px; height:23.4px; margin:1.3px 0}
 .ui-abas a[aria-current="page"] svg{transform:scale(1.04)}
 /* Barra de abas mais transparente (vidro): deixa o conteúdo aparecer por trás, com desfoque */
-.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{background:rgba(255,255,255,.62) !important; -webkit-backdrop-filter:blur(24px) saturate(1.8); backdrop-filter:blur(24px) saturate(1.8)}
+.ui-abas,body.rec .ui-abas,body.calcui .ui-abas{background:rgba(255,255,255,.62) !important; -webkit-backdrop-filter:blur(20px) saturate(1.8); backdrop-filter:blur(20px) saturate(1.8)}
 /* Mesmo tom para os controles de vidro claro dentro dos painéis e direto sobre a capa:
    dentro do painel (que já escurece 12%) o branco precisa ser um pouco mais forte para dar o mesmo resultado */
 :root{--ui-vidro-interno-painel:rgba(255,255,255,.24)}
@@ -1031,7 +1031,7 @@ body:has(#tela.arrastando){background:#d9d9d6}
 /* Cabeçalho fixo no topo ao rolar, com blur em degradê atrás (mais forte em cima, some embaixo) */
 .ui-cabecalho{position:sticky; top:0; z-index:30; isolation:isolate}
 .ui-cabecalho::before{content:""; position:absolute; inset:0 0 -8px 0; z-index:-1; pointer-events:none;
-  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
   background:linear-gradient(180deg,color-mix(in srgb,var(--ui-fundo, #fff) 55%,transparent),transparent);
   -webkit-mask-image:linear-gradient(180deg,#000 55%,transparent); mask-image:linear-gradient(180deg,#000 55%,transparent)}
 :is(body.calc-capa,body.rec,body.est-capa) .ui-cabecalho::before{background:none}
