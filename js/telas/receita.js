@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120174038";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174038";
-import { confirma, LAPIS } from "../ui.js?v=20261120174038";
-import { atualizaVoltar } from "../app.js?v=20261120174038";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120174038";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120174038";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120174522";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174522";
+import { confirma, LAPIS } from "../ui.js?v=20261120174522";
+import { atualizaVoltar } from "../app.js?v=20261120174522";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120174522";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120174522";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -126,10 +126,12 @@ function detalhe(el, r, abertas, aba){
         (final ? versaoCard(final) + (testes.length ? '<details class="rec-dobra rec-testes"' + (abertas.indexOf("testes") >= 0 ? ' open' : '') + '><summary><span class="ui-sec">Testes (' + testes.length + ')</span><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary><div class="rec-versoes">' + testes.map(versaoCard).join("") + '</div></details>' : '')
           : testes.map(versaoCard).join("")) +
       '</div></section></div>') +
-      // Modo de preparo abre e fecha; começa fechado.
+      // Modo de preparo em etapas (cada uma vira um passo na hora de preparar); abre e fecha, começa fechado.
       '<section class="ui-cartao ui-vidro-escuro rec-painel"><details class="rec-dobra">' +
         '<summary><h2>Modo de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
-        '<textarea id="preparo" class="rec-preparo" rows="5" placeholder="Passo a passo: pesar, pasteurizar, maturar, bater…">' + esc(r.preparo) + '</textarea></details></section>' +
+        '<ol class="rec-passos-ed" id="passos"></ol>' +
+        '<button type="button" class="ui-botao vidro-escuro largo" id="maisPasso">+ etapa</button></details></section>' +
+      (pr ? '<button type="button" class="ui-botao preto largo" id="comecar">Preparar</button>' : '') +
     '</div></div>';
 
   function redesenha(){
@@ -186,7 +188,25 @@ function detalhe(el, r, abertas, aba){
   aplicaTom(el, r.nome, r.capa);
   const btLote = el.querySelector("#fazerLote");
   if (btLote) btLote.addEventListener("click", function(){ const l = criaLote(vLote.id); salva(); if (l) location.hash = "#/lote/" + encodeURIComponent(l.id); });
-  el.querySelector("#preparo").addEventListener("input", function(ev){ r.preparo = ev.target.value; salva(); });
+  // Editor de etapas: um campo por etapa; guarda como texto, uma etapa por linha.
+  const passos = passosPreparo(r.preparo);
+  const elPassos = el.querySelector("#passos");
+  function guardaPassos(){ r.preparo = passos.map(function(t){ return t.trim(); }).filter(Boolean).join("\n"); salva(); }
+  function desenhaPassos(foco){
+    elPassos.innerHTML = passos.map(function(t, i){
+      return '<li><textarea class="rec-passo" rows="1" data-p="' + i + '" placeholder="Descreva a etapa">' + esc(t) + '</textarea>' +
+        '<button type="button" class="rec-passo-x" data-x="' + i + '" aria-label="Remover etapa ' + (i + 1) + '">' + icone("fechar") + '</button></li>'; }).join("");
+    elPassos.querySelectorAll(".rec-passo").forEach(function(c){
+      const ajusta = function(){ c.style.height = "auto"; c.style.height = c.scrollHeight + "px"; };
+      ajusta();
+      c.addEventListener("input", function(){ passos[Number(c.dataset.p)] = c.value.replace(/\n/g, " "); ajusta(); guardaPassos(); });
+      c.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); const i = Number(c.dataset.p) + 1; passos.splice(i, 0, ""); desenhaPassos(i); } });
+    });
+    elPassos.querySelectorAll("[data-x]").forEach(function(b){ b.addEventListener("click", function(){ passos.splice(Number(b.dataset.x), 1); guardaPassos(); desenhaPassos(); }); });
+    if (foco != null){ const c = elPassos.querySelector('[data-p="' + foco + '"]'); if (c) c.focus(); }
+  }
+  desenhaPassos();
+  el.querySelector("#maisPasso").addEventListener("click", function(){ passos.push(""); desenhaPassos(passos.length - 1); });
 
   // Mais opções: folha com Excluir receita.
   el.querySelector("#opcoes").addEventListener("click", function(){
@@ -274,8 +294,7 @@ function prontaHtml(r, v){
         '<div class="rec-tamanhos" role="group" aria-label="Tamanho do lote">' + tamanhos.map(function(g){
           return '<button type="button" data-g="' + g + '" aria-pressed="false">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>'; }).join("") +
           '<label class="rec-outro"><input type="number" id="lote" inputmode="decimal" min="50" step="50" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
-      '</section>' +
-      '<button type="button" class="ui-botao preto largo" id="comecar">Preparar</button>';
+      '</section>';
   function liga(el){
     const elLote = el.querySelector("#lote");
     function desenha(foco){

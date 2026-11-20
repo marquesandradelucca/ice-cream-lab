@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261120174038";
-import { PRESETS } from "./calculo.js?v=20261120174038";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261120174038";
-import { notificaMudanca } from "./sync.js?v=20261120174038";
+import { ING_BASE } from "./ingredientes-base.js?v=20261120174522";
+import { PRESETS } from "./calculo.js?v=20261120174522";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261120174522";
+import { notificaMudanca } from "./sync.js?v=20261120174522";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -368,4 +368,9 @@ export function importaBackup(texto){
   converteLegado();
   salva();
   return "Importados da calculadora antiga: " + np + " produto(s) e " + nr + " receita(s).";
+}
+
+// Modo de preparo em etapas: uma por linha (números ou marcadores no começo são ignorados).
+export function passosPreparo(txt){
+  return String(txt || "").split(/\n+/).map(function(t){ return t.replace(/^\s*(\d+\s*[.)\-–]|[-•*])\s*/, "").trim(); }).filter(Boolean);
 }

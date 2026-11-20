@@ -1106,3 +1106,15 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-outro:has(input:placeholder-shown) input{text-align:center}
 .ui-vidro-escuro .rec-outro.ativo{background:#fff !important; border-color:#fff !important; border-style:solid !important}
 .lote-palco .ui-redondo{width:var(--ui-h-redondo); height:var(--ui-h-redondo)}
+/* Modo de preparo em etapas */
+.rec-passos-ed{list-style:none; counter-reset:passo; margin:0 0 var(--ui-e2); padding:0; display:flex; flex-direction:column; gap:var(--ui-e2)}
+.rec-passos-ed li{counter-increment:passo; display:flex; align-items:flex-start; gap:var(--ui-e2)}
+.rec-passos-ed li::before,.rec-passos li::before{content:counter(passo); flex:none; width:24px; height:24px; margin-top:8px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; background:rgba(255,255,255,.18); color:#fff}
+.rec-passo{flex:1; min-width:0; resize:none; overflow:hidden; border:1px solid var(--ui-vidro-escuro-borda); border-radius:14px; padding:8px 12px; background:var(--ui-vidro-escuro); color:#fff; font:inherit; font-size:16px; line-height:1.4}
+.rec-passo-x{flex:none; width:32px; height:32px; margin-top:4px; border:0; border-radius:50%; background:transparent; color:rgba(255,255,255,.6); display:inline-flex; align-items:center; justify-content:center; cursor:pointer}
+.rec-passo-x svg{width:14px; height:14px}
+.rec-passos{list-style:none; counter-reset:passo; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--ui-e2)}
+.rec-passos li{counter-increment:passo; display:flex; align-items:flex-start; gap:var(--ui-e2); line-height:1.4; padding-top:2px}
+.rec-passos li::before{margin-top:0}
+.rec-passos li.ok{opacity:.5; text-decoration:line-through}
+.lote-etapa{font-size:20px; font-weight:600; line-height:1.35; text-align:center; color:#fff}

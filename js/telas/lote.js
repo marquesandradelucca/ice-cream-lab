@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120174038";
-import { n } from "../calculo.js?v=20261120174038";
-import { confirma } from "../ui.js?v=20261120174038";
-import { atualizaVoltar } from "../app.js?v=20261120174038";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174038";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote, passosPreparo } from "../dados.js?v=20261120174522";
+import { n } from "../calculo.js?v=20261120174522";
+import { confirma } from "../ui.js?v=20261120174522";
+import { atualizaVoltar } from "../app.js?v=20261120174522";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174522";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -118,7 +118,16 @@ export function render(el, rota){
   const nomeIng = function(id){ const i = (v && v.snapshot && v.snapshot[id]) || ingrediente(id); return i ? i.nome : "(ingrediente removido)"; };
   const voltarHref = r ? "#/receita/" + encodeURIComponent(r.id) : "#/receitas/teste";
   // Bancada: começa no primeiro ingrediente ainda não pesado.
-  let atual = Math.max(0, l.pesado.findIndex(function(x){ return !x.ok; }));
+  // Passo a passo: primeiro os ingredientes (pesar), depois as etapas do modo de preparo.
+  const etapas = passosPreparo(r && r.preparo);
+  l.etapasOk = Array.isArray(l.etapasOk) ? l.etapasOk : [];
+  const P = l.pesado.length, N = P + etapas.length;
+  function okDe(i){ return i < P ? !!l.pesado[i].ok : !!l.etapasOk[i - P]; }
+  function marca(i, v){
+    if (i < P){ const y = l.pesado[i]; y.ok = v; if (v && y.real == null) y.real = Math.round(y.previsto * l.escala * 10) / 10; }
+    else l.etapasOk[i - P] = v;
+  }
+  let atual = 0; while (atual < N - 1 && okDe(atual)) atual++;
   let entrada = 0;   // direção da última troca, para animar a entrada do próximo ingrediente
   let trava = null;
 
@@ -183,24 +192,27 @@ export function render(el, rota){
     const base = l.pesado.reduce(function(s, x){ return s + x.previsto; }, 0) || 1;
     const total = base * l.escala;
     const feitos = l.pesado.filter(function(x){ return x.ok; }).length;
-    if (atual >= l.pesado.length) atual = l.pesado.length - 1;
-    const x = l.pesado[atual];
+    if (atual >= N) atual = N - 1;
+    const x = atual >= 0 && atual < P ? l.pesado[atual] : null;
+    const et = atual >= P ? etapas[atual - P] : null;
     const tamanhos = [250, 500, 1000];
     const alvoG = Math.round(total);
     const tudo = feitos === l.pesado.length;
 
     alvo.innerHTML =
       // Bancada: o ingrediente da vez em destaque.
-      (x ? '<section class="ui-cartao ui-vidro-escuro rec-painel lote-bancada" id="bancada">' +
+      (N ? '<section class="ui-cartao ui-vidro-escuro rec-painel lote-bancada" id="bancada">' +
         // Progresso: um traço por ingrediente (cheio = pesado, contorno = o da vez).
-        '<div class="lote-progresso" aria-hidden="true">' + l.pesado.map(function(y, i){
-          return '<span class="' + (y.ok ? 'ok' : '') + (i === atual ? ' atual' : '') + '"></span>'; }).join("") + '</div>' +
+        '<div class="lote-progresso" aria-hidden="true">' + Array.apply(null, Array(N)).map(function(_, i){
+          return '<span class="' + (okDe(i) ? 'ok' : '') + (i === atual ? ' atual' : '') + '"></span>'; }).join("") + '</div>' +
         '<div class="lote-palco">' +
           '<button type="button" class="ui-redondo escuro" id="anterior" aria-label="Ingrediente anterior"' + (atual === 0 ? ' disabled' : '') + '>' + icone("voltar") + '</button>' +
-          '<div class="lote-instrucao"><span class="ui-sec">' + (atual + 1) + ' de ' + l.pesado.length + '</span>' +
+          (x ? '<div class="lote-instrucao"><span class="ui-sec">' + (atual + 1) + ' de ' + P + '</span>' +
             '<b class="ui-num lote-g">' + gramas(x.previsto * l.escala) + '<small> g</small></b>' +
-            '<span class="lote-ing">' + esc(nomeIng(x.id)) + '</span></div>' +
-          '<button type="button" class="ui-redondo escuro seta-dir" id="proximo" aria-label="Próximo ingrediente"' + (atual === l.pesado.length - 1 && x.ok ? ' disabled' : '') + '>' + icone("direita") + '</button>' +
+            '<span class="lote-ing">' + esc(nomeIng(x.id)) + '</span></div>' :
+            '<div class="lote-instrucao"><span class="ui-sec">Etapa ' + (atual - P + 1) + ' de ' + etapas.length + '</span>' +
+            '<span class="lote-etapa">' + esc(et) + '</span></div>') +
+          '<button type="button" class="ui-redondo escuro seta-dir" id="proximo" aria-label="Próximo passo"' + (atual === N - 1 && okDe(atual) ? ' disabled' : '') + '>' + icone("direita") + '</button>' +
         '</div>' +
       '</section>' : '') +
       // Lista completa: tocar leva o ingrediente para a bancada.
@@ -221,7 +233,7 @@ export function render(el, rota){
       // Na bancada o modo de preparo já vem aberto.
       (r && r.preparo ? '<section class="ui-cartao ui-vidro-escuro rec-painel"><details class="rec-dobra" open>' +
         '<summary><h2>Modo de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
-        '<div class="rec-preparo-texto">' + esc(r.preparo).replace(/\n/g, "<br>") + '</div></details></section>' : '') +
+        '<ol class="rec-passos">' + etapas.map(function(t, j){ return '<li class="' + (l.etapasOk[j] ? 'ok' : '') + '">' + esc(t) + '</li>'; }).join("") + '</ol></details></section>' : '') +
       '<section class="ui-cartao ui-vidro-escuro rec-painel"><details class="rec-dobra">' +
         '<summary><h2>Sugestões de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
         '<div class="ui-linhas">' + SUGESTOES.map(function(s){
@@ -247,18 +259,18 @@ export function render(el, rota){
       } else atual = i;
       desenha();
     }); });
-    if (x){
+    if (N){
       // Navegar: setas ou deslizar com o dedo. O conteúdo acompanha o dedo, sai para o lado e o próximo entra pelo outro.
       const card = alvo.querySelector("#bancada"), palco = card.querySelector(".lote-instrucao");
       if (entrada){ palco.classList.add(entrada < 0 ? "entra-esq" : "entra-dir"); entrada = 0; }
       const passa = function(d){
         // Avançar marca o ingrediente da vez como pesado; voltar desmarca o ingrediente para onde se volta.
         // No último, avançar só marca e, já marcado, voltar primeiro desmarca ele mesmo.
-        if (d > 0 && !x.ok){ x.ok = true; if (x.real == null) x.real = Math.round(x.previsto * l.escala * 10) / 10; grava(); }
-        if (d < 0 && atual === l.pesado.length - 1 && x.ok){ x.ok = false; grava(); desenha(); return; }
+        if (d > 0 && !okDe(atual)){ marca(atual, true); grava(); }
+        if (d < 0 && atual === N - 1 && okDe(atual)){ marca(atual, false); grava(); desenha(); return; }
         const i = atual + d;
-        if (d < 0 && i >= 0 && l.pesado[i].ok){ l.pesado[i].ok = false; grava(); }
-        if (i < 0 || i >= l.pesado.length){ palco.style.transition = "transform .2s ease, opacity .2s ease"; palco.style.transform = ""; palco.style.opacity = ""; if (d > 0) desenha(); return; }
+        if (d < 0 && i >= 0 && okDe(i)){ marca(i, false); grava(); }
+        if (i < 0 || i >= N){ palco.style.transition = "transform .2s ease, opacity .2s ease"; palco.style.transform = ""; palco.style.opacity = ""; if (d > 0) desenha(); return; }
         palco.style.transition = "transform .16s ease-in, opacity .16s ease-in";
         palco.style.transform = "translateX(" + (d > 0 ? -60 : 60) + "%)"; palco.style.opacity = "0";
         setTimeout(function(){ atual = i; entrada = d; desenha(); }, 150);
@@ -272,7 +284,7 @@ export function render(el, rota){
         if (!lado && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) lado = true;
         if (!lado) return;
         // Nas pontas a lista resiste (anda menos).
-        const ponta = (dx > 0 && atual === 0) || (dx < 0 && atual === l.pesado.length - 1 && x.ok);
+        const ponta = (dx > 0 && atual === 0) || (dx < 0 && atual === N - 1 && okDe(atual));
         palco.style.transform = "translateX(" + (ponta ? dx * 0.25 : dx) + "px)";
         palco.style.opacity = String(Math.max(0.3, 1 - Math.abs(dx) / 400));
       }, {passive:true});
