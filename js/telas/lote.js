@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120172855";
-import { n } from "../calculo.js?v=20261120172855";
-import { confirma } from "../ui.js?v=20261120172855";
-import { atualizaVoltar } from "../app.js?v=20261120172855";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172855";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120173423";
+import { n } from "../calculo.js?v=20261120173423";
+import { confirma } from "../ui.js?v=20261120173423";
+import { atualizaVoltar } from "../app.js?v=20261120173423";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120173423";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -141,8 +141,9 @@ export function render(el, rota){
         '<span style="flex:1"></span><button class="ui-redondo escuro" type="button" id="opcoes" aria-label="Mais opções">' + icone("opcoes") + '</button></header>' +
       '<div class="ui-tela rec-tela">' +
         '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
-          '<div class="rec-etiquetas"><span class="ui-etiqueta">' + situacao + '</span>' + (v ? '<span class="ui-etiqueta">v' + v.numero + '</span>' : '') +
-            '<span class="ui-etiqueta">Lote de ' + dataCurta(l.inicio) + '</span></div>' +
+          // Receita final: é só um preparo (sem versão nem "lote").
+          '<div class="rec-etiquetas"><span class="ui-etiqueta">' + situacao + '</span>' + (semAval ? '' : (v ? '<span class="ui-etiqueta">v' + v.numero + '</span>' : '') +
+            '<span class="ui-etiqueta">Lote de ' + dataCurta(l.inicio) + '</span>') + '</div>' +
           '<h1 class="rec-nome">' + esc(r ? r.nome : "Receita") + '</h1>' +
           (semAval ? '' : '<div class="lote-abas ui-opcoes" role="tablist" aria-label="Momentos do lote">' + PASSOS.map(function(x, i){
             return '<button type="button" role="tab" data-i="' + i + '" aria-pressed="' + (i === l.passo) + '">' + x.nome + '</button>'; }).join("") + '</div>') +
@@ -214,7 +215,7 @@ export function render(el, rota){
         '<div class="ui-linha rec-total"><span>Peso total</span><b class="ui-num">' + gramas(total) + ' g</b></div></div>' +
         '<div class="rec-tamanhos" role="group" aria-label="Tamanho do lote">' + tamanhos.map(function(g){
           return '<button type="button" data-g="' + g + '" aria-pressed="' + (alvoG === g) + '">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>'; }).join("") +
-          '<label class="rec-outro' + (tamanhos.indexOf(alvoG) < 0 ? ' ativo' : '') + '"><input type="number" id="loteTotal" inputmode="decimal" min="50" step="50" value="' + (tamanhos.indexOf(alvoG) < 0 ? alvoG : '') + '" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
+          '<label class="rec-outro' + (tamanhos.indexOf(alvoG) < 0 ? ' ativo' : '') + '"><input type="number" id="loteTotal" inputmode="decimal" min="50" step="50" value="' + (tamanhos.indexOf(alvoG) < 0 ? alvoG : '') + '" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
       '</section>' +
       // Preparo da receita e sugestões, recolhíveis.
       (r && r.preparo ? '<section class="ui-cartao ui-vidro-escuro rec-painel"><details class="rec-dobra">' +
@@ -224,8 +225,8 @@ export function render(el, rota){
         '<summary><h2>Sugestões de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
         '<div class="ui-linhas">' + SUGESTOES.map(function(s){
           return '<div class="lote-sugestao"><b>' + s[0] + '</b><span class="ui-sec">' + s[1] + '</span></div>'; }).join("") + '</div></details></section>' +
-      (semAval ? (l.status === "concluido" ? '<p class="lote-estado">Lote concluído' + (l.fim ? ' · ' + dataCurta(l.fim) : '') + '</p>' :
-        '<button type="button" class="ui-botao ' + (tudo ? 'preto' : 'vidro-escuro') + ' largo" id="concluirFinal">Concluir lote</button>') :
+      (semAval ? (l.status === "concluido" ? '<p class="lote-estado">Preparo concluído' + (l.fim ? ' · ' + dataCurta(l.fim) : '') + '</p>' :
+        '<button type="button" class="ui-botao ' + (tudo ? 'preto' : 'vidro-escuro') + ' largo" id="concluirFinal">Concluir preparo</button>') :
       l.status === "em andamento" ?
         '<button type="button" class="ui-botao ' + (tudo ? 'preto' : 'vidro-escuro') + ' largo" id="avaliarDepois">Pronto, avaliar depois</button>' :
         '<button type="button" class="ui-botao preto largo" id="avaliarAgora">Ir para a avaliação</button>');

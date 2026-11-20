@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120172855";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172855";
-import { confirma, LAPIS } from "../ui.js?v=20261120172855";
-import { atualizaVoltar } from "../app.js?v=20261120172855";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120172855";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120172855";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120173423";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120173423";
+import { confirma, LAPIS } from "../ui.js?v=20261120173423";
+import { atualizaVoltar } from "../app.js?v=20261120173423";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120173423";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120173423";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -64,8 +64,8 @@ function detalhe(el, r, abertas, aba){
   aba = final ? (aba || abaDe[r.id] || "receita") : "versoes";
   abaDe[r.id] = aba;
   // Só um botão de lote aberto (o mais recente); os outros aparecem nos lotes da versão.
-  // Receita final não pede avaliação: só o lote em preparo vira botão.
-  const loteAberto = final ? abertos.filter(function(l){ return l.status !== "aguardando"; })[0] : abertos[0];
+  // Receita final não tem lote: nenhum aviso de preparo em aberto.
+  const loteAberto = final ? null : abertos[0];
   const pr = final ? prontaHtml(r, final) : null;
   function versaoCard(v){
         const idx = vs.indexOf(v), ant = idx > 0 ? vs[idx - 1] : null;
@@ -74,14 +74,14 @@ function detalhe(el, r, abertas, aba){
         const difs = diferencas(ant, v);
         const lotes = lotesDa(v);
         return '<details class="rec-versao" data-v="' + esc(v.id) + '"' + (abertas.indexOf(v.id) >= 0 ? " open" : "") + '>' +
-          '<summary><span class="rec-versao-nome"><b>' + (ehFinal ? 'Final' : 'v' + v.numero) + '</b><span class="ui-sec">' + dataCurta(v.data) + ' · ' + resumoLotes(lotes) + '</span></span><button type="button" class="rec-seta rec-vmenu" data-vmenu="' + esc(v.id) + '" aria-label="Opções da v' + v.numero + '">' + icone("opcoes") + '</button><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
+          '<summary><span class="rec-versao-nome"><b>' + (ehFinal ? 'Final' : 'v' + v.numero) + '</b><span class="ui-sec">' + dataCurta(v.data) + (ehFinal ? '' : ' · ' + resumoLotes(lotes)) + '</span></span><button type="button" class="rec-seta rec-vmenu" data-vmenu="' + esc(v.id) + '" aria-label="Opções da v' + v.numero + '">' + icone("opcoes") + '</button><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
           '<div class="rec-versao-corpo">' +
             '<p class="rec-nota' + (v.nota ? '' : ' vazia') + '" data-nota-texto="' + esc(v.id) + '">' + (v.nota ? esc(v.nota) : 'Sem nota') + '</p>' +
             (ant && difs.length ? '<div class="rec-difs">' + difs.map(function(d){ return '<span class="rec-dif ' + d.t + '">' + esc(d.txt) + '</span>'; }).join("") + '</div>' : '') +
             '<div class="ui-linhas">' + v.linhas.map(function(l){ const i = comp(l.id);
               return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + gramas(Number(l.g) || 0) + ' g</b></div>'; }).join("") + '</div>' +
             '<p class="ui-sec">' + n(res.peso, 0) + ' g · gord. ' + n(res.gord, 1) + '% · açúc. ' + n(res.ac, 1) + '% · POD ' + n(res.pod, 0) + ' · PAC ' + n(res.pac, 0) + '</p>' +
-            (lotes.length ? '<div class="rec-lotes"><span class="ui-rotulo">Lotes desta versão</span>' + lotes.map(loteItem).join("") + '</div>' : '') +
+            (lotes.length && !ehFinal ? '<div class="rec-lotes"><span class="ui-rotulo">Lotes desta versão</span>' + lotes.map(loteItem).join("") + '</div>' : '') +
           '</div></details>';
   }
   // Próximo passo: um cartão só diz o que fazer agora (continuar, avaliar, decidir ou testar).
@@ -282,7 +282,7 @@ function prontaHtml(r, v){
           return '<button type="button" data-g="' + g + '" aria-pressed="false">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>'; }).join("") +
           '<label class="rec-outro"><input type="number" id="lote" inputmode="decimal" min="50" step="50" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
       '</section>' +
-      '<button type="button" class="ui-botao preto largo" id="comecar">Começar lote</button>';
+      '<button type="button" class="ui-botao preto largo" id="comecar">Preparar</button>';
   function liga(el){
     const elLote = el.querySelector("#lote");
     function desenha(foco){
@@ -298,7 +298,8 @@ function prontaHtml(r, v){
     el.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.addEventListener("click", function(){ alvo = Number(b.dataset.g); desenha(); }); });
     elLote.addEventListener("input", function(){ const x = Number(elLote.value); if (x > 0){ alvo = x; desenha(true); } });
     el.querySelector("#comecar").addEventListener("click", function(){
-      const l = criaLote(v.id); if (!l) return;
+      // Preparo deixado pela metade é retomado, em vez de criar outro.
+      const l = db.lotes.find(function(x){ return x.versaoId === v.id && x.status !== "concluido"; }) || criaLote(v.id); if (!l) return;
       l.escala = alvo / base; salva();
       location.hash = "#/lote/" + encodeURIComponent(l.id);
     });

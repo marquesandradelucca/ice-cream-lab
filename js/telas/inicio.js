@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120172855";
-import { abreAjustes } from "./ajustes.js?v=20261120172855";
-import { dataCurta } from "./lote.js?v=20261120172855";
-import { icone, capa, tomVidro } from "../visual.js?v=20261120172855";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120173423";
+import { abreAjustes } from "./ajustes.js?v=20261120173423";
+import { dataCurta } from "./lote.js?v=20261120173423";
+import { icone, capa, tomVidro } from "../visual.js?v=20261120173423";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }
@@ -31,7 +31,10 @@ export function render(el){
   const db = dados();
 
   // Lote esperando avaliação (o mais antigo primeiro).
-  const aguardando = db.lotes.filter(function(l){ return l.status === "aguardando"; })
+  const aguardando = db.lotes.filter(function(l){
+    // Preparo de receita final não tem avaliação: não vira lembrete.
+    const r = receita(l.receitaId); if (r && r.status === "final" && r.versaoFinal === l.versaoId) return false;
+    return l.status === "aguardando"; })
     .sort(function(a, b){ return a.inicio.localeCompare(b.inicio); });
   // Um cartão por lote esperando; com mais de um, rolam para o lado.
   const cartaoAvaliar = function(l){
