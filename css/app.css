@@ -233,9 +233,6 @@ a.ui-cartao{color:inherit; text-decoration:none}
 a.ui-filtro{display:inline-flex; align-items:center; text-decoration:none}
 .receitas-lista{display:flex; flex-direction:column; gap:var(--ui-e3)}
 .receitas-cartao{min-height:200px}
-.receitas-topo{display:flex; align-items:flex-end; gap:var(--ui-e2)}
-.receitas-topo .titulo{flex:1; min-width:0}
-.receitas-topo .ui-etiqueta{flex:none}
 .receitas-info{display:flex; align-items:center; gap:var(--ui-e2)}
 .receitas-vazio{padding:var(--ui-e5) var(--ui-e1)}
 
@@ -278,16 +275,12 @@ body.rec .ui-app{min-height:100vh; min-height:100dvh; display:flex; flex-directi
 .rec-lote{display:flex; flex-direction:column; gap:var(--ui-e1); padding:var(--ui-e3) 0; border-top:1px solid rgba(255,255,255,.15); color:#fff; text-decoration:none}
 .rec-lote-topo{display:flex; justify-content:space-between; align-items:center}
 .rec-lote-obs{font-size:var(--ui-t-sec)}
-.rec-versao-acoes{display:flex; flex-wrap:wrap; gap:var(--ui-e2)}
-.rec-versao-acoes > *{flex:1}
-.rec-versao-acoes .rec-largo{flex-basis:100%}
 body.rec #preparo.rec-preparo{display:block; margin:0; width:100%; min-height:120px; border:1px solid var(--ui-vidro-escuro-borda); border-radius:var(--ui-r-medio); padding:var(--ui-e3); background:var(--ui-vidro-escuro); -webkit-backdrop-filter:blur(10px) saturate(1.4); backdrop-filter:blur(10px) saturate(1.4); color:#fff; font:inherit; font-size:16px; resize:vertical}
 body.rec .rec-preparo::placeholder{color:rgba(255,255,255,.6)}
 
 /* Receita final */
 .rec-cab{display:flex; justify-content:space-between; align-items:baseline}
 .rec-cab .ui-sec{color:rgba(255,255,255,.78)}
-.rec-estrelas{display:inline-flex; align-items:center; color:#fff}
 .rec-tamanhos{display:flex; gap:var(--ui-e2)}
 .rec-tamanhos button,.rec-outro{flex:1; min-width:0; height:var(--ui-h-filtro); border-radius:var(--ui-r-pilula); font:inherit; font-size:var(--ui-t-sec); font-weight:600; color:#fff; cursor:pointer;
   background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda)}
@@ -296,7 +289,6 @@ body.rec .rec-preparo::placeholder{color:rgba(255,255,255,.6)}
 .rec-outro input{width:100%; min-width:0; border:0; background:transparent; color:#fff; font:inherit; font-size:16px; text-align:right; padding:0}
 .rec-outro input::placeholder{color:rgba(255,255,255,.6)}
 .rec-outro input:focus{outline:none}
-.rec-preparo-texto{font-size:var(--ui-t-texto); line-height:1.5}
 .rec-total{font-weight:600}
 .rec-total span{font-weight:600}
 .rec-outro.ativo{background:#fff; border-color:#fff}
@@ -374,7 +366,6 @@ body.ui .escolha-lista{margin:0}
 body.ui .escolha-item{min-height:48px; padding:0 var(--ui-e1); border:0; border-bottom:1px solid var(--ui-linha); background:transparent; font-size:16px; color:var(--ui-tinta); text-align:left; border-radius:0}
 body.ui .escolha-grupo{font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto3)}
 /* Folha de salvar */
-body.calcui .ui-folha .acoes-salvar{display:flex; flex-direction:column; gap:var(--ui-e2)}
 body.calcui .ui-folha label.ui-sec{margin-bottom:calc(var(--ui-e3) * -1 + var(--ui-e1))}
 body.calcui .ui-folha #campoNomeNova{display:flex; flex-direction:column; gap:var(--ui-e1)}
 body.calcui .ui-folha[hidden],body.calcui .ui-veu[hidden]{display:none}
@@ -406,8 +397,6 @@ body.loteui .ui-tela{padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(-
 .rec-painel .ui-opcoes button{color:#fff; font-size:var(--ui-t-sec); font-weight:600}
 .rec-painel .ui-opcoes button[aria-pressed="true"]{background:#fff; color:var(--ui-tinta)}
 .lote-bancada .lote-ing{font-size:var(--ui-t-destaque); line-height:1.15; letter-spacing:-.02em; overflow-wrap:anywhere}
-.lote-peso{display:flex; justify-content:space-between; align-items:baseline}
-.lote-peso b{font-size:var(--ui-t-tela); font-weight:700; letter-spacing:-.02em}
 .lote-real{display:flex; align-items:center; gap:var(--ui-e2); height:var(--ui-h-botao); padding:0 var(--ui-e4); border-radius:var(--ui-r-medio);
   background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); cursor:text}
 .lote-real .ui-sec{flex:1}
@@ -474,9 +463,6 @@ body.rec .ui-app .ui-botao.preto,
 .ui-folha h2{font-family:var(--ui-fonte)}
 
 /* ===== Ideias ===== */
-.ideias-anotar{display:flex; gap:var(--ui-e2)}
-.ideias-anotar .ui-campo{flex:1; min-width:0}
-.ideias-anotar .ui-botao{flex:none}
 .ideias-vazio{padding:var(--ui-e2) var(--ui-e1); margin:0}
 .ideia-cartao{min-height:150px; display:flex; flex-direction:column; justify-content:flex-end; padding:0}
 .ideia-corpo{flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1); padding:calc(var(--ui-e4) + var(--ui-h-filtro) + var(--ui-e3)) var(--ui-e4) var(--ui-e4); color:#fff; text-decoration:none}
@@ -489,7 +475,6 @@ body.rec .ui-app .ui-botao.preto,
 .ideia-texto{display:block; resize:vertical; font:inherit; font-size:16px}
 .ideia-form .ui-campo{background:#fff}
 /* Editor de ideia: fundo com a capa, painel de vidro escuro */
-.ideia-titulo{color:#fff}
 .ideia-form .ui-rotulo{color:rgba(255,255,255,.85)}
 .ideia-campo{display:block; width:100%; min-height:48px; padding:12px 14px; border-radius:var(--ui-r-medio); border:1px solid var(--ui-vidro-escuro-borda);
   background:var(--ui-vidro-escuro); color:#fff; font:inherit; font-size:16px}
@@ -512,8 +497,6 @@ body.rec .ui-app .ui-botao.preto,
 .estudo-linha-texto{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
 .estudo-seta{flex:none; display:inline-flex; color:var(--ui-tinta-3, #999)}
 .estudo-seta svg{width:16px; height:16px; transform:rotate(180deg)}
-.tema-capa{min-height:180px; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e2)}
-.tema-capa .tema-grupo{align-self:flex-start}
 .tema-texto{display:block; margin:0; line-height:1.6; font-size:var(--ui-t-texto)}
 .tema-texto > :first-child{margin-top:0}
 .tema-texto > :last-child{margin-bottom:0}
@@ -1021,7 +1004,7 @@ html[data-nav="zoom"]::view-transition-new(root){animation:vt-esmaece .3s ease .
 /* Arrastar para voltar: a tela ganha sombra na borda esquerda e o fundo por trás escurece levemente */
 #tela.arrastando{box-shadow:-8px 0 24px rgba(0,0,0,.18); background:var(--ui-fundo, #fff); min-height:100vh; will-change:transform}
 body:has(#tela.arrastando){background:#d9d9d6}
-/* TESTE: sem nenhum véu (escurecimento dos cartões e capas, fundo das telas e véu atrás das folhas) */
+/* Sem véu escuro sobre o fundo das telas com capa e atrás das folhas (decidido no teste "sem véu") */
 .rec-fundo::after,.calc-fundo::after{display:none !important}
 /* Cartões com capa e quadros do seletor: véu bem suave (multiply 10%) */
 .ui-bloco::before,.capa-op::before{display:block !important; background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.10)) !important; mix-blend-mode:multiply}
@@ -1082,8 +1065,6 @@ body.calc-capa .bar{box-shadow:none !important}
 /* Abas da receita: os cartões dentro de cada aba mantêm o espaçamento da página */
 .rec-aba{display:flex; flex-direction:column; gap:var(--ui-e3)}
 .rec-aba[hidden]{display:none}
-.rec-versao-acoes .ui-redondo{flex:none}
-.rec-versao-acoes .ui-botao:not(.rec-largo){flex:1}
 .rec-versao summary .rec-vmenu{margin-left:auto; margin-right:8px; border:0; padding:0; cursor:pointer; color:inherit; font:inherit}
 .rec-versao summary .rec-vmenu + .rec-seta{margin-left:0}
 .rec-versao[open] .rec-vmenu{transform:none}

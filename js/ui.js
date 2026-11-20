@@ -73,29 +73,3 @@ export function mdParaHtml(md){
 
 // Lápis ao lado de nomes editáveis (calculadora e receita).
 export const LAPIS = '<svg class="lapis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
-
-// Lista e detalhe lado a lado em tela larga (Estudo, Ingredientes).
-// No celular devolve null e a tela segue como sempre (lista numa página, detalhe em outra).
-// No desktop: lista à esquerda, item aberto à direita, e o item ativo fica marcado na lista.
-const LARGA = window.matchMedia("(min-width: 960px)");
-export function mestreDetalhe(el, desenhaLista, desenhaDetalhe, hrefAtivo){
-  if (!LARGA.matches) return null;
-  el.innerHTML = '<div class="mestre-detalhe"><div class="md-lista"></div><div class="md-detalhe"></div></div>';
-  desenhaLista(el.querySelector(".md-lista"));
-  const res = desenhaDetalhe(el.querySelector(".md-detalhe")) || {};
-  function marca(){
-    el.querySelectorAll(".md-lista a.item-lista").forEach(function(a){ a.classList.toggle("ativo", a.getAttribute("href") === hrefAtivo); });
-  }
-  marca();
-  // A busca do Estudo redesenha a lista: remarca o item ativo depois disso.
-  const obs = new MutationObserver(marca);
-  obs.observe(el.querySelector(".md-lista"), {childList:true, subtree:true});
-  // Ao cruzar a largura (janela redimensionada), redesenha a tela no formato certo.
-  function cruzou(){ window.dispatchEvent(new HashChangeEvent("hashchange")); }
-  LARGA.addEventListener("change", cruzou);
-  const limpaDetalhe = res.limpa;
-  res.limpa = function(){ obs.disconnect(); LARGA.removeEventListener("change", cruzou); if (limpaDetalhe) limpaDetalhe(); };
-  res.voltar = "#/"; res.voltarRotulo = "Ice Cream Lab";
-  return res;
-}
-export function telaLarga(){ return LARGA.matches; }

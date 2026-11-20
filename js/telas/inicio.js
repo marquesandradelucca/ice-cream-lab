@@ -1,12 +1,11 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120200244";
-import { abreAjustes } from "./ajustes.js?v=20261120200244";
-import { dataCurta } from "./lote.js?v=20261120200244";
-import { icone, capa, tomVidro } from "../visual.js?v=20261120200244";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120200935";
+import { abreAjustes } from "./ajustes.js?v=20261120200935";
+import { dataCurta } from "./lote.js?v=20261120200935";
+import { icone, capa, tomVidro } from "../visual.js?v=20261120200935";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
-function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }
 function diasDesde(iso){ const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000); return d <= 0 ? "hoje" : d === 1 ? "há 1 dia" : "há " + d + " dias"; }
 
 // Miniatura genérica do gráfico de intervalos (só símbolo, sem receita).

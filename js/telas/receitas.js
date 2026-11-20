@@ -1,8 +1,8 @@
 // Receitas (redesign): testes e finais juntos, com filtro Todas / Em teste / Finais.
 // Rotas: #/receitas, #/receitas/teste, #/receitas/finais (o filtro fica no endereço para o voltar lembrar).
-import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261120200244";
-import { NOMES_ESTILO } from "../calculo.js?v=20261120200244";
-import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261120200244";
+import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261120200935";
+import { NOMES_ESTILO } from "../calculo.js?v=20261120200935";
+import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261120200935";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
@@ -23,14 +23,6 @@ function selosHtml(v){
   const s = selos(v);
   return (s.leite ? '<span class="ui-etiqueta receitas-selo">' + icone("garrafa") + 'Com leite</span>' : '') +
     (s.vegana ? '<span class="ui-etiqueta receitas-selo">' + icone("folha") + 'Vegana</span>' : '');
-}
-
-// Usado por outras telas (ex.: Ideias) para listar receitas no formato antigo.
-export function itemReceita(r, destino){
-  const vs = versoesDe(r.id);
-  const v = r.versaoFinal ? versao(r.versaoFinal) : vs[vs.length - 1];
-  return '<a class="item-lista" href="' + destino + '"><span class="item-nome">' + esc(r.nome) + '</span><span class="item-desc muted">' +
-    (NOMES_ESTILO[r.estilo] || "") + (v ? ' · v' + v.numero : '') + '</span></a>';
 }
 
 export function render(el, rota){

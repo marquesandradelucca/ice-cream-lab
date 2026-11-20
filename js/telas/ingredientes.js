@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120200244";
-import { confirma } from "../ui.js?v=20261120200244";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120200244";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120200244";
-import { n } from "../calculo.js?v=20261120200244";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120200935";
+import { confirma } from "../ui.js?v=20261120200935";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120200935";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120200935";
+import { n } from "../calculo.js?v=20261120200935";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -13,15 +13,6 @@ function totalAcucar(i){
 }
 function agua(i){
   return 100 - ((i.gord || 0) + (i.slng || 0) + (i.soro || 0) + totalAcucar(i) + (i.outros || 0));
-}
-function resumo(i){
-  const p = [];
-  if (i.gord) p.push("gord. " + n(i.gord, 1) + "%");
-  if (i.slng) p.push("SLNG " + n(i.slng, 1) + "%");
-  if (i.soro) p.push("soro " + n(i.soro, 1) + "%");
-  const ac = totalAcucar(i); if (ac) p.push("açúc. " + n(ac, 1) + "%");
-  if (i.outros) p.push("outros " + n(i.outros, 1) + "%");
-  return p.length ? p.join(" · ") : "água";
 }
 
 // Partes da composição, na ordem da barra (cores tiradas dos degradês).
