@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261120154854";
-import { PRESETS } from "./calculo.js?v=20261120154854";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261120154854";
-import { notificaMudanca } from "./sync.js?v=20261120154854";
+import { ING_BASE } from "./ingredientes-base.js?v=20261120160014";
+import { PRESETS } from "./calculo.js?v=20261120160014";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261120160014";
+import { notificaMudanca } from "./sync.js?v=20261120160014";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -146,6 +146,13 @@ export function carrega(){
         i.gord = b.gord; i.outros = b.outros; i.ac = copia(b.ac); i.nota = b.nota; salva();
       }
     });
+    // Receitas criadas a partir dos exemplos ganham o modo de preparo do exemplo (se ainda não tiverem).
+    if (!db.preparoPresets){
+      db.receitas.forEach(function(r){ Object.keys(PRESETS).forEach(function(k){
+        if (r.nome === PRESETS[k].nome && !String(r.preparo || "").trim()) r.preparo = PRESETS[k].preparo;
+      }); });
+      db.preparoPresets = true; salva();
+    }
     db.ingredientes.forEach(function(i){ if (i.id === "sucoLaranja" && i.nome === "Suco de laranja"){ i.nome = "Suco de laranja pera"; salva(); } });
   } else {
     db = vazio();

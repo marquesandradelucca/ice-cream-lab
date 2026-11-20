@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261120154854";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261120154854";
-import { confirma, LAPIS } from "../ui.js?v=20261120154854";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120154854";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261120160014";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261120160014";
+import { confirma, LAPIS } from "../ui.js?v=20261120160014";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120160014";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -206,11 +206,12 @@ export function render(el, rota){
       const vs = versoesDe(v.slice(4));
       if (vs.length) carregaVersao(vs[vs.length - 1]);
     } else {
-      delete calc.receitaId; delete calc.versaoId; delete calc.snapshot;
+      delete calc.receitaId; delete calc.versaoId; delete calc.snapshot; delete calc.preparo;
       if (v === "novo"){ calc.linhas = []; calc.nome = ""; }
       else {
         const p = PRESETS[v.slice(7)];
         calc.estilo = p.estilo; calc.nome = p.nome; calc.linhas = JSON.parse(JSON.stringify(p.linhas));
+        if (p.preparo) calc.preparo = p.preparo;   // vai para a receita quando ela for criada
       }
     }
     persiste(); desenhaTudo();
@@ -306,6 +307,8 @@ export function render(el, rota){
       const nome = elNomeNova.value.trim() || calc.nome.trim() || "Receita sem nome";
       if (r && !elNomeNova.value.trim()){ elNomeNova.focus(); return; }
       r = criaReceita(nome, calc.estilo, calc.ideiaId || null);
+      if (calc.preparo && !r.preparo) r.preparo = calc.preparo;
+      delete calc.preparo;
       // Se o rascunho começou numa ideia, a ideia passa a apontar para a receita.
       const id = calc.ideiaId && db.ideias.find(function(x){ return x.id === calc.ideiaId; });
       if (id) id.receitaId = r.id;

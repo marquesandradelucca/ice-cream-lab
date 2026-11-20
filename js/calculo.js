@@ -54,15 +54,15 @@ export function pontoCongelamento(r){
 }
 
 export const PRESETS = {
-  gelato: {estilo:"gelato", nome:"Base branca de gelato", linhas:[
+  gelato: {estilo:"gelato", preparo:"1. Pese tudo. Misture os pós (leite em pó, açúcares, estabilizante) a seco, para não empelotar.\n2. Aqueça o leite e o creme a uns 40 °C e junte os pós aos poucos, batendo com mixer.\n3. Pasteurize: leve a 85 °C por 1 minuto (ou 65 °C por 30 min), mexendo sempre.\n4. Resfrie rápido em banho de gelo até abaixo de 10 °C.\n5. Matura na geladeira (4 °C) por 4 a 12 h, coberto.\n6. Bata com mixer de novo por 1 minuto e leve à máquina.\n7. Gelato: tire mais mole (−6 a −8 °C) e sirva entre −11 e −14 °C.", nome:"Base branca de gelato", linhas:[
     {id:"leite", g:597},{id:"creme35", g:160},{id:"lpdesn", g:40},
     {id:"sacarose", g:150},{id:"dextrose", g:20},{id:"glucose", g:30},{id:"estab", g:3}
   ]},
-  icecream: {estilo:"icecream", nome:"Base branca de sorvete", linhas:[
+  icecream: {estilo:"icecream", preparo:"1. Pese tudo. Misture os pós (leite em pó, açúcares, estabilizante) a seco, para não empelotar.\n2. Aqueça o leite e o creme a uns 40 °C e junte os pós aos poucos, batendo com mixer.\n3. Pasteurize: leve a 85 °C por 1 minuto (ou 65 °C por 30 min), mexendo sempre.\n4. Resfrie rápido em banho de gelo até abaixo de 10 °C.\n5. Matura na geladeira (4 °C) por 4 a 12 h, coberto.\n6. Bata com mixer de novo por 1 minuto e leve à máquina.\n7. Sorvete: bata até ficar firme e com bastante ar; endureça no freezer (−18 °C) por algumas horas antes de servir.", nome:"Base branca de sorvete", linhas:[
     {id:"leite", g:477},{id:"creme35", g:295},{id:"lpdesn", g:50},
     {id:"sacarose", g:115},{id:"dextrose", g:34},{id:"glucose", g:26},{id:"estab", g:3}
   ]},
-  sorbet: {estilo:"sorbet", nome:"Sorbet de fruta", linhas:[
+  sorbet: {estilo:"sorbet", preparo:"1. Pese tudo. Misture os pós (açúcares e estabilizante) a seco, para não empelotar.\n2. Aqueça a água a uns 80 °C e dissolva os pós, batendo com mixer. Deixe esfriar.\n3. Junte a fruta só com a calda fria (não cozinhe a fruta, para manter o sabor fresco).\n4. Bata com mixer e leve à geladeira (4 °C) por 1 a 4 h.\n5. Prove: se a fruta for muito ácida, ajuste com um pouco de açúcar ou limão.\n6. Bata de novo por 1 minuto e leve à máquina. Sirva entre −11 e −14 °C.", nome:"Sorbet de fruta", linhas:[
     {id:"pureDoce", g:580},{id:"agua", g:187},{id:"sacarose", g:140},
     {id:"dextrose", g:20},{id:"glucose", g:70},{id:"estab", g:3}
   ]}

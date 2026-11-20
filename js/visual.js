@@ -20,7 +20,7 @@ const PATHS = {
   imagem:'<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
   ok:'<path d="M5 12l5 5L20 7"/>'
 };
-import { ICONES_ARQ } from "./icones.js?v=20261120154854";
+import { ICONES_ARQ } from "./icones.js?v=20261120160014";
 export function icone(nome, extra){
   // Ícone da pasta icons/ (preenchido), quando existir; senão o de traço.
   const arq = ICONES_ARQ[nome];
@@ -107,7 +107,8 @@ export function capa(nome, foto){
   if (foto && foto.indexOf("foto:") === 0) foto = resolveFoto(foto);
   // foto pode ser uma imagem ou um degradê escolhido à mão ("paleta:Menta").
   const escolhida = foto && foto.indexOf("paleta:") === 0 ? PALETAS.find(function(x){ return x.nome === foto.slice(7); }) : null;
-  if (foto && !escolhida) return 'url("' + foto + '")';
+  // Aspas simples: a capa vai dentro de style="..." no HTML; aspas duplas fechariam o atributo.
+  if (foto && !escolhida) return "url('" + String(foto).replace(/'/g, "%27") + "')";
   const p = escolhida ? escolhida.cores : paletaDe(nome), r = sorteio(String(nome || ""));
   const ang = r(100, 260), meio = r(35, 68);
   const luz = 'radial-gradient(circle at ' + r(10, 90) + '% ' + r(0, 35) + '%, ' + p[2] + 'aa 0%, transparent ' + r(40, 65) + '%)';

@@ -1,9 +1,9 @@
 // Ideias: lista simples (nome, estilo, nota). "Começar receita" abre a calculadora
 // com um rascunho vazio no estilo da ideia, já com o nome dela.
-import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261120154854";
-import { NOMES_ESTILO } from "../calculo.js?v=20261120154854";
-import { confirma } from "../ui.js?v=20261120154854";
-import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261120154854";
+import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261120160014";
+import { NOMES_ESTILO } from "../calculo.js?v=20261120160014";
+import { confirma } from "../ui.js?v=20261120160014";
+import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261120160014";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 const ESTILOS = [["gelato", "Gelato"], ["icecream", "Sorvete"], ["sorbet", "Sorbet"]];
@@ -48,7 +48,7 @@ function novaIdeia(el){
     f.querySelectorAll("[data-e]").forEach(function(o){ o.setAttribute("aria-pressed", String(o.dataset.e === estilo)); });
   }); });
   f.querySelector("#capaNova").addEventListener("click", function(){
-    escolheCapa({titulo:"Capa", semente:nome.value.trim() || "Ideia", atual:capaNova, aoEscolher:function(v){ capaNova = v; }});
+    escolheCapa({titulo:"Capa", foto:true, semente:nome.value.trim() || "Ideia", atual:capaNova, aoEscolher:function(v){ capaNova = v; }});
   });
   function grava(){
     const n = nome.value.trim(); if (!n){ nome.focus(); return null; }
