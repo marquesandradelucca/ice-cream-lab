@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120183201";
-import { confirma } from "../ui.js?v=20261120183201";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120183201";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120183201";
-import { n } from "../calculo.js?v=20261120183201";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120183752";
+import { confirma } from "../ui.js?v=20261120183752";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120183752";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120183752";
+import { n } from "../calculo.js?v=20261120183752";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -200,6 +200,13 @@ function editor(el, id){
           '<div class="ui-filtros ing-cats" id="catsEd">' + CATEGORIAS.filter(function(c){ return c[0] && c[0] !== "estab"; }).map(function(c){
             return '<button type="button" class="ui-filtro" data-catEd="' + c[0] + '" aria-pressed="' + (selCats.indexOf(c[0]) >= 0) + '">' + c[1] + '</button>'; }).join("") + '</div>' +
           '<p class="ui-sec">Sem escolha, o app deduz pela composição e pelo nome. Estabilizante se marca mais abaixo.</p></section>' +
+        '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Medida</h2></div>' +
+          '<div class="ui-opcoes ing-medida" id="medida" role="group" aria-label="Medida"><button type="button" data-m="g" aria-pressed="' + !rasc.un + '">Gramas</button><button type="button" data-m="un" aria-pressed="' + !!rasc.un + '">Unidade</button></div>' +
+          '<div id="camposUn"' + (rasc.un ? '' : ' hidden') + '>' +
+            '<label class="ui-rotulo" for="unIng">Nome da unidade</label><input id="unIng" type="text" class="ui-campo campo-branco" maxlength="20" value="' + esc(rasc.un || "") + '" placeholder="fava, unidade, folha…">' +
+          '</div>' +
+          '<p class="ui-sec" id="txtMedida">' + (rasc.un ? 'Contado de ½ em ½. Não entra no peso nem na composição da mistura e fica sempre no fim da lista.' : 'Pesado em gramas; entra no peso e na composição.') + '</p></section>' +
+        '<div id="blocoComp"' + (rasc.un ? ' hidden' : '') + '>' +
         '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Composição</h2><span class="ui-sec">g por 100 g</span></div>' +
           '<div class="ui-linhas">' + campo("gord", "Gordura", rasc.gord) + campo("slng", "SLNG (sólidos lácteos)", rasc.slng) +
             campo("soro", "Sólidos de soro", rasc.soro) + campo("outros", "Outros sólidos", rasc.outros) + '</div>' +
@@ -207,14 +214,9 @@ function editor(el, id){
         '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Açúcares</h2></div>' +
           '<p class="ui-sec">Só a parte que é açúcar, por tipo. A lactose do leite entra sozinha pelo SLNG e pelo soro.</p>' +
           '<div class="ui-linhas">' + TIPOS_ACUCAR.map(function(t){ return campo("ac." + t[0], t[1], rasc.ac[t[0]]); }).join("") + '</div>' +
-          '<p class="agua ing-agua" id="agua"></p></section>' +
+          '<p class="agua ing-agua" id="agua"></p></section></div>' +
         '<section class="ui-cartao ui-vidro ideia-form-claro">' +
-          '<label class="ing-check"><input type="checkbox" id="cxUn"' + (rasc.un ? " checked" : "") + '> Contar por unidade (ex.: fava)</label>' +
-          '<div id="camposUn"' + (rasc.un ? '' : ' hidden') + '>' +
-            '<label class="ui-rotulo" for="unIng">Nome da unidade</label><input id="unIng" type="text" class="ui-campo campo-branco" maxlength="20" value="' + esc(rasc.un || "") + '" placeholder="fava">' +
-            '<label class="ui-rotulo" for="gUnIng">Peso de 1 unidade (g)</label><input id="gUnIng" type="number" inputmode="decimal" min="0.1" step="0.1" class="ui-campo campo-branco" value="' + (rasc.gUn || "") + '" placeholder="4">' +
-            '<p class="ui-sec">Na calculadora e no preparo a quantidade aparece em unidades, de ½ em ½. A composição continua por 100 g.</p>' +
-          '</div>' +
+
           '<label class="ing-check"><input type="checkbox" data-k="estab"' + (rasc.estab ? " checked" : "") + '> É estabilizante</label>' +
           '<label class="ing-check" id="cxSoma"' + (rasc.estab ? "" : " hidden") + '><input type="checkbox" data-k="contaTotal"' + (rasc.contaTotal === false ? "" : " checked") + '> Entra na soma de estabilizantes</label>' +
           '<label class="ui-rotulo" for="notaIng">Nota (aparece na calculadora)</label><textarea id="notaIng" class="ui-campo campo-branco ideia-texto" data-k="nota" rows="3">' + esc(rasc.nota) + '</textarea>' +
@@ -261,22 +263,26 @@ function editor(el, id){
       });
     });
 
-    // Contar por unidade: nome da unidade e peso de uma unidade.
-    const cxUn = el.querySelector("#cxUn"), elUn = el.querySelector("#unIng"), elGUn = el.querySelector("#gUnIng");
-    function poeUn(){
-      if (cxUn.checked){ rasc.un = elUn.value.trim() || "unidade"; const g = Number(elGUn.value); if (g > 0) rasc.gUn = g; else delete rasc.gUn; }
+    // Medida: gramas ou unidade. Por unidade, a quantidade é contada (de ½ em ½) e fica fora da conta.
+    const elUn = el.querySelector("#unIng");
+    function poeUn(un){
+      if (un){ rasc.un = elUn.value.trim() || "unidade"; if (!(rasc.gUn > 0)) rasc.gUn = 1; }
       else { delete rasc.un; delete rasc.gUn; }
+      el.querySelector("#camposUn").hidden = !un; el.querySelector("#blocoComp").hidden = !!un;
+      el.querySelector("#txtMedida").textContent = un ? "Contado de ½ em ½. Não entra no peso nem na composição da mistura e fica sempre no fim da lista." : "Pesado em gramas; entra no peso e na composição.";
     }
-    cxUn.addEventListener("change", function(){ el.querySelector("#camposUn").hidden = !cxUn.checked; poeUn(); });
-    elUn.addEventListener("input", poeUn); elGUn.addEventListener("input", poeUn);
+    el.querySelectorAll("#medida [data-m]").forEach(function(b){ b.addEventListener("click", function(){
+      el.querySelectorAll("#medida [data-m]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
+      poeUn(b.dataset.m === "un");
+    }); });
+    elUn.addEventListener("input", function(){ if (rasc.un) rasc.un = elUn.value.trim() || "unidade"; });
 
     const cancela = function(){ if (novo) location.hash = "#/ingredientes"; else mostra(); };
     el.querySelector("#cancelar").addEventListener("click", cancela);
     el.querySelector("#fecharEd").addEventListener("click", cancela);
     el.querySelector("#salvarIng").addEventListener("click", function(){
       if (!rasc.nome){ el.querySelector('[data-k="nome"]').focus(); return; }
-      if (rasc.un && !(rasc.gUn > 0)){ elGUn.focus(); return; }
-      if (agua(rasc) < -0.5){ el.querySelector("#agua").scrollIntoView({block:"center"}); return; }
+      if (!rasc.un && agua(rasc) < -0.5){ el.querySelector("#agua").scrollIntoView({block:"center"}); return; }
       delete rasc.prot; delete rasc.fibra;
       if (novo){ db.ingredientes.push(rasc); salva(); location.hash = "#/ingredientes/" + encodeURIComponent(rasc.id); return; }
       Object.keys(ing).forEach(function(k){ delete ing[k]; });

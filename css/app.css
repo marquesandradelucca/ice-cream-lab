@@ -1126,3 +1126,9 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-outro.ativo input{flex:none; margin:0; transform-origin:right center; text-align:right}
 .lote-fim-acoes{display:flex; gap:var(--ui-e2); justify-content:center; flex-wrap:wrap}
 #modoExcluir.concluir{background:#fff !important; border-color:#fff !important; color:var(--ui-tinta) !important}
+/* Versões separadas por uma linha; cada lote num subcartão */
+.rec-versoes > .rec-versao + .rec-versao,.rec-versoes > .rec-versao + .rec-testes{border-top:1px solid rgba(255,255,255,.28) !important}
+.rec-lote{border:1px solid rgba(255,255,255,.18) !important}
+.rec-lotes{display:flex; flex-direction:column; gap:var(--ui-e2)}
+.rec-lote{display:flex; flex-direction:column; gap:4px; padding:12px 14px !important; border-radius:16px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); text-decoration:none; color:inherit}
+.ing-medida{margin-bottom:var(--ui-e2)}
