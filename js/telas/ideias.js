@@ -1,9 +1,9 @@
 // Ideias: lista simples (nome, estilo, nota). "Começar receita" abre a calculadora
 // com um rascunho vazio no estilo da ideia, já com o nome dela.
-import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261120164712";
-import { NOMES_ESTILO } from "../calculo.js?v=20261120164712";
-import { confirma } from "../ui.js?v=20261120164712";
-import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261120164712";
+import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261120165231";
+import { NOMES_ESTILO } from "../calculo.js?v=20261120165231";
+import { confirma } from "../ui.js?v=20261120165231";
+import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261120165231";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 const ESTILOS = [["gelato", "Gelato"], ["icecream", "Sorvete"], ["sorbet", "Sorbet"]];

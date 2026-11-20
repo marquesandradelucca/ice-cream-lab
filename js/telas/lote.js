@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, ingrediente, excluiLote } from "../dados.js?v=20261120164712";
-import { n } from "../calculo.js?v=20261120164712";
-import { confirma } from "../ui.js?v=20261120164712";
-import { atualizaVoltar } from "../app.js?v=20261120164712";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120164712";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120165231";
+import { n } from "../calculo.js?v=20261120165231";
+import { confirma } from "../ui.js?v=20261120165231";
+import { atualizaVoltar } from "../app.js?v=20261120165231";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120165231";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -312,8 +312,17 @@ export function render(el, rota){
         '<p class="lote-estado">Lote concluído' + (l.fim ? ' · ' + dataCurta(l.fim) + ', ' + hora(l.fim) : '') + '</p>' +
         (travado ? '<button type="button" class="ui-botao vidro-escuro largo" id="editarAval">Editar avaliação</button>' :
           '<button type="button" class="ui-botao preto largo" id="travarAval">Pronto</button>')) +
-      (v ? '<button type="button" class="ui-botao vidro-escuro largo" id="proximaVersao">Criar próxima versão</button>' : '') +
-      (difs.length && v ? '<button type="button" class="ui-botao vidro-escuro largo" id="proximaPesada">Próxima versão com o que pesei</button>' : '');
+      // Depois de concluir: decidir o próximo passo (só em receita que ainda está em teste).
+      (v && r && l.status === "concluido" && r.status !== "final" ? (function(){
+        const proxima = 'v' + (Math.max.apply(null, versoesDe(r.id).map(function(x){ return x.numero; })) + 1);
+        const finalPrimeiro = (a.nota || 0) >= 4;
+        const bFinal = '<button type="button" class="ui-botao ' + (finalPrimeiro ? 'preto' : 'vidro-escuro') + ' largo" id="marcaFinal">Marcar v' + v.numero + ' como final</button>';
+        const bNova = '<button type="button" class="ui-botao ' + (finalPrimeiro ? 'vidro-escuro' : 'preto') + ' largo" id="proximaVersao">Criar ' + proxima + ' com ajustes</button>';
+        return '<section class="ui-cartao ui-vidro-escuro rec-painel lote-decisao"><h2>E agora?</h2>' +
+          '<p class="ui-sec">' + (finalPrimeiro ? 'Ficou bom: dá para marcar esta versão como a receita final.' : 'Ajuste a mistura numa nova versão; as observações viram a nota dela.') + '</p>' +
+          (finalPrimeiro ? bFinal + bNova : bNova + bFinal) +
+          (difs.length ? '<button type="button" class="ui-botao vidro-escuro largo" id="proximaPesada">Criar ' + proxima + ' com o que pesei</button>' : '') + '</section>';
+      })() : '');
 
     alvo.querySelectorAll("[data-t]").forEach(function(b){
       b.addEventListener("click", function(){
@@ -360,6 +369,12 @@ export function render(el, rota){
     }
     const pv = alvo.querySelector("#proximaVersao");
     if (pv) pv.addEventListener("click", function(){ abreProxima(false); });
+    const mf = alvo.querySelector("#marcaFinal");
+    if (mf) mf.addEventListener("click", async function(){
+      if (!(await confirma("Marcar a v" + v.numero + " como versão final? Ela vira a receita final.", "Confirmar"))) return;
+      r.versaoFinal = v.id; r.status = "final"; grava();
+      location.hash = "#/receita/" + encodeURIComponent(r.id);
+    });
     const pp = alvo.querySelector("#proximaPesada");
     if (pp) pp.addEventListener("click", function(){ abreProxima(true); });
   }
