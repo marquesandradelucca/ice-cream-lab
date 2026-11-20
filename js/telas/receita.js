@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120191828";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120191828";
-import { confirma, LAPIS } from "../ui.js?v=20261120191828";
-import { atualizaVoltar } from "../app.js?v=20261120191828";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120191828";
-import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261120191828";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120192039";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120192039";
+import { confirma, LAPIS } from "../ui.js?v=20261120192039";
+import { atualizaVoltar } from "../app.js?v=20261120192039";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120192039";
+import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261120192039";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -61,7 +61,6 @@ function detalhe(el, r, abertas, aba){
   const final = r.status === "final" && versao(r.versaoFinal);
   function lotesDa(v){ return db.lotes.filter(function(l){ return l.versaoId === v.id; }).sort(function(a, b){ return b.inicio.localeCompare(a.inicio); }); }
   // Ao abrir a página tudo começa fechado; ao redesenhar (ex.: editar nota) mantém o que estava aberto.
-  // Ao abrir, a versão atual (final ou a mais recente) já vem aberta; as antigas ficam fechadas.
   // Ao abrir, a versão atual (final ou a mais recente) já vem aberta; as antigas ficam fechadas.
   if (!abertas) abertas = (final || vUltima) ? [(final || vUltima).id] : [];
   const emTeste = !final;
