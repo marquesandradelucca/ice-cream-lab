@@ -1092,3 +1092,4 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-versoes .rec-versao:first-child .rec-seta.rec-vmenu{right:56px; margin:0}
 .rec-testes .rec-versoes .rec-versao:first-child .rec-seta{position:static}
 .rec-testes .rec-versao summary .rec-vmenu{margin-left:auto; margin-right:8px}
+.rec-versao:not([open]) .rec-vmenu{display:none}
