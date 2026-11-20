@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120173630";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120173630";
-import { confirma, LAPIS } from "../ui.js?v=20261120173630";
-import { atualizaVoltar } from "../app.js?v=20261120173630";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120173630";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120173630";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120174038";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120174038";
+import { confirma, LAPIS } from "../ui.js?v=20261120174038";
+import { atualizaVoltar } from "../app.js?v=20261120174038";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120174038";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120174038";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -115,8 +115,8 @@ function detalhe(el, r, abertas, aba){
     '<div class="ui-tela rec-tela">' +
       // Painel principal: etiquetas, nome editável e ações.
       '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
-        '<div class="rec-etiquetas"><span class="ui-etiqueta' + (final ? ' final' : '') + '">' + (final ? 'Final' : 'Em teste') + '</span>' +
-          '<span class="ui-etiqueta">' + esc(NOMES_ESTILO[r.estilo] || "") + '</span>' + (final ? '' : vUltima ? '<span class="ui-etiqueta">v' + vUltima.numero + '</span>' : '') + '</div>' +
+        (final ? '' : '<div class="rec-etiquetas"><span class="ui-etiqueta' + (final ? ' final' : '') + '">' + (final ? 'Final' : 'Em teste') + '</span>' +
+          '<span class="ui-etiqueta">' + esc(NOMES_ESTILO[r.estilo] || "") + '</span>' + (vUltima ? '<span class="ui-etiqueta">v' + vUltima.numero + '</span>' : '') + '</div>') +
         '<h1 class="rec-nome" id="nomeReceita">' + esc(r.nome) + '</h1>' +
         status() +
       '</section>' +
