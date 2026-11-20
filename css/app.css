@@ -71,12 +71,8 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
 .ui-par > *{flex:1; min-width:0}
 
 /* ===== Tela e cabeçalho ===== */
-.ui-tela{padding:0 var(--ui-margem) calc(var(--ui-abas) + var(--ui-e3) + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:var(--ui-e3)}
-.ui-cabecalho{display:flex; align-items:flex-end; gap:var(--ui-e2);
-  padding:calc(env(safe-area-inset-top,0px) + var(--ui-e2)) var(--ui-margem) var(--ui-e4)}
 .ui-cabecalho h1{flex:1; min-width:0; margin:0; font-size:var(--ui-t-tela); font-weight:700; line-height:1.15; letter-spacing:-.02em}
 .ui-cabecalho.nav{align-items:center}
-.ui-cabecalho.nav h1{font-size:var(--ui-t-nav)}
 
 /* ===== Vidro ===== */
 .ui-vidro{background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda);
@@ -100,7 +96,6 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
   background:linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,.22) 100%)}
 .ui-bloco > *{position:relative}
 .ui-bloco .titulo{font-size:var(--ui-t-cartao); font-weight:700; line-height:1.25; overflow-wrap:anywhere}
-.ui-bloco.pequeno .titulo{font-size:var(--ui-t-sec)}
 .ui-bloco .ui-sec{color:rgba(255,255,255,.85)}
 
 /* ===== Botões ===== */
@@ -158,7 +153,6 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
 .ui-faixa .traco{position:absolute; top:-4px; width:3px; height:14px; margin-left:-1.5px; border-radius:2px; background:var(--ui-tinta)}
 
 /* Faixa lateral rolável, sem barra de rolagem */
-.ui-rolagem{display:flex; gap:var(--ui-e3); overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin:0 calc(var(--ui-e4) * -1); padding:0 var(--ui-e4); scroll-snap-type:x proximity; scroll-padding-inline:var(--ui-e4)}
 .ui-rolagem::-webkit-scrollbar{display:none}
 .ui-rolagem > *{flex:none; scroll-snap-align:start}
 .ui-faixa.mini .topo{display:none}
@@ -186,15 +180,6 @@ body:not(.ui):not(.sem-abas) .wrap{padding-bottom:calc(var(--ui-abas) + 24px + e
 
 /* ===== Folha (sheet) ===== */
 .ui-veu{position:fixed; inset:0; z-index:40; background:rgba(0,0,0,.3); animation:ui-aparece .2s ease}
-.ui-folha{position:fixed; left:0; right:0; bottom:0; z-index:41; max-height:92vh; overflow:auto;
-  display:flex; flex-direction:column; gap:14px; padding:10px 20px calc(env(safe-area-inset-bottom,0px) + 24px);
-  border-radius:32px 32px 0 0; background:rgba(255,255,255,.9); border-top:1px solid rgba(255,255,255,.9);
-  box-shadow:0 -4px 24px rgba(0,0,0,.08);
-  -webkit-backdrop-filter:blur(10px) saturate(1.4); backdrop-filter:blur(10px) saturate(1.4);
-  animation:ui-sobe .28s cubic-bezier(.2,.8,.2,1)}
-.ui-folha .puxador{align-self:center; width:36px; height:5px; border-radius:3px; background:var(--ui-trilho)}
-.ui-folha .acoes{display:flex; justify-content:space-between; align-items:center}
-.ui-folha h2{margin:0; font-size:var(--ui-t-nav); font-weight:700}
 @keyframes ui-sobe{from{transform:translateY(100%)} to{transform:none}}
 @keyframes ui-aparece{from{opacity:0} to{opacity:1}}
 
@@ -215,29 +200,17 @@ body:not(.sem-abas) .toast{bottom:calc(var(--ui-abas) + 12px + env(safe-area-ins
 
 /* ===== Home ===== */
 a.ui-cartao{color:inherit; text-decoration:none}
-.home-avaliar{min-height:140px; padding-top:calc(var(--ui-e4) + var(--ui-h-botao) + var(--ui-e3))}
-.home-avaliar-nome{display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden}
-.home-avaliar-rotulo{position:absolute; left:var(--ui-e4); top:calc(var(--ui-e4) + (var(--ui-h-botao) - 14px) / 2)}
-.home-avaliar-botao{position:absolute; top:var(--ui-e4); right:var(--ui-e4)}
-.home-avaliar-nome{font-size:var(--ui-t-nav) !important}
 .home-par{align-items:stretch}
-.home-calc{justify-content:flex-start}
-.home-mini{display:flex; flex-direction:column; gap:14px; padding-top:6px}
 .home-coluna{display:flex; flex-direction:column; gap:var(--ui-e3)}
-.home-ideias{gap:var(--ui-e1)}
-.home-numero{font-size:var(--ui-t-destaque); font-weight:700; line-height:1.1}
-.home-ingredientes{flex:1; min-height:88px}
 .home-receitas{overflow:hidden}
 .home-titulo-link{color:inherit; text-decoration:none}
 .home-capa{width:92px; height:112px; min-height:0}
-.home-estudo{min-height:110px}
 /* Nome longo na capa pequena: até 4 linhas, com reticências */
-.ui-bloco.pequeno .titulo{display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden}
+.ui-bloco.pequeno .titulo{font-size:var(--ui-t-sec); display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden}
 
 /* ===== Receitas ===== */
 a.ui-filtro{display:inline-flex; align-items:center; text-decoration:none}
 .receitas-lista{display:flex; flex-direction:column; gap:var(--ui-e3)}
-.receitas-cartao{min-height:200px}
 .receitas-info{display:flex; align-items:center; gap:var(--ui-e2)}
 .receitas-vazio{padding:var(--ui-e5) var(--ui-e1)}
 
@@ -248,7 +221,6 @@ body.rec{background:transparent}
 body.rec .ui-abas{background:rgba(255,255,255,.72)}
 body.rec .ui-app{min-height:100vh; min-height:100dvh; display:flex; flex-direction:column}
 .rec-tela{padding-top:0; justify-content:flex-end; flex:1}
-.rec-nota-campo{border-color:var(--ui-vidro-escuro-borda) !important; background:var(--ui-vidro-escuro) !important}
 .rec-versao-nome{display:flex; flex-direction:column; gap:2px}
 .rec-seta{display:inline-flex; flex:none; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; transition:transform .2s ease;
   background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
@@ -266,18 +238,15 @@ body.rec .ui-app{min-height:100vh; min-height:100dvh; display:flex; flex-directi
 .rec-versoes{display:flex; flex-direction:column}
 .rec-versao{border-top:1px solid rgba(255,255,255,.15)}
 .rec-versao:first-child{border-top:0}
-.rec-versao summary{display:flex; justify-content:space-between; align-items:center; padding:var(--ui-e3) 0; list-style:none; cursor:pointer}
 .rec-versao summary::-webkit-details-marker{display:none}
 .rec-versao-corpo{display:flex; flex-direction:column; gap:var(--ui-e3); padding-bottom:var(--ui-e3)}
 .rec-versao:first-child summary{padding-top:0}
 .rec-versao:last-child .rec-versao-corpo{padding-bottom:0}
 .rec-versao:last-child:not([open]) summary{padding-bottom:0}
 .rec-nota.vazia{opacity:.6}
-.rec-nota-campo{width:100%; min-height:44px; padding:10px 12px; border-radius:var(--ui-r-pequeno); border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.12); color:#fff; font:inherit; font-size:16px}
+.rec-nota-campo{border-color:var(--ui-vidro-escuro-borda) !important; background:var(--ui-vidro-escuro) !important; width:100%; min-height:44px; padding:10px 12px; border-radius:var(--ui-r-pequeno); border:1px solid rgba(255,255,255,.3); color:#fff; font:inherit; font-size:16px}
 .rec-difs{display:flex; flex-wrap:wrap; gap:var(--ui-e1)}
 .rec-dif{font-size:var(--ui-t-sec); padding:3px 8px; border-radius:var(--ui-r-pilula); background:rgba(255,255,255,.14)}
-.rec-lotes{display:flex; flex-direction:column; gap:var(--ui-e2)}
-.rec-lote{display:flex; flex-direction:column; gap:var(--ui-e1); padding:var(--ui-e3) 0; border-top:1px solid rgba(255,255,255,.15); color:#fff; text-decoration:none}
 .rec-lote-topo{display:flex; justify-content:space-between; align-items:center}
 .rec-lote-obs{font-size:var(--ui-t-sec)}
 body.rec #preparo.rec-preparo{display:block; margin:0; width:100%; min-height:120px; border:1px solid var(--ui-vidro-escuro-borda); border-radius:var(--ui-r-medio); padding:var(--ui-e3); background:var(--ui-vidro-escuro); -webkit-backdrop-filter:blur(10px) saturate(1.4); backdrop-filter:blur(10px) saturate(1.4); color:#fff; font:inherit; font-size:16px; resize:vertical}
@@ -291,18 +260,13 @@ body.rec .rec-preparo::placeholder{color:rgba(255,255,255,.6)}
   background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda)}
 .rec-tamanhos button[aria-pressed="true"]{background:#fff; color:var(--ui-tinta); border-color:#fff}
 .rec-outro{display:flex; align-items:center; justify-content:center; gap:2px; padding:0 10px; cursor:text}
-.rec-outro input{width:100%; min-width:0; border:0; background:transparent; color:#fff; font:inherit; font-size:16px; text-align:right; padding:0}
-.rec-outro input::placeholder{color:rgba(255,255,255,.6)}
 .rec-outro input:focus{outline:none}
 .rec-total{font-weight:600}
 .rec-total span{font-weight:600}
-.rec-outro.ativo{background:#fff; border-color:#fff}
 .rec-outro.ativo, .rec-outro.ativo input{color:var(--ui-tinta)}
 
 /* ===== Calculadora ===== */
-body.calcui .calc-nome-linha{display:flex; align-items:center; gap:var(--ui-e3)}
 body.calcui .calc-nome-texto{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
-body.calcui .calc-nome-campo{width:100%; border:0; background:transparent; padding:0; font:inherit; font-size:var(--ui-t-cartao); font-weight:600; color:var(--ui-tinta); min-height:24px}
 body.calcui .calc-nome-campo:focus{outline:none}
 body.calcui .calc-nome-campo::placeholder{color:var(--ui-texto3); font-weight:500}
 body.calcui #estadoReceita .nao-salvo{color:var(--ui-atencao)}
@@ -313,19 +277,15 @@ body.calcui .resultado{margin:0}
 body.calcui .notes{gap:var(--ui-e2)}
 body.calcui .notes:empty{display:none}
 body.calcui .notes li{color:var(--ui-texto2); font-size:14px; padding-left:16px}
-body.calcui #avisoEstab{margin:0; font-size:var(--ui-t-sec)}
 /* Gráficos de intervalo */
 body.calcui .metric .name{color:var(--ui-texto2); font-size:14px; text-decoration:none}
 body.calcui .metric-valor{font-size:14px; font-weight:600}
 body.calcui .metric-valor.status-atencao{color:var(--ui-atencao)}
 body.calcui .metric-valor.status-critico{color:var(--ui-fora)}
-body.calcui .bar{height:6px; border-radius:3px; margin:var(--ui-e2) 0 26px; background:var(--ui-trilho)}
 body.calcui .metric:last-child .bar{margin-bottom:18px}
-body.calcui .bar .band{border-radius:3px; background:var(--ui-faixa)}
 body.calcui .bar .mark{top:-4px; height:14px; border-radius:2px; background:var(--ui-tinta)}
 body.calcui .bar .mark.status-atencao{background:var(--ui-atencao)}
 body.calcui .bar .mark.status-critico{background:var(--ui-fora)}
-body.calcui .bar .range-label{top:10px; font-size:var(--ui-t-rotulo); color:var(--ui-texto3)}
 body.calcui .metric-ajuda .info{background:var(--ui-vidro-claro); color:var(--ui-texto3); border:1px solid var(--ui-vidro-claro-borda)}
 /* Linhas de ingrediente */
 body.calcui #linhas{display:flex; flex-direction:column}
@@ -348,13 +308,10 @@ body.calcui .acoes-ing{display:flex; gap:var(--ui-e2); margin:0}
 body.calcui .acoes-ing #adicionar{flex:2}
 body.calcui .acoes-ing #modoExcluir{flex:1}
 body.calcui #ingredientes.modo-excluir #modoExcluir{background:var(--ui-tinta); color:#fff; border-color:var(--ui-tinta)}
-body.calcui .remover{color:var(--ui-fora)}
 /* Notas sobre o cálculo */
 body.calcui .calc-dobra summary{display:flex; justify-content:space-between; align-items:center; list-style:none; cursor:pointer}
 body.calcui .calc-dobra summary::-webkit-details-marker{display:none}
 body.calcui .calc-dobra summary h2{margin:0; font-size:var(--ui-t-cartao); font-weight:700}
-body.calcui .calc-seta{display:inline-flex; flex:none; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; transition:transform .2s ease;
-  background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda)}
 body.calcui .calc-seta svg{width:16px; height:16px; transform:rotate(-90deg)}
 body.calcui .calc-dobra[open] .calc-seta{transform:rotate(180deg)}
 body.calcui .calc-notas{display:flex; flex-direction:column; gap:var(--ui-e3); margin-top:var(--ui-e3); font-size:var(--ui-t-sec); color:var(--ui-texto2); line-height:1.45}
@@ -372,19 +329,12 @@ body.ui .escolha-item{min-height:48px; padding:0 var(--ui-e1); border:0; border-
 body.ui .escolha-grupo{font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto3)}
 /* Folha de salvar */
 body.calcui .ui-folha label.ui-sec{margin-bottom:calc(var(--ui-e3) * -1 + var(--ui-e1))}
-body.calcui .ui-folha #campoNomeNova{display:flex; flex-direction:column; gap:var(--ui-e1)}
 body.calcui .ui-folha[hidden],body.calcui .ui-veu[hidden]{display:none}
-body.calcui .calc-nome-campo{text-overflow:ellipsis; white-space:nowrap; overflow:hidden}
-.ui-cabecalho.nav h1{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.ui-cabecalho.nav h1{font-size:var(--ui-t-nav); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 body.calcui #ingredientes{padding:var(--ui-e4)}
 
 /* Escolha de capa (folha da receita): grade de degradês. */
-.capa-grade{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; flex-shrink:0}
-.capa-op{position:relative; aspect-ratio:1/1; border:0; border-radius:var(--ui-r3,12px); padding:8px;
-  background:var(--capa); display:flex; align-items:flex-end; overflow:hidden; cursor:pointer;
-  font:600 11px/1.2 var(--ui-fonte, inherit); color:#fff; text-align:left}
 .capa-op::before{content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.22))}
-.capa-op span{position:relative}
 .capa-op[aria-pressed="true"]{box-shadow:0 0 0 2px #fff, 0 0 0 4px #000}
 /* Rodapé fixo: a grade some num degradê do fundo da folha, de ponta a ponta, sem moldura. */
 .capa-rodape{position:sticky; bottom:calc(-1 * (env(safe-area-inset-bottom,0px) + 24px)); flex-shrink:0;
@@ -400,8 +350,6 @@ body.loteui .ui-tela{padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(-
 /* Seletores sobre vidro escuro: fundo de vidro, texto branco; escolhido = branco com texto escuro. */
 .rec-painel .ui-opcoes{padding:4px; border-radius:var(--ui-r-pilula); background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda)}
 .rec-painel .ui-opcoes button{color:#fff; font-size:var(--ui-t-sec); font-weight:600}
-.rec-painel .ui-opcoes button[aria-pressed="true"]{background:#fff; color:var(--ui-tinta)}
-.lote-bancada .lote-ing{font-size:var(--ui-t-destaque); line-height:1.15; letter-spacing:-.02em; overflow-wrap:anywhere}
 .lote-real{display:flex; align-items:center; gap:var(--ui-e2); height:var(--ui-h-botao); padding:0 var(--ui-e4); border-radius:var(--ui-r-medio);
   background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); cursor:text}
 .lote-real .ui-sec{flex:1}
@@ -413,7 +361,6 @@ body.loteui .ui-tela{padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(-
 .lote-linha-nome{flex:1; min-width:0}
 .lote-linha.ok .lote-linha-nome{opacity:.6}
 .lote-linha.atual .lote-linha-nome{font-weight:700}
-.lote-check{flex:none; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,.6); display:inline-flex; align-items:center; justify-content:center}
 .lote-linha.ok .lote-check{background:#fff; border-color:#fff; color:var(--ui-tinta)}
 .lote-check svg{width:14px; height:14px}
 .lote-sugestao{display:flex; flex-direction:column; gap:2px; padding:var(--ui-e2) 0}
@@ -437,16 +384,14 @@ body.loteui .ui-tela{padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(-
 .lote-progresso span.ok{background:rgba(255,255,255,.5)}
 .lote-progresso span.atual{background:#fff}
 .lote-palco{display:flex; align-items:center; gap:var(--ui-e2); min-height:168px}
-.lote-palco .ui-redondo{flex:none}
-.lote-palco .ui-redondo{background:none; border:0; -webkit-backdrop-filter:none; backdrop-filter:none; width:32px}
 .lote-palco .ui-redondo svg{width:24px; height:24px}
 .lote-palco .seta-dir svg{transform:rotate(180deg)}
 .lote-palco .ui-redondo[disabled]{opacity:.35; cursor:default}
 .lote-instrucao{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:var(--ui-e1); text-align:center}
 .lote-g{font-size:56px; line-height:1; font-weight:700; letter-spacing:-.03em}
 .lote-g small{font-size:var(--ui-t-nav); font-weight:600; letter-spacing:0}
-.lote-bancada .lote-ing{font-size:var(--ui-t-nav); font-weight:600; line-height:1.2; overflow-wrap:anywhere}
-.lote-check{cursor:pointer}
+.lote-bancada .lote-ing{letter-spacing:-.02em; font-size:var(--ui-t-nav); font-weight:600; line-height:1.2; overflow-wrap:anywhere}
+.lote-check{flex:none; width:22px; height:22px; border-radius:50%; border:1.5px solid rgba(255,255,255,.6); display:inline-flex; align-items:center; justify-content:center; cursor:pointer}
 .lote-instrucao.entra-dir{animation:lote-entra-dir .2s ease-out}
 .lote-instrucao.entra-esq{animation:lote-entra-esq .2s ease-out}
 @keyframes lote-entra-dir{from{transform:translateX(60%); opacity:0}}
@@ -458,14 +403,11 @@ body.rec .ui-app .ui-botao.preto,
 
 /* Ajustes › Personalização */
 .personaliza{display:flex; flex-direction:column; gap:var(--ui-e2)}
-.personaliza-item{display:flex; align-items:center; gap:var(--ui-e3); width:100%; padding:var(--ui-e2) 0; border:0; border-top:1px solid var(--ui-vidro-claro-borda); background:none; font:inherit; color:inherit; text-align:left; cursor:pointer}
 .personaliza-item:first-of-type{border-top:0}
-.personaliza-capa{flex:none; width:48px; height:48px; border-radius:var(--ui-r-pequeno,12px); background:var(--capa) center/cover no-repeat}
 .personaliza-nome{flex:1; display:flex; flex-direction:column; gap:2px; font-weight:600}
 .personaliza-nome .muted{font-weight:400}
-.ui-folha{font-family:var(--ui-fonte); color:var(--ui-tinta)}
 .ui-folha > .ui-botao{flex-shrink:0}
-.ui-folha h2{font-family:var(--ui-fonte)}
+.ui-folha h2{margin:0; font-size:var(--ui-t-nav); font-weight:700; font-family:var(--ui-fonte)}
 
 /* ===== Ideias ===== */
 .ideias-vazio{padding:var(--ui-e2) var(--ui-e1); margin:0}
@@ -475,12 +417,11 @@ body.rec .ui-app .ui-botao.preto,
 .ideia-botao{position:absolute !important; top:var(--ui-e4); right:var(--ui-e4); height:var(--ui-h-filtro); padding:0 14px; font-size:var(--ui-t-sec)}
 .ideia-capa{display:block; width:100%; min-height:150px; border:0; cursor:pointer}
 .ideia-form{gap:var(--ui-e2)}
-.ideia-form .ui-rotulo{margin-top:var(--ui-e2)}
 .ideia-form .ui-rotulo:first-child{margin-top:0}
 .ideia-texto{display:block; resize:vertical; font:inherit; font-size:16px}
 .ideia-form .ui-campo{background:#fff}
 /* Editor de ideia: fundo com a capa, painel de vidro escuro */
-.ideia-form .ui-rotulo{color:rgba(255,255,255,.85)}
+.ideia-form .ui-rotulo{margin-top:var(--ui-e2); color:rgba(255,255,255,.85)}
 .ideia-campo{display:block; width:100%; min-height:48px; padding:12px 14px; border-radius:var(--ui-r-medio); border:1px solid var(--ui-vidro-escuro-borda);
   background:var(--ui-vidro-escuro); color:#fff; font:inherit; font-size:16px}
 .ideia-campo::placeholder{color:rgba(255,255,255,.6)}
@@ -492,7 +433,6 @@ body.rec .ui-app .ui-botao.preto,
 .ideia-rodape{display:flex; flex-direction:column; gap:var(--ui-e3)}
 
 /* ===== Biblioteca: Estudo, Tema, Ingredientes ===== */
-.estudo-filtros{overflow-x:auto; margin:0 calc(-1 * var(--ui-margem)); padding:0 var(--ui-margem); scrollbar-width:none}
 .estudo-filtros::-webkit-scrollbar{display:none}
 .estudo-filtros .ui-filtro{flex:none; white-space:nowrap}
 .estudo-lista{display:flex; flex-direction:column; gap:var(--ui-e3)}
@@ -507,7 +447,6 @@ body.rec .ui-app .ui-botao.preto,
 .tema-texto > :last-child{margin-bottom:0}
 .tema-texto h2,.tema-texto h3{font-size:var(--ui-t-cartao); margin:var(--ui-e5) 0 var(--ui-e2)}
 .tema-texto table{width:100%; border-collapse:collapse; font-size:var(--ui-t-sec)}
-.tema-texto td,.tema-texto th{padding:6px 4px; border-bottom:1px solid var(--ui-vidro-claro-borda); text-align:left}
 .ideia-form-claro{gap:var(--ui-e2)}
 .ideia-form-claro .ui-rotulo{margin-top:var(--ui-e2)}
 .ideia-form-claro .ui-rotulo:first-child{margin-top:0}
@@ -548,10 +487,10 @@ body.rec .ui-app .ui-botao.preto,
 .ajustes-rotulo:first-child{margin-top:0}
 .ajustes-cartao{gap:var(--ui-e3)}
 .ajustes-erro{color:var(--ui-fora) !important}
-.personaliza-item{width:100%; border-left:0; border-right:0; border-bottom:0; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; align-items:center; gap:var(--ui-e3)}
+.personaliza-item{display:flex; padding:var(--ui-e2) 0; border:0; border-top:1px solid var(--ui-vidro-claro-borda); width:100%; border-left:0; border-right:0; border-bottom:0; background:none; font:inherit; color:inherit; text-align:left; cursor:pointer; align-items:center; gap:var(--ui-e3)}
 .ui-linhas .personaliza-item:first-child{border-top:0; padding-top:0}
 .ui-linhas .personaliza-item:last-child{padding-bottom:0}
-.personaliza-capa{width:40px !important; height:40px !important}
+.personaliza-capa{flex:none; border-radius:var(--ui-r-pequeno,12px); background:var(--capa) center/cover no-repeat; width:40px !important; height:40px !important}
 .personaliza-nome .ui-sec{font-weight:400}
 .rec-seta.claro{background:var(--ui-vidro-claro); border-color:var(--ui-vidro-claro-borda); color:var(--ui-tinta)}
 .toast{z-index:60 !important}
@@ -566,12 +505,10 @@ body.calcui textarea.calc-nome-campo{display:block; resize:none; overflow:hidden
 /* Calculadora: "Abrir" com texto (a pasta sozinha não dizia o que fazia) e Salvar alinhado ao topo do nome */
 body.calcui .calc-abrir{height:var(--ui-h-redondo); padding:0 14px 0 12px; gap:6px; font-size:var(--ui-t-sec)}
 body.calcui .calc-abrir svg{width:18px; height:18px}
-body.calcui .calc-nome-linha{align-items:flex-start}
+body.calcui .calc-nome-linha{display:flex; gap:var(--ui-e3); align-items:flex-start}
 /* Gráficos em degradê (cores dos degradês do app): trilho em tons claros de Framboesa → Maracujá (só indicam a direção); faixa ideal forte em Manjericão. */
-body.calcui .bar{height:10px; border-radius:5px; background:linear-gradient(90deg, #FAD0DF 0%, #FFE5B5 var(--a, 30%), #FFE5B5 var(--b, 70%), #FAD0DF 100%)}
 body.calcui .bar .band{top:0; bottom:0; border-radius:5px; background:linear-gradient(90deg, #8DCB72, #56AF38 50%, #8DCB72)}
 body.calcui .bar .mark,body.calcui .bar .mark.status-atencao,body.calcui .bar .mark.status-critico{top:-5px; width:4px; height:20px; border-radius:2px; background:#141414; box-shadow:none}
-body.calcui .bar .range-label{top:14px; color:#2F6B2A; font-weight:600}
 /* Calculadora: fundo em degradê Coco, sem o véu escuro das telas de capa */
 body.calcui{background:transparent}
 .calc-fundo::after{display:none}
@@ -606,7 +543,6 @@ body.calc-capa.calcui .campo-g,
 body.calc-capa.calcui .metric-ajuda .info,
 body.calc-capa.calcui .com-nota .info,
 body.calc-capa.calcui .calc-seta{background:var(--ui-vidro-escuro); border:1px solid var(--ui-vidro-escuro-borda); color:#fff}
-body.calc-capa.calcui .metric-valor.status-atencao{color:var(--ui-atencao)}
 body.calc-capa.calcui .metric-valor.status-critico,
 body.calc-capa.calcui .remover,
 body.calc-capa.calcui .ui-tela .ui-botao.perigo{color:var(--ui-fora)}
@@ -616,16 +552,14 @@ body.calc-capa.calcui .ui-tela .ui-botao.vidro{background:var(--ui-vidro-escuro)
 body.calc-capa.calcui #estilo .ui-filtro{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff}
 body.calc-capa.calcui #estilo .ui-filtro[aria-pressed="true"]{background:#fff; border-color:#fff; color:var(--ui-tinta)}
 body.calc-capa.calcui #ingredientes.modo-excluir #modoExcluir{background:#fff; color:var(--ui-tinta); border-color:#fff}
-body.calc-capa.calcui .ui-tela .ui-botao.vidro.perigo{color:var(--ui-fora)}
 body.calc-capa.calcui .linha,body.calc-capa.calcui .linha-total{border-top-color:rgba(255,255,255,.12)}
-body.calc-capa.calcui #avisoEstab{color:rgba(255,255,255,.78)}
 /* Trilho das barras: branco translúcido (sem o degradê pastel); a faixa ideal continua verde */
-body.calcui .bar{background:rgba(255,255,255,.85)}
+body.calcui .bar{margin:var(--ui-e2) 0 26px; height:10px; border-radius:5px; background:rgba(255,255,255,.85)}
 body.calc-capa.calcui .bar{background:rgba(255,255,255,.28)}
-body.calcui #avisoEstab{color:var(--ui-texto2)}
+body.calcui #avisoEstab{margin:0; font-size:var(--ui-t-sec); color:var(--ui-texto2)}
 body.calc-capa.calcui #avisoEstab{color:#fff}
 /* Gráfico: textos em dois níveis só — valor (principal) e nome, limites e avisos (secundário). Cor só no valor fora da faixa. */
-body.calcui .bar .range-label{color:var(--ui-texto2); font-weight:500}
+body.calcui .bar .range-label{font-size:var(--ui-t-rotulo); top:14px; color:var(--ui-texto2); font-weight:500}
 body.calcui .notes li,body.calcui #avisoEstab{color:var(--ui-texto2)}
 body.calc-capa.calcui .bar .range-label,
 body.calc-capa.calcui .metric .name,
@@ -635,15 +569,14 @@ body.calc-capa.calcui .calc-cab .ui-sec{color:rgba(255,255,255,.78)}
 /* Agulha: branca sobre a capa (no rascunho, fundo claro, continua preta para aparecer) */
 body.calc-capa.calcui .bar .mark,body.calc-capa.calcui .bar .mark.status-atencao,body.calc-capa.calcui .bar .mark.status-critico{background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3)}
 /* Sobre a capa, o vermelho do app (#AF3629) some como texto: vira fundo, com texto branco */
-body.calc-capa.calcui .metric-valor.status-critico,body.calc-capa.calcui .metric-valor.status-atencao{color:#fff; padding:1px 8px; border-radius:var(--ui-r-pilula)}
 body.calc-capa.calcui .metric-valor.status-critico{background:var(--ui-fora)}
-body.calc-capa.calcui .metric-valor.status-atencao{background:var(--ui-atencao)}
+body.calc-capa.calcui .metric-valor.status-atencao{color:var(--ui-atencao); background:var(--ui-atencao)}
 body.calc-capa.calcui .ui-tela .ui-botao.vidro.perigo{background:var(--ui-fora); border-color:var(--ui-fora); color:#fff}
 /* Sobre a capa, o botão que liga o modo de excluir fica em vidro escuro discreto (o × de cada linha é que é vermelho) */
 body.calc-capa.calcui .ui-tela #modoExcluir.ui-botao.vidro.perigo{background:var(--ui-vidro-escuro); border-color:var(--ui-vidro-escuro-borda); color:#fff}
 body.calc-capa.calcui #ingredientes.modo-excluir #modoExcluir.ui-botao.vidro.perigo{background:#fff; border-color:#fff; color:var(--ui-tinta)}
 /* Sobre a capa: valor fora da faixa fica branco com uma bolinha de status antes (como nos avisos), sem pílula */
-body.calc-capa.calcui .metric-valor.status-critico,body.calc-capa.calcui .metric-valor.status-atencao{background:none; padding:0; color:#fff; display:inline-flex; align-items:center; gap:6px}
+body.calc-capa.calcui .metric-valor.status-critico,body.calc-capa.calcui .metric-valor.status-atencao{border-radius:var(--ui-r-pilula); background:none; padding:0; color:#fff; display:inline-flex; align-items:center; gap:6px}
 body.calc-capa.calcui .metric-valor.status-critico::before,body.calc-capa.calcui .metric-valor.status-atencao::before{content:""; width:8px; height:8px; border-radius:50%}
 body.calc-capa.calcui .metric-valor.status-critico::before{background:var(--ui-fora)}
 body.calc-capa.calcui .metric-valor.status-atencao::before{background:var(--ui-atencao)}
@@ -672,14 +605,8 @@ body.calcui .notes li.status-critico::before{background:var(--ui-fora)}
 .ui-botao.confirma-perigo{background:var(--ui-fora); color:#fff}
 /* Widget da Calculadora (Home): mesmo desenho das barras da calculadora, encostado embaixo do cartão */
 .home-calc{display:flex; flex-direction:column; justify-content:space-between}
-.home-mini{margin-top:auto; gap:var(--ui-e3); padding-top:var(--ui-e3)}
-.ui-faixa.mini .trilho{height:10px; border-radius:5px; background:rgba(0,0,0,.07)}
-.ui-faixa.mini .ideal{border-radius:5px; background:linear-gradient(90deg, #8DCB72, #56AF38 50%, #8DCB72)}
-.ui-faixa.mini .traco{top:-5px; width:4px; height:20px; margin-left:-2px; border-radius:2px; background:#141414}
-.home-mini{gap:var(--ui-e4)}
-.ui-faixa.mini .trilho{height:8px; border-radius:4px}
-.ui-faixa.mini .ideal{border-radius:4px}
-.ui-faixa.mini .traco{top:-4px; height:16px; width:3px; margin-left:-1.5px}
+.ui-faixa.mini .trilho{background:rgba(0,0,0,.07); height:8px; border-radius:4px}
+.ui-faixa.mini .ideal{background:linear-gradient(90deg, #8DCB72, #56AF38 50%, #8DCB72); border-radius:4px}
 /* Barra de abas flutuante (estilo iOS): pílula branca com sombra, só ícones */
 .ui-abas,body.rec .ui-abas,body.calcui .ui-abas{left:var(--ui-margem); right:var(--ui-margem); bottom:max(8px, env(safe-area-inset-bottom,0px)); height:56px; padding:0 8px;
   border-radius:var(--ui-r-pilula); border:0; background:rgba(255,255,255,.92); align-items:center;
@@ -688,9 +615,9 @@ body.calcui .notes li.status-critico::before{background:var(--ui-fora)}
 .ui-abas a span{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 .ui-abas a svg{width:26px; height:26px}
 .ui-abas a[aria-current="page"]{color:var(--ui-tinta)}
-.ui-tela{padding-bottom:calc(var(--ui-abas) + var(--ui-e3) + max(8px, env(safe-area-inset-bottom,0px)))}
+.ui-tela{padding:0 var(--ui-margem) calc(var(--ui-abas) + var(--ui-e3) + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:var(--ui-e3); padding-bottom:calc(var(--ui-abas) + var(--ui-e3) + max(8px, env(safe-area-inset-bottom,0px)))}
 body:not(.sem-abas) .toast{bottom:calc(var(--ui-abas) + var(--ui-e3) + max(8px, env(safe-area-inset-bottom,0px)))}
-.ui-faixa.mini .traco{background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ui-faixa.mini .traco{border-radius:2px; top:-4px; height:16px; width:3px; margin-left:-1.5px; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.3)}
 /* Teste: sem contorno nos cartões e botões de vidro claro */
 /* Sem contornos também no vidro escuro (sobre capas/fotos) */
 /* Calculadora: ingredientes sem linhas divisórias */
@@ -698,13 +625,10 @@ body.calcui .linha,body.calcui .linha-total,body.calc-capa.calcui .linha,body.ca
 body.calcui .linha,body.calcui .linha-total{border-bottom:0 !important; border-top:0 !important}
 /* Sem linhas divisórias em nenhuma lista do app */
 .ui-linha,.ui-vidro-escuro .ui-linha,.rec-versao,.rec-lote,.lote-linha,.personaliza-item,.estudo-linha{border-top:0 !important; border-bottom:0 !important}
-.rec-versao summary{align-items:flex-start}
 /* Versões: o ˅ da primeira versão sobe para a linha do título "Versões" */
 .rec-painel:has(.rec-versoes){position:relative}
-.rec-versoes .rec-versao:first-child .rec-seta{position:absolute; top:10px; right:16px}
 /* Título "Versões" na mesma linha de 32px que "Modo de preparo" (mesmo respiro no topo e ˅ na mesma altura) */
 .rec-painel:has(.rec-versoes) > h2{min-height:32px; display:flex; align-items:center; margin:0}
-.rec-versoes .rec-versao:first-child .rec-seta{top:16px}
 .ui-abas a[data-aba="ideias"] svg{width:34px; height:34px}   /* o símbolo da lâmpada tem área vazia em volta: compensa o tamanho */
 /* Ícones preenchidos (SF Symbols) nos botões redondos: tamanho do iOS (~17px) */
 .ui-redondo svg[fill="currentColor"]{width:17px; height:17px}
@@ -712,15 +636,12 @@ body.calcui .linha,body.calcui .linha-total{border-bottom:0 !important; border-t
 /* Setas com o símbolo certo (chevron.down / chevron.right): sem girar o desenho; aberto gira 180° */
 .rec-seta svg,body.calcui .calc-seta svg,.estudo-seta svg,.lote-palco .seta-dir svg{transform:none}
 /* Selos de leite / vegana nos cartões de Receitas */
-.receitas-selo{flex:none; display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%;
-  background:var(--ui-vidro-escuro); color:#fff; -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque)}
 .receitas-selo svg{width:14px; height:14px}
 /* Receitas: etiquetas embaixo, lado a lado (Final/Teste + selo) */
-.receitas-cartao{display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1)}
+.receitas-cartao{min-height:200px; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--ui-e1)}
 .receitas-etiquetas{display:flex; flex-wrap:wrap; gap:var(--ui-e2); margin-top:var(--ui-e2)}
-.receitas-selo{width:auto; height:auto; border-radius:var(--ui-r-pilula); display:inline-flex; align-items:center; gap:5px; background:var(--ui-vidro-escuro)}
 .receitas-selo svg{width:auto; height:13px}
-.receitas-selo{background:var(--ui-vidro-escuro); -webkit-backdrop-filter:none; backdrop-filter:none}
+.receitas-selo{flex:none; justify-content:center; color:#fff; width:auto; height:auto; border-radius:var(--ui-r-pilula); display:inline-flex; align-items:center; gap:5px; background:var(--ui-vidro-escuro); -webkit-backdrop-filter:none; backdrop-filter:none}
 /* Desfoque em tudo que é vidro escuro pequeno sobre capa/foto (etiquetas, pílulas, seletores, botões) */
 .ui-etiqueta:not(.final),.receitas-selo,.rec-tamanhos button,.rec-outro,.lote-chips button,.rec-painel .ui-opcoes,
 .ui-botao.vidro-escuro,.ui-redondo.escuro,.rec-seta,.home-avaliar-botao,
@@ -731,16 +652,14 @@ body.calc-capa.calcui #estilo .ui-filtro,body.calc-capa.calcui .campo-g,body.cal
 .ui-botao,.ui-redondo,.ui-filtro,.rec-tamanhos button,.rec-outro,.lote-chips button,.calc-abrir{box-shadow:var(--ui-sombra-botao)}
 .ui-redondo[disabled],.lote-palco .ui-redondo{box-shadow:none}
 /* Fileira de filtros que rola: espaço extra em cima/embaixo para a sombra não ser cortada */
-.estudo-filtros{padding:6px var(--ui-margem) 12px; margin:-6px calc(-1 * var(--ui-margem)) -12px}
 /* Sombra única do app: cartões, blocos com degradê, botões, filtros e barra de abas usam a mesma */
 .ui-abas,body.rec .ui-abas,body.calcui .ui-abas{box-shadow:var(--ui-sombra)}
 /* Faixa de capas que rola (Home): espaço para a sombra não ser cortada */
-.ui-rolagem{padding-top:6px; padding-bottom:14px; margin-top:-6px; margin-bottom:-14px}
+.ui-rolagem{display:flex; gap:var(--ui-e3); overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin:0 calc(var(--ui-e4) * -1); padding:0 var(--ui-e4); scroll-snap-type:x proximity; scroll-padding-inline:var(--ui-e4); padding-top:6px; padding-bottom:14px; margin-top:-6px; margin-bottom:-14px}
 /* Teste: brilho nas bordas do vidro (estilo iOS 26/27) — luz no alto e reflexo fraco embaixo, por dentro */
 .ui-vidro,.ui-vidro-escuro,.ui-botao.vidro,.ui-botao.vidro-escuro,.ui-redondo,.ui-filtro,.calc-abrir,.rec-tamanhos button,.rec-outro,.lote-chips button,
 .ui-abas,body.rec .ui-abas,body.calcui .ui-abas{box-shadow:var(--ui-brilho), var(--ui-sombra)}
 .ui-etiqueta:not(.final),.rec-seta,.campo-g,.rec-painel .ui-opcoes{box-shadow:var(--ui-brilho)}
-.lote-palco .ui-redondo{box-shadow:none}
 /* Brilho de borda nos elementos brancos (botão principal sobre capa, etiqueta Final, selecionados brancos):
    luz no alto e uma sombra interna leve embaixo, para dar volume no branco */
 body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui .ui-tela .ui-botao.preto,body.calc-capa .calc-nome .ui-botao.preto,
@@ -749,10 +668,9 @@ body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui
 /* Brilho de borda também nos cartões com degradê/foto e nos menus (barra de abas, menu Abrir, folhas) */
 .ui-bloco,.receitas-cartao,.ideia-cartao,.ing-bloco,.tema-bloco,.ref-cartao{box-shadow:var(--ui-brilho), var(--ui-sombra)}
 .ui-abas,body.rec .ui-abas,body.calcui .ui-abas,body.calcui .menu-lista{box-shadow:var(--ui-brilho-branco), var(--ui-sombra)}
-.ui-folha{box-shadow:inset 0 1px 1px rgba(255,255,255,1), 0 -4px 24px rgba(0,0,0,.08)}
 /* ˅ da Calculadora igual ao das outras telas: ícone 12px e brilho de borda */
 body.calcui .calc-seta svg{width:12px; height:12px}
-body.calcui .calc-seta{box-shadow:var(--ui-brilho)}
+body.calcui .calc-seta{display:inline-flex; flex:none; width:32px; height:32px; border-radius:50%; align-items:center; justify-content:center; transition:transform .2s ease; background:var(--ui-vidro-claro); border:1px solid var(--ui-vidro-claro-borda); box-shadow:var(--ui-brilho)}
 /* Vidro dentro de vidro (estilo iOS): controles dentro de painéis de vidro escuro ficam mais claros (branco translúcido), não mais escuros */
 .ui-vidro-escuro .ui-botao.vidro-escuro,.ui-vidro-escuro .ui-botao.vidro,.ui-vidro-escuro .ui-etiqueta:not(.final),.ui-vidro-escuro .rec-seta,
 .ui-vidro-escuro .rec-tamanhos button:not([aria-pressed="true"]),.ui-vidro-escuro .rec-outro,.ui-vidro-escuro .lote-chips button:not([aria-pressed="true"]),
@@ -790,17 +708,15 @@ body.calc-capa.calcui .calc-abrir,body.calc-capa.calcui #estilo .ui-filtro:not([
 @media (prefers-reduced-motion: reduce){.abas-indicador,.ui-abas a svg{transition:none}}
 
 /* Folhas: ✕ redondo no canto superior direito no lugar do botão "Fechar" */
-.ui-folha{position:fixed}
 .ui-folha .folha-fechar{position:absolute; top:12px; right:16px; width:32px; height:32px; background:var(--ui-vidro-claro); box-shadow:none}
 .ui-folha .folha-fechar svg{width:12px !important; height:12px !important}
 .ui-folha > h2{padding-right:40px}
 .ui-folha #fechar,.ui-folha #fechaAjustes,.ui-folha .capa-rodape{display:none !important}
-.ui-folha .puxador{cursor:grab; touch-action:none}
+.ui-folha .puxador{align-self:center; width:36px; height:5px; border-radius:3px; background:var(--ui-trilho); cursor:grab; touch-action:none}
 
 /* Seletor de capa: 4 por linha; 1º quadro = enviar foto */
-.capa-grade{grid-template-columns:repeat(4,1fr); gap:8px}
-.capa-op{padding:6px; font-size:10px}
-.capa-op span{line-height:1.15}
+.capa-grade{display:grid; flex-shrink:0; grid-template-columns:repeat(4,1fr); gap:8px}
+.capa-op span{position:relative; line-height:1.15}
 .capa-enviar{background:var(--ui-vidro-claro); color:var(--ui-tinta); flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center}
 .capa-enviar::before{display:none}
 .capa-enviar svg{width:22px; height:22px}
@@ -824,34 +740,27 @@ body.calc-capa.calcui .ui-tela .ui-cartao .campo-g,body.calc-capa.calcui .ui-tel
 body.calc-capa.calcui .ui-tela .ui-cartao .ui-botao.vidro,body.calc-capa.calcui .ui-tela .ui-cartao .ui-botao.vidro-escuro,
 body.calc-capa.calcui .ui-tela .ui-cartao #modoExcluir.ui-botao.vidro.perigo{background:var(--ui-vidro-interno-painel) !important}
 /* Brilho mais suave nos elementos escuros sólidos (filtro escolhido, botão preto): o branco forte ficava exagerado no preto */
-.ui-filtro[aria-pressed="true"],.ui-botao.preto,.ui-opcoes button[aria-pressed="true"]{box-shadow:var(--ui-brilho-escuro), var(--ui-sombra)}
 body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui .ui-tela .ui-botao.preto,body.calc-capa .calc-nome .ui-botao.preto,
 body.calc-capa.calcui #estilo .ui-filtro[aria-pressed="true"]{box-shadow:var(--ui-brilho-branco), var(--ui-sombra)}
-.rec-painel .ui-opcoes button[aria-pressed="true"]{box-shadow:var(--ui-brilho-branco)}
+.rec-painel .ui-opcoes button[aria-pressed="true"]{background:#fff; color:var(--ui-tinta); box-shadow:var(--ui-brilho-branco)}
 .nova-ideia .ui-rotulo{margin-bottom:-6px; color:var(--ui-texto2)}
 .nova-ideia .ideia-capa-bt{background:var(--ui-vidro-claro) !important; color:var(--ui-tinta)}
 /* Folhas: botões de ação (Cancelar / Salvar) sempre embaixo, lado a lado */
-.ui-folha .acoes{order:99; display:flex; gap:var(--ui-e2); margin-top:var(--ui-e1)}
 .ui-folha .acoes > *{flex:1}
 /* Nome do rascunho com lápis ao lado */
-body.calcui .calc-nome-edita{display:flex; align-items:flex-start; gap:6px}
-body.calcui .calc-nome-edita .calc-nome-campo{flex:0 1 auto; width:auto; min-width:40px; field-sizing:content}
 .calc-lapis{flex:none; display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; padding:0; border:0; background:none; color:rgba(255,255,255,.8); cursor:pointer}
 .calc-lapis svg{width:14px; height:14px}
 .calc-lapis[hidden]{display:none}
-.calc-nome-medida{position:absolute; visibility:hidden; white-space:pre; font-size:var(--ui-t-cartao); font-weight:600; pointer-events:none}
-body.calcui .calc-nome-edita{position:relative}
-body.calcui .calc-nome-edita .calc-nome-campo{field-sizing:fixed}
+body.calcui .calc-nome-edita .calc-nome-campo{flex:0 1 auto; width:auto; min-width:40px; field-sizing:fixed}
 /* Folhas: espaçamento padronizado — 16px entre blocos, 8px do rótulo até o campo */
-.ui-folha{gap:var(--ui-e4)}
+.ui-folha{left:0; right:0; bottom:0; z-index:41; max-height:92vh; overflow:auto; display:flex; flex-direction:column; padding:10px 20px calc(env(safe-area-inset-bottom,0px) + 24px); border-radius:32px 32px 0 0; background:rgba(255,255,255,.9); border-top:1px solid rgba(255,255,255,.9); -webkit-backdrop-filter:blur(10px) saturate(1.4); backdrop-filter:blur(10px) saturate(1.4); animation:ui-sobe .28s cubic-bezier(.2,.8,.2,1); font-family:var(--ui-fonte); color:var(--ui-tinta); box-shadow:inset 0 1px 1px rgba(255,255,255,1), 0 -4px 24px rgba(0,0,0,.08); position:fixed; gap:var(--ui-e4)}
 body.calcui .ui-folha label.ui-sec,.ui-folha > label.ui-sec,.ui-folha > .ui-rotulo{margin:0 0 calc(var(--ui-e2) - var(--ui-e4))}
-body.calcui .ui-folha #campoNomeNova{gap:var(--ui-e2)}
 body.calcui .ui-folha #campoNomeNova label.ui-sec{margin:0}
-.ui-folha .acoes{margin-top:0}
-body.calcui .ui-folha #campoNomeNova{margin:0}
+.ui-folha .acoes{justify-content:space-between; align-items:center; order:99; display:flex; gap:var(--ui-e2); margin-top:0}
+body.calcui .ui-folha #campoNomeNova{display:flex; flex-direction:column; gap:var(--ui-e2); margin:0}
 /* O medidor do nome não pode alargar a página */
-.calc-nome-medida{left:0; top:0; max-width:none}
-body.calcui .calc-nome-edita{overflow:hidden}
+.calc-nome-medida{position:absolute; visibility:hidden; white-space:pre; font-size:var(--ui-t-cartao); font-weight:600; pointer-events:none; left:0; top:0; max-width:none}
+body.calcui .calc-nome-edita{display:flex; align-items:flex-start; gap:6px; position:relative; overflow:hidden}
 /* Regra: elementos dentro de cartões/painéis não têm brilho de borda (só os que ficam soltos na tela) */
 :is(.ui-cartao,.ui-bloco,.rec-painel) :is(.ui-botao,.ui-redondo,.ui-filtro,.rec-tamanhos button,.rec-outro,.lote-chips button,.calc-abrir){box-shadow:var(--ui-sombra) !important}
 :is(.ui-cartao,.ui-bloco,.rec-painel) :is(.ui-etiqueta,.receitas-selo,.rec-seta,.calc-seta,.campo-g,.ui-opcoes,.ui-opcoes button,.info){box-shadow:none !important}
@@ -870,7 +779,7 @@ body.calcui .bar,.ui-faixa.mini .trilho{box-shadow:var(--ui-sombra)}
 .ui-cartao .ui-campo,.ui-cartao .campo-branco,.ui-cartao .ing-num,.ui-folha .ui-campo{background:var(--ui-vidro-claro) !important}
 .ui-vidro-escuro :is(.ideia-campo,.lote-obs-campo,.rec-nota-campo,.rec-outro,textarea,input),body.rec #preparo.rec-preparo,
 body.calc-capa.calcui .ui-tela .ui-cartao :is(.campo-g,textarea,input:not([type=checkbox])){background:var(--ui-vidro-interno-painel) !important}
-body.calcui .calc-nome-campo{background:transparent !important}
+body.calcui .calc-nome-campo{width:100%; border:0; padding:0; font:inherit; font-size:var(--ui-t-cartao); font-weight:600; color:var(--ui-tinta); min-height:24px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; background:transparent !important}
 /* Vidro sobre capa = tom claro da própria capa (--ui-tom, definido por tela/cartão); sem capa, cai no branco translúcido */
 *{--ui-vidro-interno:var(--ui-tom, rgba(255,255,255,.16)); --ui-vidro-interno-painel:var(--ui-tom, rgba(255,255,255,.24))}
 body.calc-capa.calcui .ui-tela .ui-cartao .calc-nome-campo,body.calc-capa.calcui .ui-tela .ui-cartao .campo-g input{background:transparent !important}
@@ -881,21 +790,18 @@ body.calcui .ui-tela .calc-nome .calc-nome-edita textarea.calc-nome-campo{backgr
 body.rec .ui-app .ui-botao.preto,.ui-bloco .ui-botao.preto,body.calc-capa.calcui .ui-tela .ui-botao.preto,body.calc-capa .calc-nome .ui-botao.preto{box-shadow:var(--ui-sombra) !important}
 /* Seletores com pílula deslizante */
 .ui-filtros,.ui-opcoes{position:relative}
-.seletor-ind{position:absolute; left:0; top:0; border-radius:var(--ui-r-pilula); pointer-events:none; z-index:0; box-shadow:var(--ui-sombra);
-  transition:transform .42s cubic-bezier(.3,1.4,.5,1), width .42s cubic-bezier(.3,1.4,.5,1), height .42s ease}
 .tem-ind > :not(.seletor-ind){position:relative; z-index:1}
 .tem-ind > [aria-pressed="true"]{background:transparent !important; box-shadow:none !important; border-color:transparent !important}
 @media (prefers-reduced-motion: reduce){.seletor-ind{transition:none}}
 /* Cor da pílula deslizante por contexto: preta no fundo claro; branca sobre capa/painel escuro */
-.seletor-ind{background:var(--ui-tinta)}
+.seletor-ind{position:absolute; left:0; top:0; border-radius:var(--ui-r-pilula); pointer-events:none; z-index:0; box-shadow:var(--ui-sombra); transition:transform .42s cubic-bezier(.3,1.4,.5,1), width .42s cubic-bezier(.3,1.4,.5,1), height .42s ease; background:var(--ui-tinta)}
 :is(body.calc-capa,body.rec) .seletor-ind,.rec-painel .seletor-ind,.ui-vidro-escuro .seletor-ind{background:#fff}
 body .ui-folha .seletor-ind{background:var(--ui-tinta) !important}
 .ui-folha .ideia-capa-bt{background:var(--ui-vidro-claro) !important; color:var(--ui-tinta)}
 /* Temas do Estudo: um por linha, cartões finos */
-.temas-lista{display:flex; flex-direction:column; gap:var(--ui-e2)}
 .temas-lista .tema-bloco{min-height:64px; justify-content:center; padding:var(--ui-e3) var(--ui-e4)}
 .temas-lista .tema-bloco .titulo{font-size:var(--ui-t-cartao) !important}
-.temas-lista{gap:var(--ui-e3)}
+.temas-lista{display:flex; flex-direction:column; gap:var(--ui-e3)}
 /* Seções do Estudo sobre a capa da seção: cabeçalho branco, busca e temas em vidro */
 body.est-capa{background:transparent}
 body.est-capa .ui-cabecalho h1,body.est-capa .estudo-desc,body.est-capa .ing-sec{color:#fff}
@@ -903,8 +809,6 @@ body.est-capa .estudo-desc{color:rgba(255,255,255,.85)}
 body.est-capa #buscaEstudo{background:var(--ui-tom, rgba(255,255,255,.24)) !important; color:#fff; box-shadow:none}
 body.est-capa #buscaEstudo::placeholder{color:rgba(255,255,255,.75)}
 body.est-capa .ui-redondo.escuro{box-shadow:var(--ui-sombra) !important}
-body.est-capa .temas-lista .tema-bloco{background:var(--ui-vidro-escuro) !important; box-shadow:var(--ui-sombra) !important}
-body.est-capa .temas-lista .tema-bloco::before{display:none}
 body.est-capa .ui-cartao.ui-vidro{background:var(--ui-vidro-escuro); color:#fff}
 body.est-capa .ui-cartao.ui-vidro .ui-sec,body.est-capa .estudo-cab .ui-sec{color:rgba(255,255,255,.8)}
 body.est-capa .estudo-linha{color:#fff}
@@ -917,21 +821,19 @@ body.est-capa .tema-texto{color:#fff}
 body.est-capa .tema-texto td,body.est-capa .tema-texto th{border-bottom-color:rgba(255,255,255,.18)}
 body.est-capa .tema-texto a{color:#fff; text-decoration:underline}
 body.est-capa .tema-texto table,body.est-capa .tema-texto th{background:transparent !important; color:#fff}
-body.est-capa .tema-texto .tabela-rolagem{background:var(--ui-tom, rgba(255,255,255,.16)) !important; border-color:transparent !important}
 body.est-capa .tema-texto .tabela-rolagem *{color:#fff}
 body.est-capa .tema-texto td,body.est-capa .tema-texto th,body.est-capa .tema-texto tr{border:0 !important}
 /* Tabela = mesmo vidro das etiquetas (tom da capa + desfoque + sombra) */
-body.est-capa .tema-texto .tabela-rolagem{-webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque); box-shadow:var(--ui-sombra); border-radius:var(--ui-r-medio)}
+body.est-capa .tema-texto .tabela-rolagem{background:var(--ui-tom, rgba(255,255,255,.16)) !important; border-color:transparent !important; -webkit-backdrop-filter:var(--ui-desfoque); backdrop-filter:var(--ui-desfoque); box-shadow:var(--ui-sombra); border-radius:var(--ui-r-medio)}
 /* Tabelas do Estudo: respiro de 12px nas laterais, 8px por linha, valores à direita */
 .tema-texto .tabela-rolagem{padding:var(--ui-e2) var(--ui-e3); margin:var(--ui-e1) 0 var(--ui-e4)}
-.tema-texto td,.tema-texto th{padding:var(--ui-e2) var(--ui-e1) !important; font-size:var(--ui-t-sec)}
+.tema-texto td,.tema-texto th{border-bottom:1px solid var(--ui-vidro-claro-borda); text-align:left; padding:var(--ui-e2) var(--ui-e1) !important; font-size:var(--ui-t-sec)}
 .tema-texto th{font-weight:600}
 .tema-texto td:last-child,.tema-texto th:last-child{text-align:right}
 /* Seletor de capa: títulos de seção (Fotos / Degradês) ocupando a linha toda */
 .capa-sec{grid-column:1/-1; font-size:var(--ui-t-rotulo); font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--ui-texto2); margin-top:var(--ui-e2)}
 .capa-sec:first-child{margin-top:0}
-.capa-op{background-size:cover !important; background-position:center !important}
-
+.capa-op{position:relative; aspect-ratio:1/1; border:0; border-radius:var(--ui-r3,12px); background:var(--capa); display:flex; align-items:flex-end; overflow:hidden; cursor:pointer; font:600 11px/1.2 var(--ui-fonte, inherit); color:#fff; text-align:left; padding:6px; font-size:10px; background-size:cover !important; background-position:center !important}
 
 /* App instalado (barra de status transparente): no iOS, páginas mais curtas que a tela deslocavam
    os elementos fixos (barra de abas e fundo de capa). Toda página ocupa pelo menos a tela inteira. */
@@ -940,7 +842,6 @@ body{min-height:100%}
 /* Ícones das abas: sem corte nas bordas do desenho */
 .ui-abas a svg{overflow:visible}
 /* Fileira de filtros: espaço maior embaixo para a sombra não ser cortada */
-.estudo-filtros{padding-bottom:20px; margin-bottom:-20px}
 
 /* ===== Transição de telas (estilo iOS) ===== */
 .ui-abas{view-transition-name:abas}
@@ -961,25 +862,18 @@ html[data-nav="aba"]::view-transition-old(root),html[data-nav="aba"]::view-trans
 /* Zoom cartão → tela: o fundo cresce a partir do cartão; o resto da tela esmaece */
 html[data-nav="zoom"]::view-transition-old(root){animation:vt-some .3s ease both}
 html[data-nav="zoom"]::view-transition-new(root){animation:vt-esmaece .3s ease .08s both}
-::view-transition-group(zoom){animation-duration:.45s; animation-timing-function:cubic-bezier(.2,.9,.25,1); z-index:3}
 ::view-transition-old(zoom),::view-transition-new(zoom){height:100%; width:100%; object-fit:cover}
 @keyframes vt-some{to{opacity:0}}
 /* Barra de abas sempre por cima do zoom */
 ::view-transition-group(abas){z-index:10}
 /* Após o zoom: cartões/painéis sobem da base até a posição, um depois do outro */
-#tela.sobe .ui-tela > *{animation:vt-sobe .55s cubic-bezier(.2,.9,.25,1) both}
-#tela.sobe .ui-tela > :nth-child(1){animation-delay:.12s}
-#tela.sobe .ui-tela > :nth-child(2){animation-delay:.18s}
-#tela.sobe .ui-tela > :nth-child(3){animation-delay:.24s}
-#tela.sobe .ui-tela > :nth-child(4){animation-delay:.30s}
-#tela.sobe .ui-tela > :nth-child(n+5){animation-delay:.36s}
 @media (prefers-reduced-motion: reduce){#tela.sobe .ui-tela > *{animation:none}}
 /* Suavidade: sem filtro nas telas que deslizam (pesado no iPhone), animações só de posição/opacidade */
 @keyframes vt-recua-esq{to{transform:translate3d(-30%,0,0); opacity:.85}}
 @keyframes vt-volta-esq{from{transform:translate3d(-30%,0,0); opacity:.85}}
 @keyframes vt-entra-dir{from{transform:translate3d(100%,0,0)}}
 @keyframes vt-sai-dir{to{transform:translate3d(100%,0,0)}}
-::view-transition-group(zoom){animation-duration:.4s}
+::view-transition-group(zoom){animation-timing-function:cubic-bezier(.2,.9,.25,1); z-index:3; animation-duration:.4s}
 #tela.prepara .ui-tela > *{opacity:0}
 #tela.sobe .ui-tela > *{will-change:transform,opacity; animation:vt-sobe .45s cubic-bezier(.2,.9,.25,1) both}
 #tela.sobe .ui-tela > :nth-child(1){animation-delay:0s}
@@ -999,7 +893,7 @@ body:has(#tela.arrastando){background:#d9d9d6}
 /* Home: etiqueta Final/Teste no canto dos cartões de receita */
 .home-capa .ui-etiqueta{position:absolute; top:8px; left:8px; z-index:1}
 /* Cabeçalho fixo no topo ao rolar, com blur em degradê atrás (mais forte em cima, some embaixo) */
-.ui-cabecalho{position:sticky; top:0; z-index:30; isolation:isolate}
+.ui-cabecalho{display:flex; align-items:flex-end; gap:var(--ui-e2); padding:calc(env(safe-area-inset-top,0px) + var(--ui-e2)) var(--ui-margem) var(--ui-e4); position:sticky; top:0; z-index:30; isolation:isolate}
 .ui-cabecalho::before{content:""; position:absolute; inset:0 0 -8px 0; z-index:-1; pointer-events:none;
   -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
   background:linear-gradient(180deg,color-mix(in srgb,var(--ui-fundo, #fff) 55%,transparent),transparent);
@@ -1011,15 +905,15 @@ body:has(#tela.arrastando){background:#d9d9d6}
 /* Home compacta: tudo cabe na tela; o Estudo estica para preencher o que sobra */
 .home-tela.com-avaliar{min-height:calc(100dvh - 64px - env(safe-area-inset-top,0px)); box-sizing:border-box}
 .home-avaliar{min-height:0; padding-top:calc(var(--ui-e3) + var(--ui-h-botao) + var(--ui-e2)); padding-bottom:var(--ui-e3)}
-.home-avaliar-rotulo{top:calc(var(--ui-e3) + (var(--ui-h-botao) - 14px) / 2)}
-.home-avaliar-botao{top:var(--ui-e3)}
-.home-avaliar-nome{font-size:var(--ui-t-cartao) !important; -webkit-line-clamp:1}
+.home-avaliar-rotulo{position:absolute; left:var(--ui-e4); top:calc(var(--ui-e3) + (var(--ui-h-botao) - 14px) / 2)}
+.home-avaliar-botao{position:absolute; right:var(--ui-e4); top:var(--ui-e3)}
+.home-avaliar-nome{display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; font-size:var(--ui-t-cartao) !important; -webkit-line-clamp:1}
 .home-avaliar-faixa > .home-avaliar{flex:none; width:calc(100% - 28px)}
 .home-calc,.home-ideias{padding-top:var(--ui-e3); padding-bottom:var(--ui-e3)}
 .home-ideias{gap:0}
-.home-numero{font-size:calc(var(--ui-t-destaque) * .8)}
-.home-mini{gap:var(--ui-e2) !important; padding-top:var(--ui-e2)}
-.home-ingredientes{min-height:64px}
+.home-numero{font-weight:700; line-height:1.1; font-size:calc(var(--ui-t-destaque) * .8)}
+.home-mini{display:flex; flex-direction:column; margin-top:auto; gap:var(--ui-e2) !important; padding-top:var(--ui-e2)}
+.home-ingredientes{flex:1; min-height:64px}
 .home-estudo{min-height:96px}
 /* Com avaliação: o espaço que sobra vai para a linha Calculadora/Ideias/Ingredientes, não só para o Estudo */
 .home-tela.com-avaliar .home-par{flex:1}
@@ -1035,25 +929,21 @@ html[data-nav] .ui-cabecalho::before{display:none}
 body.calc-capa #tela *:not(.menu-lista):not(.ui-cartao){-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
 /* Estudo: cartões de tema iguais aos cartões da Calculadora (vidro com brilho nas bordas, sem véu) */
 body.est-capa .temas-lista .tema-bloco::before{display:none !important}
-body.est-capa .temas-lista .tema-bloco{border:1px solid transparent; border-radius:24px; box-shadow:var(--ui-brilho), var(--ui-sombra) !important}
 /* App instalado no iPhone (teste): a página em si não rola; quem rola é o <body>, um pouco mais alto que a tela.
    Assim o iOS usa a tela inteira (barra de abas no lugar) e não sobra rolagem extra. */
 html.instalado{height:100%; overflow:hidden}
-html.instalado body{height:calc(100vh + env(safe-area-inset-top,0px)); min-height:0; overflow-y:auto; overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch}
 /* App instalado: o <body> é mais alto que a tela (altura da barra de status); a folga embaixo garante que o fim do conteúdo suba acima da barra de abas */
-html.instalado body{box-sizing:border-box; padding-bottom:env(safe-area-inset-top,0px)}
+html.instalado body{height:calc(100vh + env(safe-area-inset-top,0px)); min-height:0; overflow-y:auto; overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch; box-sizing:border-box; padding-bottom:env(safe-area-inset-top,0px)}
 /* Calculadora com capa: barras dos gráficos sem sombra (no iPhone a sombra aparecia como uma linha clara embaixo de algumas barras) */
 body.calc-capa .bar{box-shadow:none !important}
 /* Faixa de categorias: rolagem horizontal própria, sem disputar o gesto com a página */
-.estudo-filtros{-webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x pan-y; transform:translateZ(0)}
+.estudo-filtros{overflow-x:auto; scrollbar-width:none; padding:6px var(--ui-margem) 12px; margin:-6px calc(-1 * var(--ui-margem)) -12px; padding-bottom:20px; margin-bottom:-20px; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x pan-y; transform:translateZ(0)}
 .ing-cats{flex-wrap:wrap; row-gap:var(--ui-e2)}
 /* Faixa dentro do cabeçalho vai até as bordas da tela (compensa a margem negativa) */
 .ui-cabecalho.com-extras > .estudo-filtros{flex-basis:calc(100% + 2 * var(--ui-margem)); max-width:none}
 /* Abas da receita: os cartões dentro de cada aba mantêm o espaçamento da página */
 .rec-aba{display:flex; flex-direction:column; gap:var(--ui-e3)}
 .rec-aba[hidden]{display:none}
-.rec-versao summary .rec-vmenu{margin-left:auto; margin-right:8px; border:0; padding:0; cursor:pointer; color:inherit; font:inherit}
-.rec-versao summary .rec-vmenu + .rec-seta{margin-left:0}
 .rec-versao[open] .rec-vmenu{transform:none}
 .rec-acoes > .ui-botao{flex:1}
 .rec-vmenu svg{transform:none !important}
@@ -1065,15 +955,14 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-status{display:flex; flex-direction:column; gap:var(--ui-e2)}
 .rec-status-txt{margin:0; font-size:var(--ui-t-sec); color:rgba(255,255,255,.85)}
 .rec-outro:not(.ativo){border-style:dashed !important}
-.rec-outro input::placeholder{color:rgba(255,255,255,.75)}
 /* Campo "Outro": mesma fonte dos botões de tamanho; vazio = só "Outro" centralizado e mais claro, sem o "g" */
 /* 16px evita o zoom do iPhone ao tocar; a escala deixa o texto do tamanho dos botões (13px) */
-.rec-outro input{font-size:16px; font-weight:600; width:123%; margin:0 -11.5%; transform:scale(.8125)}
+.rec-outro input{min-width:0; border:0; background:transparent; color:#fff; font:inherit; text-align:right; padding:0; font-size:16px; font-weight:600; width:123%; margin:0 -11.5%; transform:scale(.8125)}
 .rec-outro input::placeholder{color:rgba(255,255,255,.55); font-weight:600}
 .rec-outro:has(input:placeholder-shown) span{display:none}
 .rec-outro:has(input:placeholder-shown) input{text-align:center}
 .ui-vidro-escuro .rec-outro.ativo{background:#fff !important; border-color:#fff !important; border-style:solid !important}
-.lote-palco .ui-redondo{width:var(--ui-h-redondo); height:var(--ui-h-redondo)}
+.lote-palco .ui-redondo{flex:none; background:none; border:0; -webkit-backdrop-filter:none; backdrop-filter:none; box-shadow:none; width:var(--ui-h-redondo); height:var(--ui-h-redondo)}
 /* Modo de preparo em etapas */
 .rec-passos-ed{list-style:none; counter-reset:passo; margin:0 0 var(--ui-e2); padding:0; display:flex; flex-direction:column; gap:var(--ui-e2)}
 .rec-passos-ed li{counter-increment:passo; display:flex; align-items:flex-start; gap:var(--ui-e2)}
@@ -1090,24 +979,22 @@ body.calc-capa .bar{box-shadow:none !important}
 .lote-fim .lote-instrucao{gap:var(--ui-e3)}
 .lote-fim .ui-botao{padding:0 28px}
 /* Outro tamanho escolhido: número e "g" juntos no centro, como "500 g" */
-.rec-outro.ativo{justify-content:center; gap:3px}
+.rec-outro.ativo{background:#fff; border-color:#fff; justify-content:center; gap:3px}
 .rec-outro.ativo input{flex:none; margin:0; transform-origin:right center; text-align:right}
 .lote-fim-acoes{display:flex; gap:var(--ui-e2); justify-content:center; flex-wrap:wrap}
 #modoExcluir.concluir{background:#fff !important; border-color:#fff !important; color:var(--ui-tinta) !important}
 /* Versões separadas por uma linha; cada lote num subcartão */
 .rec-versoes > .rec-versao + .rec-versao,.rec-versoes > .rec-versao + .rec-testes{border-top:1px solid rgba(255,255,255,.28) !important}
-.rec-lote{border:1px solid rgba(255,255,255,.18) !important}
 .rec-lotes{display:flex; flex-direction:column; gap:var(--ui-e2)}
-.rec-lote{display:flex; flex-direction:column; gap:4px; padding:12px 14px !important; border-radius:16px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); text-decoration:none; color:inherit}
+.rec-lote{border-top:1px solid rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.18) !important; display:flex; flex-direction:column; gap:4px; padding:12px 14px !important; border-radius:16px; background:rgba(255,255,255,.12); text-decoration:none; color:inherit}
 .ing-medida{margin-bottom:var(--ui-e2)}
 /* Cada versão com seu próprio ⋯ e seta na própria linha (sem subir para o título) */
-.rec-versoes .rec-versao:first-child .rec-seta{position:static !important}
-.rec-versao summary{align-items:center !important}
+.rec-versoes .rec-versao:first-child .rec-seta{right:16px; top:16px; position:static !important}
 .rec-versao summary .rec-vmenu + .rec-seta{margin-left:0}
 .rec-versao summary .rec-seta:not(.rec-vmenu){margin-left:auto}
-.rec-versao summary .rec-vmenu{margin-left:auto}
+.rec-versao summary .rec-vmenu{margin-right:8px; border:0; padding:0; cursor:pointer; color:inherit; font:inherit; margin-left:auto}
 .rec-versao[open] summary .rec-vmenu + .rec-seta{margin-left:0 !important}
-.rec-versao summary{justify-content:flex-start !important; gap:8px}
+.rec-versao summary{display:flex; padding:var(--ui-e3) 0; list-style:none; cursor:pointer; align-items:center !important; justify-content:flex-start !important; gap:8px}
 .rec-versao summary .rec-versao-nome{flex:1; min-width:0}
 
 /* Desfoque em degradê na base da tela, atrás da barra de abas (igual ao do cabeçalho, invertido) */
@@ -1119,7 +1006,7 @@ body.ui::after{content:""; position:fixed; left:0; right:0; bottom:0; z-index:19
 :is(body.calc-capa,body.rec,body.est-capa)::after{background:none}
 body.loteui::after{display:none}
 /* Cartões da lista de temas com o mesmo vidro dos cartões da página do tema (desfoque + saturação) */
-body.est-capa .temas-lista .tema-bloco{-webkit-backdrop-filter:var(--ui-desfoque) !important; backdrop-filter:var(--ui-desfoque) !important}
+body.est-capa .temas-lista .tema-bloco{background:var(--ui-vidro-escuro) !important; border:1px solid transparent; border-radius:24px; box-shadow:var(--ui-brilho), var(--ui-sombra) !important; -webkit-backdrop-filter:var(--ui-desfoque) !important; backdrop-filter:var(--ui-desfoque) !important}
 /* PADRÃO de subida das telas: vidro (backdrop-filter) nunca dentro de um invólucro animado.
    Um vidro dentro de algo que está animando (transform/opacity) só desfoca o próprio invólucro (vazio) e aparece cinza.
    Então: invólucro que não é vidro mas contém vidro fica parado, e os vidros de dentro (os de primeiro nível)
