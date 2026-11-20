@@ -1165,3 +1165,15 @@ body.ui::after{content:""; position:fixed; left:0; right:0; bottom:0; z-index:19
 body.loteui::after{display:none}
 /* Cartões da lista de temas com o mesmo vidro dos cartões da página do tema (desfoque + saturação) */
 body.est-capa .temas-lista .tema-bloco{-webkit-backdrop-filter:var(--ui-desfoque) !important; backdrop-filter:var(--ui-desfoque) !important}
+/* Lista de temas do Estudo: mesma correção das abas da receita. O invólucro (.estudo-lista) fica parado e
+   os cartões de vidro sobem eles mesmos, com o tempo e o atraso que o invólucro teria. */
+#tela.prepara .ui-tela > .estudo-lista{opacity:1}
+#tela.prepara .ui-tela > .estudo-lista .tema-bloco{opacity:0}
+#tela.sobe .ui-tela > .estudo-lista{animation:none; will-change:auto}
+#tela.sobe .ui-tela > .estudo-lista .tema-bloco{will-change:transform,opacity; animation:vt-sobe .45s cubic-bezier(.2,.9,.25,1) both}
+#tela.sobe .ui-tela > .estudo-lista:nth-child(1) .tema-bloco{animation-delay:0s}
+#tela.sobe .ui-tela > .estudo-lista:nth-child(2) .tema-bloco{animation-delay:.05s}
+#tela.sobe .ui-tela > .estudo-lista:nth-child(3) .tema-bloco{animation-delay:.1s}
+#tela.sobe .ui-tela > .estudo-lista:nth-child(4) .tema-bloco{animation-delay:.15s}
+#tela.sobe .ui-tela > .estudo-lista:nth-child(n+5) .tema-bloco{animation-delay:.2s}
+@media (prefers-reduced-motion: reduce){#tela.sobe .ui-tela > .estudo-lista .tema-bloco{animation:none}}
