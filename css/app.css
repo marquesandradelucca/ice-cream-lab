@@ -1104,3 +1104,4 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-outro input::placeholder{color:rgba(255,255,255,.55); font-weight:600}
 .rec-outro:has(input:placeholder-shown) span{display:none}
 .rec-outro:has(input:placeholder-shown) input{text-align:center}
+.ui-vidro-escuro .rec-outro.ativo{background:#fff !important; border-color:#fff !important; border-style:solid !important}

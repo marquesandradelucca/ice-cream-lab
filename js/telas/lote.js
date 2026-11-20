@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120172649";
-import { n } from "../calculo.js?v=20261120172649";
-import { confirma } from "../ui.js?v=20261120172649";
-import { atualizaVoltar } from "../app.js?v=20261120172649";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172649";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote } from "../dados.js?v=20261120172855";
+import { n } from "../calculo.js?v=20261120172855";
+import { confirma } from "../ui.js?v=20261120172855";
+import { atualizaVoltar } from "../app.js?v=20261120172855";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172855";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -110,8 +110,11 @@ export function render(el, rota){
   // Lotes do formato antigo (seis passos): quem já passou do preparo vai para Avaliar.
   if (l.passo > PASSOS.length - 1) l.passo = PASSOS.length - 1;
   if (l.status === "em andamento" && l.passo === 1) l.status = "aguardando";
-  if (rota.args[1] === "avaliar") l.passo = 1;
   const r = receita(l.receitaId), v = versao(l.versaoId);
+  // Lote da versão final de uma receita final: não tem avaliação, só o preparo.
+  const semAval = !!(r && v && r.status === "final" && r.versaoFinal === v.id);
+  if (semAval){ l.passo = 0; if (l.status === "aguardando") l.status = "em andamento"; }
+  else if (rota.args[1] === "avaliar") l.passo = 1;
   const nomeIng = function(id){ const i = (v && v.snapshot && v.snapshot[id]) || ingrediente(id); return i ? i.nome : "(ingrediente removido)"; };
   const voltarHref = r ? "#/receita/" + encodeURIComponent(r.id) : "#/receitas/teste";
   // Bancada: começa no primeiro ingrediente ainda não pesado.
@@ -141,8 +144,8 @@ export function render(el, rota){
           '<div class="rec-etiquetas"><span class="ui-etiqueta">' + situacao + '</span>' + (v ? '<span class="ui-etiqueta">v' + v.numero + '</span>' : '') +
             '<span class="ui-etiqueta">Lote de ' + dataCurta(l.inicio) + '</span></div>' +
           '<h1 class="rec-nome">' + esc(r ? r.nome : "Receita") + '</h1>' +
-          '<div class="lote-abas ui-opcoes" role="tablist" aria-label="Momentos do lote">' + PASSOS.map(function(x, i){
-            return '<button type="button" role="tab" data-i="' + i + '" aria-pressed="' + (i === l.passo) + '">' + x.nome + '</button>'; }).join("") + '</div>' +
+          (semAval ? '' : '<div class="lote-abas ui-opcoes" role="tablist" aria-label="Momentos do lote">' + PASSOS.map(function(x, i){
+            return '<button type="button" role="tab" data-i="' + i + '" aria-pressed="' + (i === l.passo) + '">' + x.nome + '</button>'; }).join("") + '</div>') +
         '</section>' +
         '<div id="conteudo" class="lote-conteudo"></div>' +
       '</div></div>';
@@ -221,7 +224,9 @@ export function render(el, rota){
         '<summary><h2>Sugestões de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
         '<div class="ui-linhas">' + SUGESTOES.map(function(s){
           return '<div class="lote-sugestao"><b>' + s[0] + '</b><span class="ui-sec">' + s[1] + '</span></div>'; }).join("") + '</div></details></section>' +
-      (l.status === "em andamento" ?
+      (semAval ? (l.status === "concluido" ? '<p class="lote-estado">Lote concluído' + (l.fim ? ' · ' + dataCurta(l.fim) : '') + '</p>' :
+        '<button type="button" class="ui-botao ' + (tudo ? 'preto' : 'vidro-escuro') + ' largo" id="concluirFinal">Concluir lote</button>') :
+      l.status === "em andamento" ?
         '<button type="button" class="ui-botao ' + (tudo ? 'preto' : 'vidro-escuro') + ' largo" id="avaliarDepois">Pronto, avaliar depois</button>' :
         '<button type="button" class="ui-botao preto largo" id="avaliarAgora">Ir para a avaliação</button>');
 
@@ -277,6 +282,8 @@ export function render(el, rota){
     }
     const depois = alvo.querySelector("#avaliarDepois");
     if (depois) depois.addEventListener("click", function(){ l.status = "aguardando"; grava(); location.hash = voltarHref; });
+    const cf = alvo.querySelector("#concluirFinal");
+    if (cf) cf.addEventListener("click", function(){ l.status = "concluido"; l.fim = new Date().toISOString(); grava(); location.hash = voltarHref; });
     const agora = alvo.querySelector("#avaliarAgora");
     if (agora) agora.addEventListener("click", function(){ vai(1); });
   }
