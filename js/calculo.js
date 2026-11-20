@@ -194,10 +194,12 @@ export function avisos(r, estilo){
 // Ingredientes contados por unidade (ex.: fava de baunilha): i.un = nome da unidade, i.gUn = peso de 1 unidade.
 // A conta continua em gramas; só a quantidade mostrada vira unidades, de ½ em ½.
 export function porUnidade(i){ return !!(i && i.un && Number(i.gUn) > 0); }
-export function unidades(i, g){ return Math.round((Number(g) || 0) / Number(i.gUn) * 2) / 2; }
+// Passo da contagem: ¼, ½ ou 1 unidade (padrão ½).
+export function passoUn(i){ const p = Number(i && i.passoUn); return p === 0.25 || p === 1 ? p : 0.5; }
+export function unidades(i, g){ const p = passoUn(i); return Math.round((Number(g) || 0) / Number(i.gUn) / p) * p; }
 export function textoUnidades(i, u){
-  const int = Math.floor(u), meio = u - int >= 0.5;
-  const num = (int ? String(int) : "") + (meio ? "½" : "") || "0";
+  const int = Math.floor(u + 1e-9), fr = Math.round((u - int) * 4) / 4;
+  const num = (int ? String(int) : "") + ({0.25:"¼", 0.5:"½", 0.75:"¾"}[fr] || "") || "0";
   return num + " " + i.un + (u > 1 ? "s" : "");
 }
 // Quantidade pronta para mostrar: "597 g" ou "1½ fava".

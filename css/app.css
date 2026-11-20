@@ -1132,3 +1132,12 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-lotes{display:flex; flex-direction:column; gap:var(--ui-e2)}
 .rec-lote{display:flex; flex-direction:column; gap:4px; padding:12px 14px !important; border-radius:16px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); text-decoration:none; color:inherit}
 .ing-medida{margin-bottom:var(--ui-e2)}
+/* Cada versão com seu próprio ⋯ e seta na própria linha (sem subir para o título) */
+.rec-versoes .rec-versao:first-child .rec-seta{position:static !important}
+.rec-versao summary{align-items:center !important}
+.rec-versao summary .rec-vmenu + .rec-seta{margin-left:0}
+.rec-versao summary .rec-seta:not(.rec-vmenu){margin-left:auto}
+.rec-versao summary .rec-vmenu{margin-left:auto}
+.rec-versao[open] summary .rec-vmenu + .rec-seta{margin-left:0 !important}
+.rec-versao summary{justify-content:flex-start !important; gap:8px}
+.rec-versao summary .rec-versao-nome{flex:1; min-width:0}

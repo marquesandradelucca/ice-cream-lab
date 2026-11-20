@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120183752";
-import { confirma } from "../ui.js?v=20261120183752";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120183752";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120183752";
-import { n } from "../calculo.js?v=20261120183752";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120184459";
+import { confirma } from "../ui.js?v=20261120184459";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120184459";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120184459";
+import { n } from "../calculo.js?v=20261120184459";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -204,8 +204,10 @@ function editor(el, id){
           '<div class="ui-opcoes ing-medida" id="medida" role="group" aria-label="Medida"><button type="button" data-m="g" aria-pressed="' + !rasc.un + '">Gramas</button><button type="button" data-m="un" aria-pressed="' + !!rasc.un + '">Unidade</button></div>' +
           '<div id="camposUn"' + (rasc.un ? '' : ' hidden') + '>' +
             '<label class="ui-rotulo" for="unIng">Nome da unidade</label><input id="unIng" type="text" class="ui-campo campo-branco" maxlength="20" value="' + esc(rasc.un || "") + '" placeholder="fava, unidade, folha…">' +
+            '<label class="ui-rotulo">Contar de</label><div class="ui-opcoes ing-medida" id="passoUn" role="group" aria-label="Contar de">' +
+              [[0.25, "¼ em ¼"], [0.5, "½ em ½"], [1, "1 em 1"]].map(function(o){ return '<button type="button" data-p="' + o[0] + '" aria-pressed="' + ((Number(rasc.passoUn) || 0.5) === o[0]) + '">' + o[1] + '</button>'; }).join("") + '</div>' +
           '</div>' +
-          '<p class="ui-sec" id="txtMedida">' + (rasc.un ? 'Contado de ½ em ½. Não entra no peso nem na composição da mistura e fica sempre no fim da lista.' : 'Pesado em gramas; entra no peso e na composição.') + '</p></section>' +
+          '<p class="ui-sec" id="txtMedida">' + (rasc.un ? 'Contado em unidades. Não entra no peso nem na composição da mistura e fica sempre no fim da lista.' : 'Pesado em gramas; entra no peso e na composição.') + '</p></section>' +
         '<div id="blocoComp"' + (rasc.un ? ' hidden' : '') + '>' +
         '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Composição</h2><span class="ui-sec">g por 100 g</span></div>' +
           '<div class="ui-linhas">' + campo("gord", "Gordura", rasc.gord) + campo("slng", "SLNG (sólidos lácteos)", rasc.slng) +
@@ -267,13 +269,17 @@ function editor(el, id){
     const elUn = el.querySelector("#unIng");
     function poeUn(un){
       if (un){ rasc.un = elUn.value.trim() || "unidade"; if (!(rasc.gUn > 0)) rasc.gUn = 1; }
-      else { delete rasc.un; delete rasc.gUn; }
+      else { delete rasc.un; delete rasc.gUn; delete rasc.passoUn; }
       el.querySelector("#camposUn").hidden = !un; el.querySelector("#blocoComp").hidden = !!un;
-      el.querySelector("#txtMedida").textContent = un ? "Contado de ½ em ½. Não entra no peso nem na composição da mistura e fica sempre no fim da lista." : "Pesado em gramas; entra no peso e na composição.";
+      el.querySelector("#txtMedida").textContent = un ? "Contado em unidades. Não entra no peso nem na composição da mistura e fica sempre no fim da lista." : "Pesado em gramas; entra no peso e na composição.";
     }
     el.querySelectorAll("#medida [data-m]").forEach(function(b){ b.addEventListener("click", function(){
       el.querySelectorAll("#medida [data-m]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
       poeUn(b.dataset.m === "un");
+    }); });
+    el.querySelectorAll("#passoUn [data-p]").forEach(function(b){ b.addEventListener("click", function(){
+      el.querySelectorAll("#passoUn [data-p]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
+      const p = Number(b.dataset.p); if (p === 0.5) delete rasc.passoUn; else rasc.passoUn = p;
     }); });
     elUn.addEventListener("input", function(){ if (rasc.un) rasc.un = elUn.value.trim() || "unidade"; });
 

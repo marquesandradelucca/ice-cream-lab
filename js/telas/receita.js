@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120183752";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120183752";
-import { confirma, LAPIS } from "../ui.js?v=20261120183752";
-import { atualizaVoltar } from "../app.js?v=20261120183752";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120183752";
-import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261120183752";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120184459";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120184459";
+import { confirma, LAPIS } from "../ui.js?v=20261120184459";
+import { atualizaVoltar } from "../app.js?v=20261120184459";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120184459";
+import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261120184459";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -39,8 +39,9 @@ function diferencas(ant, v){
   const a = soma(ant.linhas), b = soma(v.linhas), out = [];
   function nome(id){ const i = compDe(v)(id) || compDe(ant)(id); return i ? i.nome : "(ingrediente removido)"; }
   Object.keys(b).forEach(function(id){
-    if (!(id in a)) out.push({t:"novo", txt:"+ " + nome(id) + " " + gramas(b[id]) + " g"});
-    else if (Math.abs(a[id] - b[id]) > 0.001) out.push({t:"mudou", txt:nome(id) + " " + gramas(a[id]) + " → " + gramas(b[id]) + " g"});
+    const q = function(g){ const i = ingrediente(id) || compDe(v)(id); return i ? qtdTexto(i, g) : gramas(g) + " g"; };
+    if (!(id in a)) out.push({t:"novo", txt:"+ " + nome(id) + " " + q(b[id])});
+    else if (Math.abs(a[id] - b[id]) > 0.001) out.push({t:"mudou", txt:nome(id) + " " + q(a[id]) + " → " + q(b[id])});
   });
   Object.keys(a).forEach(function(id){ if (!(id in b)) out.push({t:"saiu", txt:"− " + nome(id)}); });
   if (ant.estilo !== v.estilo) out.push({t:"mudou", txt:"estilo " + NOMES_ESTILO[ant.estilo] + " → " + NOMES_ESTILO[v.estilo]});

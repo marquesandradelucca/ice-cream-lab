@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades } from "../calculo.js?v=20261120183752";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261120183752";
-import { confirma, LAPIS } from "../ui.js?v=20261120183752";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120183752";
+         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261120184459";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261120184459";
+import { confirma, LAPIS } from "../ui.js?v=20261120184459";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120184459";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -404,7 +404,7 @@ export function render(el, rota){
         (ing && ing.nota ? '<button type="button" class="nome-ing com-nota" aria-expanded="false">' + esc(nomeIng(l.id)) + '<span class="info" aria-hidden="true">i</span></button>' :
           '<span class="nome-ing' + (ing ? '' : ' removido') + '">' + esc(nomeIng(l.id)) + '</span>') +
         '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir">−</button>' +
-        '<label class="campo-g"><input type="number" inputmode="decimal" min="0" step="' + (porUnidade(ingrediente(l.id)) ? '0.5' : '1') + '" aria-label="Gramas"><span aria-hidden="true">' + (porUnidade(ingrediente(l.id)) ? 'un' : 'g') + '</span></label>' +
+        '<label class="campo-g"><input type="number" inputmode="decimal" min="0" step="' + (porUnidade(ingrediente(l.id)) ? passoUn(ingrediente(l.id)) : '1') + '" aria-label="Gramas"><span aria-hidden="true">' + (porUnidade(ingrediente(l.id)) ? 'un' : 'g') + '</span></label>' +
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar">+</button></div>' +
         '<button type="button" class="remover" aria-label="Remover ingrediente">×</button>' +
         (ing && ing.nota ? '<p class="nota-ing muted pequeno" hidden>' + esc(ing.nota) + '</p>' : "");
@@ -418,12 +418,12 @@ export function render(el, rota){
       const un = porUnidade(ingU);   // contado por unidade: o campo mostra unidades (de ½ em ½), a conta segue em gramas
       inp.value = un ? unidades(ingU, l.g) : l.g;
       inp.setAttribute("aria-label", (un ? "Unidades de " : "Gramas de ") + (ing ? ing.nome : "ingrediente"));
-      inp.addEventListener("input", function(){ const v = inp.value === "" ? 0 : Number(inp.value); l.g = un ? Math.round(v * 2) / 2 * ingU.gUn : v; atualiza(); });
+      inp.addEventListener("input", function(){ const v = inp.value === "" ? 0 : Number(inp.value); l.g = un ? Math.round(v / passoUn(ingU)) * passoUn(ingU) * ingU.gUn : v; atualiza(); });
       row.querySelector(".remover").addEventListener("click", function(){ calc.linhas.splice(idx, 1); desenhaLinhas(); atualiza(); });
       row.querySelectorAll(".passo").forEach(function(b){
         b.addEventListener("click", function(){
           const dir = Number(b.dataset.dir), atual = Number(l.g) || 0;
-          if (un){ const u = Math.max(0, unidades(ingU, atual) + dir * 0.5); l.g = u * ingU.gUn; inp.value = u; atualiza(); return; }
+          if (un){ const u = Math.max(0, unidades(ingU, atual) + dir * passoUn(ingU)); l.g = u * ingU.gUn; inp.value = u; atualiza(); return; }
           const passo = passoDe(dir > 0 ? atual + 0.01 : atual - 0.01);
           l.g = Math.max(0, Math.round((atual + dir * passo) * 10) / 10);
           inp.value = l.g; atualiza();
