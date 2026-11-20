@@ -1154,8 +1154,3 @@ body.calc-capa .bar{box-shadow:none !important}
 #tela.sobe .ui-tela > .rec-aba:nth-child(4) > *{animation-delay:.15s}
 #tela.sobe .ui-tela > .rec-aba:nth-child(n+5) > *{animation-delay:.2s}
 @media (prefers-reduced-motion: reduce){#tela.sobe .ui-tela > .rec-aba > *{animation:none}}
-/* Calculadora: com capa em degradê, os cartões não usam desfoque (o iPhone desenhava o vidro grande primeiro sem ele, em cinza).
-   A cor de vidro vem do tom médio da capa por baixo da camada escura, o que imita o desfoque sobre um degradê. */
-body.calc-capa:not(.capa-foto) #tela .ui-cartao{-webkit-backdrop-filter:none !important; backdrop-filter:none !important}
-body.calc-capa:not(.capa-foto) #tela .ui-cartao.ui-vidro-escuro{background:linear-gradient(rgba(0,0,0,.12), rgba(0,0,0,.12)), var(--ui-tom, rgba(255,255,255,.24)) !important}
-body.calc-capa:not(.capa-foto) #tela .ui-cartao.ui-vidro{background:var(--ui-tom, rgba(255,255,255,.42)) !important}
