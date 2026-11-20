@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120172008";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172008";
-import { confirma, LAPIS } from "../ui.js?v=20261120172008";
-import { atualizaVoltar } from "../app.js?v=20261120172008";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120172008";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120172008";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120172649";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120172649";
+import { confirma, LAPIS } from "../ui.js?v=20261120172649";
+import { atualizaVoltar } from "../app.js?v=20261120172649";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120172649";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120172649";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -74,7 +74,7 @@ function detalhe(el, r, abertas, aba){
         const difs = diferencas(ant, v);
         const lotes = lotesDa(v);
         return '<details class="rec-versao" data-v="' + esc(v.id) + '"' + (abertas.indexOf(v.id) >= 0 ? " open" : "") + '>' +
-          '<summary><span class="rec-versao-nome"><b>v' + v.numero + (ehFinal ? ' · final' : '') + '</b><span class="ui-sec">' + dataCurta(v.data) + ' · ' + resumoLotes(lotes) + '</span></span><button type="button" class="rec-seta rec-vmenu" data-vmenu="' + esc(v.id) + '" aria-label="Opções da v' + v.numero + '">' + icone("opcoes") + '</button><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
+          '<summary><span class="rec-versao-nome"><b>' + (ehFinal ? 'Final' : 'v' + v.numero) + '</b><span class="ui-sec">' + dataCurta(v.data) + ' · ' + resumoLotes(lotes) + '</span></span><button type="button" class="rec-seta rec-vmenu" data-vmenu="' + esc(v.id) + '" aria-label="Opções da v' + v.numero + '">' + icone("opcoes") + '</button><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
           '<div class="rec-versao-corpo">' +
             '<p class="rec-nota' + (v.nota ? '' : ' vazia') + '" data-nota-texto="' + esc(v.id) + '">' + (v.nota ? esc(v.nota) : 'Sem nota') + '</p>' +
             (ant && difs.length ? '<div class="rec-difs">' + difs.map(function(d){ return '<span class="rec-dif ' + d.t + '">' + esc(d.txt) + '</span>'; }).join("") + '</div>' : '') +
@@ -115,7 +115,7 @@ function detalhe(el, r, abertas, aba){
       // Painel principal: etiquetas, nome editável e ações.
       '<section class="ui-cartao ui-vidro-escuro rec-painel">' +
         '<div class="rec-etiquetas"><span class="ui-etiqueta' + (final ? ' final' : '') + '">' + (final ? 'Final' : 'Em teste') + '</span>' +
-          '<span class="ui-etiqueta">' + esc(NOMES_ESTILO[r.estilo] || "") + '</span>' + (final ? '<span class="ui-etiqueta">v' + final.numero + '</span>' : vUltima ? '<span class="ui-etiqueta">v' + vUltima.numero + '</span>' : '') + '</div>' +
+          '<span class="ui-etiqueta">' + esc(NOMES_ESTILO[r.estilo] || "") + '</span>' + (final ? '' : vUltima ? '<span class="ui-etiqueta">v' + vUltima.numero + '</span>' : '') + '</div>' +
         '<h1 class="rec-nome" id="nomeReceita">' + esc(r.nome) + '</h1>' +
         (final ? '<div class="ui-opcoes rec-abas" id="recAbas" role="group" aria-label="Ver"><button type="button" data-aba="receita" aria-pressed="' + (aba === "receita") + '">Receita</button><button type="button" data-aba="versoes" aria-pressed="' + (aba === "versoes") + '">Versões</button></div>' : '') +
         status() +

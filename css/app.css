@@ -1098,3 +1098,9 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-status-txt{margin:0; font-size:var(--ui-t-sec); color:rgba(255,255,255,.85)}
 .rec-outro:not(.ativo){border-style:dashed !important}
 .rec-outro input::placeholder{color:rgba(255,255,255,.75)}
+/* Campo "Outro": mesma fonte dos botões de tamanho; vazio = só "Outro" centralizado e mais claro, sem o "g" */
+/* 16px evita o zoom do iPhone ao tocar; a escala deixa o texto do tamanho dos botões (13px) */
+.rec-outro input{font-size:16px; font-weight:600; width:123%; margin:0 -11.5%; transform:scale(.8125)}
+.rec-outro input::placeholder{color:rgba(255,255,255,.55); font-weight:600}
+.rec-outro:has(input:placeholder-shown) span{display:none}
+.rec-outro:has(input:placeholder-shown) input{text-align:center}
