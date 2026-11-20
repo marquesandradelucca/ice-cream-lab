@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261120195314";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261120195314";
-import { confirma, LAPIS } from "../ui.js?v=20261120195314";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120195314";
+         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261120195608";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261120195608";
+import { confirma, LAPIS } from "../ui.js?v=20261120195608";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120195608";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -594,5 +594,12 @@ export function render(el, rota){
   }
   desenhaTudo();
 
+  // TESTE: a Calculadora também abre com a subida dos cartões (cada vidro aparece aos poucos enquanto o iPhone
+  // termina de calcular o desfoque, escondendo o cinza dos primeiros quadros).
+  const elTela = document.getElementById("tela");
+  if (elTela && !elTela.classList.contains("prepara")){
+    elTela.classList.remove("sobe"); void elTela.offsetWidth; elTela.classList.add("sobe");
+    setTimeout(function(){ elTela.classList.remove("sobe"); }, 900);
+  }
   return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("ui", "calcui", "calc-capa"); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); elEscolha.remove(); document.body.classList.remove("travado"); }};
 }
