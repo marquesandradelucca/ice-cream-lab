@@ -1124,3 +1124,4 @@ body.calc-capa .bar{box-shadow:none !important}
 /* Outro tamanho escolhido: número e "g" juntos no centro, como "500 g" */
 .rec-outro.ativo{justify-content:center; gap:3px}
 .rec-outro.ativo input{flex:none; margin:0; transform-origin:right center; text-align:right}
+.lote-fim-acoes{display:flex; gap:var(--ui-e2); justify-content:center; flex-wrap:wrap}
