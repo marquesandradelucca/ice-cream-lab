@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120160014";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120160014";
-import { confirma, LAPIS } from "../ui.js?v=20261120160014";
-import { atualizaVoltar } from "../app.js?v=20261120160014";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120160014";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120160014";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120161125";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120161125";
+import { confirma, LAPIS } from "../ui.js?v=20261120161125";
+import { atualizaVoltar } from "../app.js?v=20261120161125";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120161125";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120161125";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -63,7 +63,8 @@ function detalhe(el, r, abertas, aba){
   aba = final ? (aba || abaDe[r.id] || "receita") : "versoes";
   abaDe[r.id] = aba;
   // Só um botão de lote aberto (o mais recente); os outros aparecem nos lotes da versão.
-  const loteAberto = abertos[0];
+  // Receita final não pede avaliação: só o lote em preparo vira botão.
+  const loteAberto = final ? abertos.filter(function(l){ return l.status !== "aguardando"; })[0] : abertos[0];
   const pr = final ? prontaHtml(r, final) : null;
   function versaoCard(v){
         const idx = vs.indexOf(v), ant = idx > 0 ? vs[idx - 1] : null;
@@ -80,9 +81,9 @@ function detalhe(el, r, abertas, aba){
               return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + gramas(Number(l.g) || 0) + ' g</b></div>'; }).join("") + '</div>' +
             '<p class="ui-sec">' + n(res.peso, 0) + ' g · gord. ' + n(res.gord, 1) + '% · açúc. ' + n(res.ac, 1) + '% · POD ' + n(res.pod, 0) + ' · PAC ' + n(res.pac, 0) + '</p>' +
             (lotes.length ? '<div class="rec-lotes"><span class="ui-rotulo">Lotes desta versão</span>' + lotes.map(loteItem).join("") + '</div>' : '') +
-            '<div class="rec-versao-acoes"><button type="button" class="ui-botao vidro-escuro" data-nota="' + esc(v.id) + '">Editar nota</button>' +
-              '<a class="ui-botao vidro-escuro" href="#/calculadora/v/' + encodeURIComponent(v.id) + '" aria-label="Nova versão a partir desta">Nova versão</a>' +
-              (ehFinal ? '' : '<button type="button" class="ui-botao preto rec-largo" data-final="' + esc(v.id) + '">Marcar como final</button>') + '</div>' +
+            '<div class="rec-versao-acoes"><button type="button" class="ui-redondo escuro" data-vmenu="' + esc(v.id) + '" aria-label="Opções da v' + v.numero + '">' + icone("opcoes") + '</button>' +
+              (ehFinal ? '' : '<button type="button" class="ui-botao vidro-escuro" data-lotev="' + esc(v.id) + '">Novo lote</button>' +
+                '<button type="button" class="ui-botao preto rec-largo" data-final="' + esc(v.id) + '">Marcar como final</button>') + '</div>' +
           '</div></details>';
   }
   // Receita final: a versão final em cima e os testes recolhidos num bloco só.
@@ -106,8 +107,8 @@ function detalhe(el, r, abertas, aba){
       '</section>' +
       (pr ? '<div id="abaReceita" class="rec-aba"' + (aba === "receita" ? '' : ' hidden') + '>' + pr.html + '</div>' : '') +
       '<div id="abaVersoes" class="rec-aba"' + (aba === "versoes" ? '' : ' hidden') + '>' +
-      (vs.length ? '<div class="rec-acoes"><button type="button" class="ui-botao preto" id="fazerLote">' + (abertos.length ? 'Outro lote' : 'Fazer lote') + '</button>' +
-          '<a class="ui-botao vidro-escuro" href="#/calculadora/v/' + encodeURIComponent(vUltima.id) + '">Nova versão</a></div>' : '') +
+      (vs.length && !final ? '<div class="rec-acoes"><a class="ui-botao vidro-escuro" href="#/calculadora/v/' + encodeURIComponent(vUltima.id) + '/nova">Usar mistura em nova receita</a>' +
+          '<button type="button" class="ui-botao vidro-escuro" id="fazerLote">Novo lote</button></div>' : '') +
       '<section class="ui-cartao ui-vidro-escuro rec-painel"><h2>Versões</h2><div class="rec-versoes">' +
         (final ? versaoCard(final) + (testes.length ? '<details class="rec-dobra rec-testes"' + (abertas.indexOf("testes") >= 0 ? ' open' : '') + '><summary><span class="ui-sec">Testes (' + testes.length + ')</span><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary><div class="rec-versoes">' + testes.map(versaoCard).join("") + '</div></details>' : '')
           : testes.map(versaoCard).join("")) +
@@ -136,15 +137,35 @@ function detalhe(el, r, abertas, aba){
     el.querySelector("#abaVersoes").hidden = aba !== "versoes";
     history.replaceState(null, "", "#/receita/" + encodeURIComponent(r.id) + (aba === "receita" ? "/pronta" : "/versoes"));
   }); });
-  el.querySelectorAll("[data-nota]").forEach(function(b){ b.addEventListener("click", function(){
-    const v = versao(b.dataset.nota); if (!v) return;
+  el.querySelectorAll("[data-lotev]").forEach(function(b){ b.addEventListener("click", function(){
+    const l = criaLote(b.dataset.lotev); salva(); if (l) location.hash = "#/lote/" + encodeURIComponent(l.id);
+  }); });
+  // ⋯ da versão: editar a versão inteira (calculadora, corrigindo no lugar), a nota, ou partir dela.
+  el.querySelectorAll("[data-vmenu]").forEach(function(b){ b.addEventListener("click", function(){
+    const v = versao(b.dataset.vmenu); if (!v) return;
+    const veu = document.createElement("div"); veu.className = "ui-veu";
+    const f = document.createElement("div"); f.className = "ui-folha"; f.setAttribute("role", "dialog"); f.setAttribute("aria-label", "Opções da versão");
+    f.innerHTML = '<span class="puxador"></span><h2>v' + v.numero + '</h2>' +
+      '<a class="ui-botao vidro largo" href="#/calculadora/v/' + encodeURIComponent(v.id) + '/corrigir">Editar versão</a>' +
+      '<button type="button" class="ui-botao vidro largo" id="vNota">Editar nota</button>' +
+      '<a class="ui-botao vidro largo" href="#/calculadora/v/' + encodeURIComponent(v.id) + '">Nova versão a partir desta</a>' +
+      '<button type="button" class="ui-botao preto largo" id="vFechar">Fechar</button>';
+    document.body.append(veu, f);
+    const fecha = function(){ veu.remove(); f.remove(); };
+    veu.addEventListener("click", fecha); f.querySelector("#vFechar").addEventListener("click", fecha);
+    f.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", fecha); });
+    f.querySelector("#vNota").addEventListener("click", function(){ fecha(); const d = el.querySelector('details.rec-versao[data-v="' + CSS.escape(v.id) + '"]'); if (d){ d.open = true; const t = d.closest(".rec-testes"); if (t) t.open = true; } editaNota(v); });
+  }); });
+  function editaNota(v){
+    {
     const p = el.querySelector('[data-nota-texto="' + CSS.escape(v.id) + '"]');
     const inp = document.createElement("input"); inp.className = "rec-nota-campo"; inp.maxLength = 140; inp.placeholder = "O que mudou nesta versão?"; inp.value = v.nota || "";
     p.replaceWith(inp); inp.focus();
     const ok = function(){ v.nota = inp.value.trim(); salva(); redesenha(); };
     inp.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); ok(); } });
     inp.addEventListener("blur", ok);
-  }); });
+    }
+  }
   aplicaTom(el, r.nome, r.capa);
   const btLote = el.querySelector("#fazerLote");
   if (btLote) btLote.addEventListener("click", function(){ const l = criaLote(vLote.id); salva(); if (l) location.hash = "#/lote/" + encodeURIComponent(l.id); });

@@ -1079,3 +1079,8 @@ body.calc-capa .bar{box-shadow:none !important}
 .ing-cats{flex-wrap:wrap; row-gap:var(--ui-e2)}
 /* Faixa dentro do cabeçalho vai até as bordas da tela (compensa a margem negativa) */
 .ui-cabecalho.com-extras > .estudo-filtros{flex-basis:calc(100% + 2 * var(--ui-margem)); max-width:none}
+/* Abas da receita: os cartões dentro de cada aba mantêm o espaçamento da página */
+.rec-aba{display:flex; flex-direction:column; gap:var(--ui-e3)}
+.rec-aba[hidden]{display:none}
+.rec-versao-acoes .ui-redondo{flex:none}
+.rec-versao-acoes .ui-botao:not(.rec-largo){flex:1}

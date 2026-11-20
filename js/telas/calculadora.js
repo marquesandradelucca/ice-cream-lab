@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261120160014";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261120160014";
-import { confirma, LAPIS } from "../ui.js?v=20261120160014";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120160014";
+         pontoCongelamento, avisos, n, nivelFaixa } from "../calculo.js?v=20261120161125";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261120161125";
+import { confirma, LAPIS } from "../ui.js?v=20261120161125";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120161125";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -62,6 +62,7 @@ export function render(el, rota){
   }
   // Atalho vindo da página da receita: #/calculadora/v/<id da versão>
   let daReceita = null;   // aberta a partir de uma receita: o voltar leva de volta a ela
+  let padraoCorrige = false;   // "Editar versão": o Salvar já abre em "Corrigir vN"
   if (rota && rota.args[0] === "v" && rota.args[1]){
     const v = versao(decodeURIComponent(rota.args[1]));
     if (v) daReceita = v.receitaId;
@@ -69,6 +70,14 @@ export function render(el, rota){
       carregaVersao(v);
       // "Criar próxima versão com o que pesei": as quantidades da balança substituem as da versão.
       if (calc.linhasPesadas){ calc.linhas = calc.linhasPesadas; delete calc.linhasPesadas; delete calc.snapshot; }
+      if (rota.args[2] === "corrigir") padraoCorrige = true;
+      // "Usar mistura em nova receita": a mistura vira rascunho solto, salvar cria outra receita.
+      if (rota.args[2] === "nova"){
+        const rr = receita(v.receitaId);
+        delete calc.receitaId; delete calc.versaoId; delete calc.snapshot; daReceita = null;
+        calc.nome = (rr ? rr.nome : "Receita") + " (variação)";
+        if (rr && rr.preparo) calc.preparo = rr.preparo;
+      }
     }
     history.replaceState(null, "", "#/calculadora");
   }
@@ -280,7 +289,7 @@ export function render(el, rota){
     // Se o nome foi trocado (ex.: abriu "Gelato de baunilha" e escreveu "Gelato de menta"),
     // o Salvar já propõe criar a receita nova com esse nome.
     const r = calc.receitaId && receita(calc.receitaId);
-    abrePainel(!!(r && calc.nome.trim() && calc.nome.trim() !== r.nome));
+    abrePainel(!!(r && calc.nome.trim() && calc.nome.trim() !== r.nome), padraoCorrige);
   });
   el.querySelectorAll("#modoSalvar [data-m]").forEach(function(b){ b.addEventListener("click", function(){ abrePainel(b.dataset.m === "nova", b.dataset.m === "corrige"); }); });
   function fechaPainel(){ elPainel.hidden = true; el.querySelector("#veuSalvar").hidden = true; }
