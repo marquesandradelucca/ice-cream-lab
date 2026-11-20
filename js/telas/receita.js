@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120180615";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120180615";
-import { confirma, LAPIS } from "../ui.js?v=20261120180615";
-import { atualizaVoltar } from "../app.js?v=20261120180615";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120180615";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120180615";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120182501";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120182501";
+import { confirma, LAPIS } from "../ui.js?v=20261120182501";
+import { atualizaVoltar } from "../app.js?v=20261120182501";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120182501";
+import { calcula, NOMES_ESTILO, n, qtdTexto } from "../calculo.js?v=20261120182501";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -81,7 +81,7 @@ function detalhe(el, r, abertas, aba){
             '<p class="rec-nota' + (v.nota ? '' : ' vazia') + '" data-nota-texto="' + esc(v.id) + '">' + (v.nota ? esc(v.nota) : 'Sem nota') + '</p>' +
             (ant && difs.length ? '<div class="rec-difs">' + difs.map(function(d){ return '<span class="rec-dif ' + d.t + '">' + esc(d.txt) + '</span>'; }).join("") + '</div>' : '') +
             '<div class="ui-linhas">' + v.linhas.map(function(l){ const i = comp(l.id);
-              return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + gramas(Number(l.g) || 0) + ' g</b></div>'; }).join("") + '</div>' +
+              return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + qtdTexto(ingrediente(l.id) || i, Number(l.g) || 0) + '</b></div>'; }).join("") + '</div>' +
             '<p class="ui-sec">' + n(res.peso, 0) + ' g · gord. ' + n(res.gord, 1) + '% · açúc. ' + n(res.ac, 1) + '% · POD ' + n(res.pod, 0) + ' · PAC ' + n(res.pac, 0) + '</p>' +
             (ehFinal ? '' : '<button type="button" class="ui-botao vidro-escuro largo" data-lotev="' + esc(v.id) + '">Fazer lote desta versão</button>') +
             (lotes.length && !ehFinal ? '<div class="rec-lotes"><span class="ui-rotulo">Lotes desta versão</span>' + lotes.map(loteItem).join("") + '</div>' : '') +
@@ -318,7 +318,7 @@ function prontaHtml(r, v){
       if (!foco) elLote.value = tamanhos.indexOf(alvo) >= 0 ? "" : alvo;
       el.querySelector("#paraTotal").textContent = "para " + (alvo >= 1000 && alvo % 1000 === 0 ? alvo / 1000 + " kg" : alvo + " g");
       el.querySelector("#quantidades").innerHTML = v.linhas.map(function(l){ const i = comp(l.id);
-        return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + gramas(l.g * f) + ' g</b></div>'; }).join("") +
+        return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + qtdTexto(ingrediente(l.id) || i, l.g * f) + '</b></div>'; }).join("") +
         '<div class="ui-linha rec-total"><span>Peso total</span><b class="ui-num">' + gramas(alvo) + ' g</b></div>';
       el.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.setAttribute("aria-pressed", Number(b.dataset.g) === alvo); });
       el.querySelector(".rec-outro").classList.toggle("ativo", tamanhos.indexOf(alvo) < 0);

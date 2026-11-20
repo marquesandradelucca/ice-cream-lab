@@ -185,3 +185,18 @@ export function avisos(r, estilo){
   if (!out.length && r.peso > 0) out.push({nivel:"ok", txt:"Todos os parâmetros dentro das faixas de referência."});
   return out;
 }
+
+// Ingredientes contados por unidade (ex.: fava de baunilha): i.un = nome da unidade, i.gUn = peso de 1 unidade.
+// A conta continua em gramas; só a quantidade mostrada vira unidades, de ½ em ½.
+export function porUnidade(i){ return !!(i && i.un && Number(i.gUn) > 0); }
+export function unidades(i, g){ return Math.round((Number(g) || 0) / Number(i.gUn) * 2) / 2; }
+export function textoUnidades(i, u){
+  const int = Math.floor(u), meio = u - int >= 0.5;
+  const num = (int ? String(int) : "") + (meio ? "½" : "") || "0";
+  return num + " " + i.un + (u > 1 ? "s" : "");
+}
+// Quantidade pronta para mostrar: "597 g" ou "1½ fava".
+export function qtdTexto(i, g){
+  if (porUnidade(i)) return textoUnidades(i, unidades(i, g));
+  return ((g < 10 ? n(g, 1) : n(Math.round(g), 0))) + " g";
+}

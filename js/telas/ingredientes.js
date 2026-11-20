@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120180615";
-import { confirma } from "../ui.js?v=20261120180615";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120180615";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120180615";
-import { n } from "../calculo.js?v=20261120180615";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120182501";
+import { confirma } from "../ui.js?v=20261120182501";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120182501";
+import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120182501";
+import { n } from "../calculo.js?v=20261120182501";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -209,6 +209,12 @@ function editor(el, id){
           '<div class="ui-linhas">' + TIPOS_ACUCAR.map(function(t){ return campo("ac." + t[0], t[1], rasc.ac[t[0]]); }).join("") + '</div>' +
           '<p class="agua ing-agua" id="agua"></p></section>' +
         '<section class="ui-cartao ui-vidro ideia-form-claro">' +
+          '<label class="ing-check"><input type="checkbox" id="cxUn"' + (rasc.un ? " checked" : "") + '> Contar por unidade (ex.: fava)</label>' +
+          '<div id="camposUn"' + (rasc.un ? '' : ' hidden') + '>' +
+            '<label class="ui-rotulo" for="unIng">Nome da unidade</label><input id="unIng" type="text" class="ui-campo campo-branco" maxlength="20" value="' + esc(rasc.un || "") + '" placeholder="fava">' +
+            '<label class="ui-rotulo" for="gUnIng">Peso de 1 unidade (g)</label><input id="gUnIng" type="number" inputmode="decimal" min="0.1" step="0.1" class="ui-campo campo-branco" value="' + (rasc.gUn || "") + '" placeholder="4">' +
+            '<p class="ui-sec">Na calculadora e no preparo a quantidade aparece em unidades, de ½ em ½. A composição continua por 100 g.</p>' +
+          '</div>' +
           '<label class="ing-check"><input type="checkbox" data-k="estab"' + (rasc.estab ? " checked" : "") + '> É estabilizante</label>' +
           '<label class="ing-check" id="cxSoma"' + (rasc.estab ? "" : " hidden") + '><input type="checkbox" data-k="contaTotal"' + (rasc.contaTotal === false ? "" : " checked") + '> Entra na soma de estabilizantes</label>' +
           '<label class="ui-rotulo" for="notaIng">Nota (aparece na calculadora)</label><textarea id="notaIng" class="ui-campo campo-branco ideia-texto" data-k="nota" rows="3">' + esc(rasc.nota) + '</textarea>' +
@@ -255,11 +261,21 @@ function editor(el, id){
       });
     });
 
+    // Contar por unidade: nome da unidade e peso de uma unidade.
+    const cxUn = el.querySelector("#cxUn"), elUn = el.querySelector("#unIng"), elGUn = el.querySelector("#gUnIng");
+    function poeUn(){
+      if (cxUn.checked){ rasc.un = elUn.value.trim() || "unidade"; const g = Number(elGUn.value); if (g > 0) rasc.gUn = g; else delete rasc.gUn; }
+      else { delete rasc.un; delete rasc.gUn; }
+    }
+    cxUn.addEventListener("change", function(){ el.querySelector("#camposUn").hidden = !cxUn.checked; poeUn(); });
+    elUn.addEventListener("input", poeUn); elGUn.addEventListener("input", poeUn);
+
     const cancela = function(){ if (novo) location.hash = "#/ingredientes"; else mostra(); };
     el.querySelector("#cancelar").addEventListener("click", cancela);
     el.querySelector("#fecharEd").addEventListener("click", cancela);
     el.querySelector("#salvarIng").addEventListener("click", function(){
       if (!rasc.nome){ el.querySelector('[data-k="nome"]').focus(); return; }
+      if (rasc.un && !(rasc.gUn > 0)){ elGUn.focus(); return; }
       if (agua(rasc) < -0.5){ el.querySelector("#agua").scrollIntoView({block:"center"}); return; }
       delete rasc.prot; delete rasc.fibra;
       if (novo){ db.ingredientes.push(rasc); salva(); location.hash = "#/ingredientes/" + encodeURIComponent(rasc.id); return; }

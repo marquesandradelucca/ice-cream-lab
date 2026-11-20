@@ -1125,3 +1125,4 @@ body.calc-capa .bar{box-shadow:none !important}
 .rec-outro.ativo{justify-content:center; gap:3px}
 .rec-outro.ativo input{flex:none; margin:0; transform-origin:right center; text-align:right}
 .lote-fim-acoes{display:flex; gap:var(--ui-e2); justify-content:center; flex-wrap:wrap}
+#modoExcluir.concluir{background:#fff !important; border-color:#fff !important; color:var(--ui-tinta) !important}
