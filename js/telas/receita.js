@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120173423";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120173423";
-import { confirma, LAPIS } from "../ui.js?v=20261120173423";
-import { atualizaVoltar } from "../app.js?v=20261120173423";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120173423";
-import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120173423";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote } from "../dados.js?v=20261120173630";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual } from "../visual.js?v=20261120173630";
+import { confirma, LAPIS } from "../ui.js?v=20261120173630";
+import { atualizaVoltar } from "../app.js?v=20261120173630";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120173630";
+import { calcula, NOMES_ESTILO, n } from "../calculo.js?v=20261120173630";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -61,7 +61,8 @@ function detalhe(el, r, abertas, aba){
   if (!abertas) abertas = (final || vUltima) ? [(final || vUltima).id] : [];
   const emTeste = !final;
   const voltarHref = emTeste ? "#/receitas/teste" : "#/receitas";
-  aba = final ? (aba || abaDe[r.id] || "receita") : "versoes";
+  // Receita final mostra só a receita; o histórico de versões volta quando ela volta para teste.
+  aba = final ? "receita" : "versoes";
   abaDe[r.id] = aba;
   // Só um botão de lote aberto (o mais recente); os outros aparecem nos lotes da versão.
   // Receita final não tem lote: nenhum aviso de preparo em aberto.
@@ -117,15 +118,14 @@ function detalhe(el, r, abertas, aba){
         '<div class="rec-etiquetas"><span class="ui-etiqueta' + (final ? ' final' : '') + '">' + (final ? 'Final' : 'Em teste') + '</span>' +
           '<span class="ui-etiqueta">' + esc(NOMES_ESTILO[r.estilo] || "") + '</span>' + (final ? '' : vUltima ? '<span class="ui-etiqueta">v' + vUltima.numero + '</span>' : '') + '</div>' +
         '<h1 class="rec-nome" id="nomeReceita">' + esc(r.nome) + '</h1>' +
-        (final ? '<div class="ui-opcoes rec-abas" id="recAbas" role="group" aria-label="Ver"><button type="button" data-aba="receita" aria-pressed="' + (aba === "receita") + '">Receita</button><button type="button" data-aba="versoes" aria-pressed="' + (aba === "versoes") + '">Versões</button></div>' : '') +
         status() +
       '</section>' +
       (pr ? '<div id="abaReceita" class="rec-aba"' + (aba === "receita" ? '' : ' hidden') + '>' + pr.html + '</div>' : '') +
-      '<div id="abaVersoes" class="rec-aba"' + (aba === "versoes" ? '' : ' hidden') + '>' +
+      (final ? '' : '<div id="abaVersoes" class="rec-aba">' +
       '<section class="ui-cartao ui-vidro-escuro rec-painel"><h2>Versões</h2><div class="rec-versoes">' +
         (final ? versaoCard(final) + (testes.length ? '<details class="rec-dobra rec-testes"' + (abertas.indexOf("testes") >= 0 ? ' open' : '') + '><summary><span class="ui-sec">Testes (' + testes.length + ')</span><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary><div class="rec-versoes">' + testes.map(versaoCard).join("") + '</div></details>' : '')
           : testes.map(versaoCard).join("")) +
-      '</div></section></div>' +
+      '</div></section></div>') +
       // Modo de preparo abre e fecha; começa fechado.
       '<section class="ui-cartao ui-vidro-escuro rec-painel"><details class="rec-dobra">' +
         '<summary><h2>Modo de preparo</h2><span class="rec-seta" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
@@ -152,13 +152,6 @@ function detalhe(el, r, abertas, aba){
   }
   ligaAcoes(el);
   if (pr) pr.liga(el);
-  el.querySelectorAll("#recAbas [data-aba]").forEach(function(b){ b.addEventListener("click", function(){
-    aba = abaDe[r.id] = b.dataset.aba;
-    el.querySelectorAll("#recAbas [data-aba]").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
-    el.querySelector("#abaReceita").hidden = aba !== "receita";
-    el.querySelector("#abaVersoes").hidden = aba !== "versoes";
-    history.replaceState(null, "", "#/receita/" + encodeURIComponent(r.id) + (aba === "receita" ? "/pronta" : "/versoes"));
-  }); });
   // ⋯ da versão: editar a versão inteira (calculadora, corrigindo no lugar), a nota, ou partir dela.
   el.querySelectorAll("[data-vmenu]").forEach(function(b){ b.addEventListener("click", function(ev){
     ev.preventDefault(); ev.stopPropagation();   // dentro do summary: não abre/fecha a versão
