@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261120182501";
-import { PRESETS } from "./calculo.js?v=20261120182501";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261120182501";
-import { notificaMudanca } from "./sync.js?v=20261120182501";
+import { ING_BASE } from "./ingredientes-base.js?v=20261120183201";
+import { PRESETS, registraIngredientes } from "./calculo.js?v=20261120183201";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261120183201";
+import { notificaMudanca } from "./sync.js?v=20261120183201";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -93,6 +93,7 @@ function migraLegado(d){
 }
 
 export function carrega(){
+  registraIngredientes(function(id){ return db && db.ingredientes.find(function(i){ return i.id === id; }); });
   const salvo = lerJSON(CHAVE);
   if (salvo && salvo.versaoDados){
     db = Object.assign(vazio(), salvo);
@@ -152,6 +153,21 @@ export function carrega(){
         if (r.nome === PRESETS[k].nome && !String(r.preparo || "").trim()) r.preparo = PRESETS[k].preparo;
       }); });
       db.preparoPresets = true; salva();
+    }
+    // Fava (baunilha etc.) se conta por unidade: marca uma vez as que ainda estão em gramas.
+    if (!db.favaUnidade){
+      db.ingredientes.forEach(function(i){ if (/\bfava\b/i.test(i.nome || "") && !i.un){ i.un = "fava"; i.gUn = 4; } });
+      db.favaUnidade = true; salva();
+    }
+    // Antes de virar unidade, a fava era digitada como "1 g" querendo dizer 1 fava: converte esses valores.
+    if (!db.favaConvertida){
+      const favas = {};
+      db.ingredientes.forEach(function(i){ if (/\bfava\b/i.test(i.nome || "") && i.un && i.gUn > 0) favas[i.id] = i.gUn; });
+      const conv = function(l){ if (favas[l.id] && Number(l.g) > 0 && Number(l.g) <= 10) l.g = Number(l.g) * favas[l.id]; };
+      db.versoes.forEach(function(v){ (v.linhas || []).forEach(conv); });
+      (db.calc.linhas || []).forEach(conv);
+      db.lotes.forEach(function(l){ (l.pesado || []).forEach(function(y){ if (favas[y.id] && y.previsto > 0 && y.previsto <= 10){ y.previsto *= favas[y.id]; if (y.real != null) y.real *= favas[y.id]; } }); });
+      db.favaConvertida = true; salva();
     }
     db.ingredientes.forEach(function(i){ if (i.id === "sucoLaranja" && i.nome === "Suco de laranja"){ i.nome = "Suco de laranja pera"; salva(); } });
   } else {

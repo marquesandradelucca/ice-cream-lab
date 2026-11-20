@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades } from "../calculo.js?v=20261120182501";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261120182501";
-import { confirma, LAPIS } from "../ui.js?v=20261120182501";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120182501";
+         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades } from "../calculo.js?v=20261120183201";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261120183201";
+import { confirma, LAPIS } from "../ui.js?v=20261120183201";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120183201";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -65,7 +65,7 @@ export function render(el, rota){
   let padraoCorrige = false;   // "Editar versão": o Salvar já abre em "Corrigir vN"
   if (rota && rota.args[0] === "v" && rota.args[1]){
     const v = versao(decodeURIComponent(rota.args[1]));
-    if (v) daReceita = v.receitaId;
+    // Editar mistura: abre a Calculadora normal (cabeçalho, Abrir e aba Calculadora), com a receita carregada.
     if (v){
       carregaVersao(v);
       // "Criar próxima versão com o que pesei": as quantidades da balança substituem as da versão.
@@ -392,6 +392,9 @@ export function render(el, rota){
 
   // ----- Linhas de ingrediente -----
   function desenhaLinhas(){
+    // Contados por unidade (fava) ficam no fim da lista: não fazem parte do peso da mistura.
+    const unid = function(l){ return porUnidade(ingrediente(l.id)) ? 1 : 0; };
+    calc.linhas.sort(function(a, b){ return unid(a) - unid(b); });
     elLinhas.innerHTML = ""; inputs = [];
     calc.linhas.forEach(function(l, idx){
       const ing = comp(l.id);

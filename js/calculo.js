@@ -69,10 +69,15 @@ export const PRESETS = {
 };
 
 // linhas: [{id, g}]; comp(id) devolve a composição do ingrediente (por 100 g) ou null.
+// Ingrediente atual (registrado pelo app): a marcação "por unidade" vale mesmo para versões antigas.
+let ingAtual = null;
+export function registraIngredientes(fn){ ingAtual = fn; }
+
 export function calcula(linhas, comp){
   const t = {peso:0, gord:0, slng:0, soro:0, ac:0, outros:0, pod:0, pac:0, estab:0};
   linhas.forEach(function(l){
     const ing = comp(l.id); if (!ing) return;
+    if (porUnidade((ingAtual && ingAtual(l.id)) || ing)) return;   // contado por unidade (fava etc.): não entra no peso nem na composição
     const g = Number(l.g) || 0;
     t.peso += g;
     if (ing.estab && ing.contaTotal !== false) t.estab += g;

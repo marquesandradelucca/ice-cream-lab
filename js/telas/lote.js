@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote, passosPreparo } from "../dados.js?v=20261120182501";
-import { n, porUnidade, unidades, textoUnidades, qtdTexto } from "../calculo.js?v=20261120182501";
-import { confirma } from "../ui.js?v=20261120182501";
-import { atualizaVoltar } from "../app.js?v=20261120182501";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120182501";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote, passosPreparo } from "../dados.js?v=20261120183201";
+import { n, porUnidade, unidades, textoUnidades, qtdTexto } from "../calculo.js?v=20261120183201";
+import { confirma } from "../ui.js?v=20261120183201";
+import { atualizaVoltar } from "../app.js?v=20261120183201";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120183201";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -192,7 +192,7 @@ export function render(el, rota){
 
   // ----- 1. Preparar: bancada + lista + tamanho + preparo -----
   function preparar(alvo){
-    const base = l.pesado.reduce(function(s, x){ return s + x.previsto; }, 0) || 1;
+    const base = l.pesado.reduce(function(s, x){ return s + (porUnidade(ingrediente(x.id)) ? 0 : x.previsto); }, 0) || 1;   // fava (por unidade) fora do peso
     const total = base * l.escala;
     const feitos = l.pesado.filter(function(x){ return x.ok; }).length;
     if (atual >= NF) atual = NF - 1;

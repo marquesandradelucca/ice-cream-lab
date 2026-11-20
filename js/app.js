@@ -8,22 +8,22 @@
   window.scrollTo = function(x, y){ rolaJanela.apply(null, arguments); if (typeof y === "number") document.body.scrollTop = y; };
 })();
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261120182501";
-import { iniciaSync } from "./sync.js?v=20261120182501";
-import * as inicio from "./telas/inicio.js?v=20261120182501";
-import * as calculadora from "./telas/calculadora.js?v=20261120182501";
-import * as ingredientes from "./telas/ingredientes.js?v=20261120182501";
-import * as embreve from "./telas/embreve.js?v=20261120182501";
-import * as receitas from "./telas/receitas.js?v=20261120182501";
-import * as receita from "./telas/receita.js?v=20261120182501";
-import * as testes from "./telas/testes.js?v=20261120182501";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261120182501";
-import * as loteTela from "./telas/lote.js?v=20261120182501";
-import * as estudo from "./telas/estudo.js?v=20261120182501";
-import * as ideias from "./telas/ideias.js?v=20261120182501";
-import * as ajustes from "./telas/ajustes.js?v=20261120182501";
-import * as biblioteca from "./telas/biblioteca.js?v=20261120182501";
-import * as guia from "./telas/guia.js?v=20261120182501";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261120183201";
+import { iniciaSync } from "./sync.js?v=20261120183201";
+import * as inicio from "./telas/inicio.js?v=20261120183201";
+import * as calculadora from "./telas/calculadora.js?v=20261120183201";
+import * as ingredientes from "./telas/ingredientes.js?v=20261120183201";
+import * as embreve from "./telas/embreve.js?v=20261120183201";
+import * as receitas from "./telas/receitas.js?v=20261120183201";
+import * as receita from "./telas/receita.js?v=20261120183201";
+import * as testes from "./telas/testes.js?v=20261120183201";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261120183201";
+import * as loteTela from "./telas/lote.js?v=20261120183201";
+import * as estudo from "./telas/estudo.js?v=20261120183201";
+import * as ideias from "./telas/ideias.js?v=20261120183201";
+import * as ajustes from "./telas/ajustes.js?v=20261120183201";
+import * as biblioteca from "./telas/biblioteca.js?v=20261120183201";
+import * as guia from "./telas/guia.js?v=20261120183201";
 
 const TELAS = {
   "": inicio,
@@ -150,7 +150,7 @@ const ABA_DA_ROTA = {"":"home", ajustes:"home", guia:"home", ideias:"ideias", ca
   receitas:"receitas", receita:"receitas", testes:"receitas", lote:"receitas",
   biblioteca:"biblioteca", estudo:"biblioteca", ingredientes:"biblioteca"};
 function marcaAba(nome, sub){
-  const aba = nome === "calculadora" && sub === "v" ? "receitas" : (ABA_DA_ROTA[nome] || "home");
+  const aba = ABA_DA_ROTA[nome] || "home";   // editar mistura leva para a Calculadora de verdade
   document.querySelectorAll("#abas a").forEach(function(a){
     if (a.dataset.aba === aba) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });

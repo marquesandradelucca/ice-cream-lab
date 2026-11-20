@@ -1,17 +1,19 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120182501";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120182501";
-import { confirma, LAPIS } from "../ui.js?v=20261120182501";
-import { atualizaVoltar } from "../app.js?v=20261120182501";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120182501";
-import { calcula, NOMES_ESTILO, n, qtdTexto } from "../calculo.js?v=20261120182501";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261120183201";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261120183201";
+import { confirma, LAPIS } from "../ui.js?v=20261120183201";
+import { atualizaVoltar } from "../app.js?v=20261120183201";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261120183201";
+import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261120183201";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
   try { return new Date(iso).toLocaleDateString("pt-BR", {day:"2-digit", month:"short", year:"numeric"}); } catch (e) { return ""; }
 }
 function compDe(v){ return function(id){ return (v.snapshot && v.snapshot[id]) || ingrediente(id); }; }
+// Contados por unidade (fava) aparecem por último.
+function noFim(linhas){ return linhas.slice().sort(function(a, b){ return (porUnidade(ingrediente(a.id)) ? 1 : 0) - (porUnidade(ingrediente(b.id)) ? 1 : 0); }); }
 function gramas(g){ return g < 10 ? n(g, 1) : n(Math.round(g), 0); }
 
 // "Final" não fica no seletor: só se marca dentro do card da versão, que diz qual é.
@@ -80,7 +82,7 @@ function detalhe(el, r, abertas, aba){
           '<div class="rec-versao-corpo">' +
             '<p class="rec-nota' + (v.nota ? '' : ' vazia') + '" data-nota-texto="' + esc(v.id) + '">' + (v.nota ? esc(v.nota) : 'Sem nota') + '</p>' +
             (ant && difs.length ? '<div class="rec-difs">' + difs.map(function(d){ return '<span class="rec-dif ' + d.t + '">' + esc(d.txt) + '</span>'; }).join("") + '</div>' : '') +
-            '<div class="ui-linhas">' + v.linhas.map(function(l){ const i = comp(l.id);
+            '<div class="ui-linhas">' + noFim(v.linhas).map(function(l){ const i = comp(l.id);
               return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + qtdTexto(ingrediente(l.id) || i, Number(l.g) || 0) + '</b></div>'; }).join("") + '</div>' +
             '<p class="ui-sec">' + n(res.peso, 0) + ' g · gord. ' + n(res.gord, 1) + '% · açúc. ' + n(res.ac, 1) + '% · POD ' + n(res.pod, 0) + ' · PAC ' + n(res.pac, 0) + '</p>' +
             (ehFinal ? '' : '<button type="button" class="ui-botao vidro-escuro largo" data-lotev="' + esc(v.id) + '">Fazer lote desta versão</button>') +
@@ -317,7 +319,7 @@ function prontaHtml(r, v){
       const f = alvo / base;
       if (!foco) elLote.value = tamanhos.indexOf(alvo) >= 0 ? "" : alvo;
       el.querySelector("#paraTotal").textContent = "para " + (alvo >= 1000 && alvo % 1000 === 0 ? alvo / 1000 + " kg" : alvo + " g");
-      el.querySelector("#quantidades").innerHTML = v.linhas.map(function(l){ const i = comp(l.id);
+      el.querySelector("#quantidades").innerHTML = noFim(v.linhas).map(function(l){ const i = comp(l.id);
         return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + qtdTexto(ingrediente(l.id) || i, l.g * f) + '</b></div>'; }).join("") +
         '<div class="ui-linha rec-total"><span>Peso total</span><b class="ui-num">' + gramas(alvo) + ' g</b></div>';
       el.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.setAttribute("aria-pressed", Number(b.dataset.g) === alvo); });
