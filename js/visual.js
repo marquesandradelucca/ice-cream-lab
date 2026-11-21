@@ -20,7 +20,7 @@ const PATHS = {
   imagem:'<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
   ok:'<path d="M5 12l5 5L20 7"/>'
 };
-import { ICONES_ARQ } from "./icones.js?v=20261120212040";
+import { ICONES_ARQ } from "./icones.js?v=20261120212321";
 export function icone(nome, extra){
   // Ícone da pasta icons/ (preenchido), quando existir; senão o de traço.
   const arq = ICONES_ARQ[nome];
@@ -103,13 +103,65 @@ let armazem = null;
 export function defineArmazemFotos(a){ armazem = a; }
 function resolveFoto(v){ if (v && v.indexOf("foto:") === 0){ const f = armazem && armazem.pega(v.slice(5)); return f || null; } return v; }
 
-export function capa(nome, foto){
+// Cores dos ingredientes: pelo que o ingrediente é (cor real do produto), não pelo sorteio dos sabores.
+// Só para ingredientes; receitas continuam com PALETAS. Ordem das chaves importa (a primeira vence).
+const COR_ING = {
+  leite:["#C9C3B8","#E8E4DC","#FAF9F6"], desnatado:["#AFC0CC","#DCE5EB","#F6F9FB"],
+  po:["#D6CDB9","#EDE7DA","#FBF9F4"], soro:["#D9CFA0","#EEE7C6","#FBF8EA"],
+  condensado:["#C9A66B","#E6CF9F","#F8EEDA"], iogurte:["#C8CCD6","#E9ECF1","#FAFBFC"],
+  manteiga:["#E3C04F","#F2DC8A","#FCF4CF"], gema:["#E69A12","#F6BE3A","#FCE08A"],
+  ovo:["#E3B04A","#F3D68C","#FBF0D2"], clara:["#D8D8D0","#EEEEE8","#FBFBF8"],
+  agua:["#7FB8D8","#B9DDEE","#E8F5FB"], acucar:["#D9D6CF","#EFEDE8","#FCFBF9"],
+  dextrose:["#CDD3D9","#E9ECEF","#FAFBFC"], glucose:["#D7CFB8","#ECE6D6","#FAF8F1"],
+  invertido:["#D9A54A","#EDCB85","#FAEACB"], mel:["#C77D12","#E3A532","#F6D27A"],
+  malto:["#DCD5C5","#EFEAE0","#FBFAF6"], mascavo:["#7A4A26","#A8703F","#D4AA7C"],
+  fava:["#3E2A1E","#6B4A33","#BFA27E"],
+  fruta_doce:["#E5793A","#F7A85C","#FDD9A3"], fruta_acida:["#C9304A","#E8676E","#F7B0A8"],
+  goma:["#B9B4AA","#DAD6CE","#F3F1EC"], alga:["#A9BFA9","#D3E0D1","#F1F6F0"],
+  gelatina:["#D7B577","#EAD5A8","#F8EFDC"], alfarroba:["#A88A68","#CDB597","#ECE0CF"],
+  pectina:["#C9C98E","#E3E3BC","#F6F6E5"], amido:["#D6D3CC","#ECEAE5","#FAF9F7"],
+  laranja:["#E8770E","#F9A33A","#FFD58C"], tangerina:["#EE6A12","#FB9440","#FFCB8A"],
+  lima:["#E9A23B","#F6C877","#FDEABF"], casca:["#D9650F","#EE9536","#F9C982"],
+  jabuticaba:["#2E1630","#4E2350","#8F6A92"], melao:["#C9CF7A","#E5E9A8","#F6F8DC"],
+  abacaxi:["#E5B814","#F5D550","#FCEFA5"], amora:["#3A1435","#5E2152","#9C6290"],
+  pera:["#B8C25A","#D9DE95","#F2F3D2"], lichia:["#E8C9C4","#F4E2DE","#FCF5F3"]
+};
+const CHAVES_ING = [
+  ["fava", "fava"], ["casca de laranja", "casca"], ["laranja lima", "lima"], ["tangerina", "tangerina"], ["mexerica", "tangerina"],
+  ["laranja", "laranja"], ["jabuticaba", "jabuticaba"], ["melao", "melao"], ["abacaxi", "abacaxi"], ["amora", "amora"],
+  ["pera", "pera"], ["lichia", "lichia"], ["fruta doce", "fruta_doce"], ["fruta acida", "fruta_acida"],
+  ["condensado", "condensado"], ["desnatado", "desnatado"], ["leite em po", "po"], ["soro", "soro"], ["iogurte", "iogurte"],
+  ["manteiga", "manteiga"], ["gema", "gema"], ["clara", "clara"], ["ovo", "ovo"], ["agua", "agua"],
+  ["mascavo", "mascavo"], ["invertido", "invertido"], ["mel", "mel"], ["dextrose", "dextrose"], ["glucose", "glucose"],
+  ["maltodextrina", "malto"], ["acucar", "acucar"], ["sacarose", "acucar"], ["gelatina", "gelatina"], ["alfarroba", "alfarroba"],
+  ["pectina", "pectina"], ["agar", "alga"], ["carragena", "alga"], ["alginato", "alga"], ["amido", "amido"],
+  ["goma", "goma"], ["estabilizante", "goma"], ["cmc", "goma"], ["castanha", null, "Avelã"], ["callebaut", null, "Chocolate"], ["leite", "leite"]
+];
+// Paleta de um ingrediente: chave própria; senão, a dos sabores (chocolate, morango...); senão, neutra.
+export function paletaIngrediente(nome){
+  const n = " " + semAcento(nome).replace(/[^a-z0-9]+/g, " ") + " ";
+  const sabor = PALETAS.find(function(p){ return p.chaves.some(function(k){ return n.indexOf(" " + k + " ") >= 0; }); });
+  for (const c of CHAVES_ING){
+    if (n.indexOf(" " + c[0] + " ") < 0) continue;
+    if (c[2]) return PALETAS.find(function(p){ return p.nome === c[2]; }).cores;
+    // "Leite de coco", "Creme de leite": o sabor/produto mais específico vence a chave genérica "leite".
+    if (c[1] === "leite" && sabor) return sabor.cores;
+    return COR_ING[c[1]];
+  }
+  return paletaDe(nome);
+}
+export function capaIngrediente(ing){
+  if (ing.capa) return capa(ing.nome, ing.capa);
+  return capa(ing.nome, null, paletaIngrediente(ing.nome));
+}
+
+export function capa(nome, foto, paleta){
   if (foto && foto.indexOf("foto:") === 0) foto = resolveFoto(foto);
   // foto pode ser uma imagem ou um degradê escolhido à mão ("paleta:Menta").
   const escolhida = foto && foto.indexOf("paleta:") === 0 ? PALETAS.find(function(x){ return x.nome === foto.slice(7); }) : null;
   // Aspas simples: a capa vai dentro de style="..." no HTML; aspas duplas fechariam o atributo.
   if (foto && !escolhida) return "url('" + String(foto).replace(/'/g, "%27") + "')";
-  const p = escolhida ? escolhida.cores : paletaDe(nome), r = sorteio(String(nome || ""));
+  const p = escolhida ? escolhida.cores : (paleta || paletaDe(nome)), r = sorteio(String(nome || ""));
   const ang = r(100, 260), meio = r(35, 68);
   const luz = 'radial-gradient(circle at ' + r(10, 90) + '% ' + r(0, 35) + '%, ' + p[2] + 'aa 0%, transparent ' + r(40, 65) + '%)';
   const sombra = 'radial-gradient(circle at ' + r(0, 100) + '% ' + r(55, 100) + '%, ' + p[0] + '99 0%, transparent ' + r(35, 60) + '%)';
@@ -177,16 +229,16 @@ export function escolheCapa(opts){
 // Degradê: usa o tom claro da paleta. Foto: cor média da imagem, clareada (calculada no aparelho).
 function rgba(hex, a){ const n = parseInt(hex.slice(1), 16); return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")"; }
 const TOM_ALFA = 0.42;
-export function tomVidro(nome, foto){
+export function tomVidro(nome, foto, paleta){
   if (foto && foto.indexOf("foto:") === 0) foto = resolveFoto(foto);
   const esc = foto && foto.indexOf("paleta:") === 0 ? PALETAS.find(function(x){ return x.nome === foto.slice(7); }) : null;
   if (foto && !esc) return null;   // foto: calcular à parte
-  return rgba((esc ? esc.cores : paletaDe(nome))[2], TOM_ALFA);
+  return rgba((esc ? esc.cores : (paleta || paletaDe(nome)))[2], TOM_ALFA);
 }
 const cacheTom = {};
-export function aplicaTom(alvo, nome, foto){
+export function aplicaTom(alvo, nome, foto, paleta){
   if (foto && foto.indexOf("foto:") === 0) foto = resolveFoto(foto);
-  const t = tomVidro(nome, foto);
+  const t = tomVidro(nome, foto, paleta);
   if (t){ alvo.style.setProperty("--ui-tom", t); return; }
   alvo.style.setProperty("--ui-tom", "rgba(255,255,255,.24)");
   if (cacheTom[foto]){ alvo.style.setProperty("--ui-tom", cacheTom[foto]); return; }

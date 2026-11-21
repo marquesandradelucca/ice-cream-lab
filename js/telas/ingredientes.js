@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120212040";
-import { confirma } from "../ui.js?v=20261120212040";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120212040";
-import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261120212040";
-import { n } from "../calculo.js?v=20261120212040";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120212321";
+import { confirma } from "../ui.js?v=20261120212321";
+import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261120212321";
+import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261120212321";
+import { n } from "../calculo.js?v=20261120212321";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -79,7 +79,7 @@ function lista(el){
     '</div></div>';
   const norm = function(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
   function bloco(i){
-    return '<a class="ui-bloco pequeno ing-bloco" href="#/ingredientes/' + encodeURIComponent(i.id) + '" style="--capa:' + capa(i.nome, i.capa) + '">' +
+    return '<a class="ui-bloco pequeno ing-bloco" href="#/ingredientes/' + encodeURIComponent(i.id) + '" style="--capa:' + capaIngrediente(i) + '">' +
       '<span class="titulo">' + esc(i.nome) + '</span></a>';
   }
   function desenha(){
@@ -127,7 +127,7 @@ function editor(el, id){
     const acucares = TIPOS_ACUCAR.filter(function(t){ return ac[t[0]]; });
     const linha = function(cor, rotulo, valor){ return '<div class="ui-linha"><span class="ing-legenda">' + (cor ? '<i style="background:' + cor + '"></i>' : '') + rotulo + '</span><b class="ui-num">' + valor + '</b></div>'; };
     el.innerHTML =
-      '<div class="rec-fundo" style="--capa:' + capa(ing.nome, ing.capa) + '"></div>' +
+      '<div class="rec-fundo" style="--capa:' + capaIngrediente(ing) + '"></div>' +
       '<div class="ui-app">' +
       '<header class="ui-cabecalho nav"><a class="ui-redondo escuro" href="#/ingredientes" aria-label="Voltar para Ingredientes">' + icone("voltar") + '</a>' +
         '<span style="flex:1"></span><button class="ui-redondo escuro" type="button" id="opcoes" aria-label="Mais opções">' + icone("opcoes") + '</button></header>' +
@@ -148,7 +148,7 @@ function editor(el, id){
           (ing.nota ? '<p class="ui-sec">' + esc(ing.nota) + '</p>' : '') +
         '</section>' +
       '</div></div>';
-    aplicaTom(el, ing.nome, ing.capa);
+    aplicaTom(el, ing.nome, ing.capa, paletaIngrediente(ing.nome));
     el.querySelector("#opcoes").addEventListener("click", function(){
       const veu = document.createElement("div"); veu.className = "ui-veu";
       const f = document.createElement("div"); f.className = "ui-folha"; f.setAttribute("role", "dialog"); f.setAttribute("aria-label", "Opções do ingrediente");
