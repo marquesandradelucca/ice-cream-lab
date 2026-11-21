@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120210945";
-import { confirma } from "../ui.js?v=20261120210945";
-import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120210945";
-import { TIPOS_ACUCAR } from "../ingredientes-base.js?v=20261120210945";
-import { n } from "../calculo.js?v=20261120210945";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120212040";
+import { confirma } from "../ui.js?v=20261120212040";
+import { icone, capa, aplicaTom, escolheCapa } from "../visual.js?v=20261120212040";
+import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261120212040";
+import { n } from "../calculo.js?v=20261120212040";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -75,6 +75,7 @@ function lista(el){
       '<input id="buscaIng" class="ui-campo" type="search" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente" value="' + esc(buscaIng) + '">' +
       '<div class="ui-filtros estudo-filtros" id="cats">' + CATEGORIAS.map(function(c){ return '<button type="button" class="ui-filtro" data-cat="' + c[0] + '" aria-pressed="' + (catIng === c[0]) + '">' + c[1] + '</button>'; }).join("") + '</div>' +
       '<div id="grade"></div>' +
+      '<div id="restaura"></div>' +
     '</div></div>';
   const norm = function(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
   function bloco(i){
@@ -86,6 +87,16 @@ function lista(el){
     const ok = function(i){ return !q || norm(i.nome).indexOf(q) >= 0 || norm(i.longo).indexOf(q) >= 0; };
     const itens = db.ingredientes.filter(function(i){ return ok(i) && (!catIng || categorias(i).indexOf(catIng) >= 0); });
     itens.sort(function(a, b){ return String(a.nome).localeCompare(String(b.nome), "pt", {sensitivity:"base"}); });   // ordem alfabética
+    // Ingredientes padrão excluídos: um botão recria com o mesmo id (as receitas que usavam voltam a achar).
+    const faltam = ING_BASE.filter(function(b){ return !db.ingredientes.some(function(i){ return i.id === b.id; }); });
+    el.querySelector("#restaura").innerHTML = faltam.length ?
+      '<button type="button" class="ui-botao vidro largo" id="restauraBase">Restaurar ingredientes padrão (' + faltam.length + ')</button>' : '';
+    if (faltam.length) el.querySelector("#restauraBase").addEventListener("click", async function(){
+      const nomes = faltam.map(function(b){ return b.nome; });
+      if (!(await confirma("Restaurar " + (nomes.length > 3 ? nomes.length + " ingredientes padrão" : nomes.join(", ")) + "? Os que você editou não mudam.", "Restaurar"))) return;
+      faltam.forEach(function(b){ db.ingredientes.push(JSON.parse(JSON.stringify(b))); });
+      salva(); desenha();
+    });
     el.querySelector("#grade").innerHTML = itens.length ? '<div class="ing-grade tres">' + itens.map(bloco).join("") + '</div>' :
       '<p class="ui-sec ideias-vazio">' + (buscaIng.trim() ? 'Nada encontrado para “' + esc(buscaIng.trim()) + '”.' : 'Nenhum ingrediente nesta categoria.') + '</p>';
   }
