@@ -74,7 +74,7 @@ export const ING_BASE = [
     nota:"Fonte: TBCA (BRC0053C); divisão dos açúcares pela USDA."},
   {id:"polpaTangerina", nome:"Polpa de tangerina", gord:0.1, ac:{frutose:2.0, dextrose:1.7, sacarose:4.9}, outros:2.1,
     nota:"Fonte: TBCA (BRC0032C); divisão dos açúcares pela USDA."},
-  {id:"hortela", nome:"Hortelã fresca", longo:"Folhas de hortelã/menta fresca", gord:0.7, outros:13.7,
+  {id:"hortela", nome:"Menta fresca", longo:"Folhas de menta/hortelã fresca", gord:0.7, outros:13.7,
     nota:"Use em infusão: 3–6 g de folhas por 100 g de leite, de 30 min a uma noite na geladeira, e coe. Coada, quase nada fica na mistura; só entra na conta se as folhas forem batidas junto. Fonte: TBCA (BRC0799B)."},
   {id:"polpaMirtilo", nome:"Polpa de mirtilo", gord:0.3, ac:{frutose:6.0, dextrose:5.9, sacarose:0.1}, outros:3.5,
     nota:"Fonte: TBCA (BRC0205C); açúcares pela USDA."},

@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120212321";
-import { confirma } from "../ui.js?v=20261120212321";
-import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261120212321";
-import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261120212321";
-import { n } from "../calculo.js?v=20261120212321";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261120212536";
+import { confirma } from "../ui.js?v=20261120212536";
+import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261120212536";
+import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261120212536";
+import { n } from "../calculo.js?v=20261120212536";
 
 function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -118,7 +118,7 @@ function editor(el, id){
     el.innerHTML = '<p class="muted">Ingrediente não encontrado.</p><a class="botao" href="#/ingredientes">Voltar à lista</a>';
     return {titulo:"Ingrediente", voltar:"#/ingredientes", voltarRotulo:"Ingredientes"};
   }
-  if (novo) edita({id:novoId(), nome:"", ac:{}});
+  if (novo) edita({id:novoId(), nome:"", ac:{}, coresV2:true});
   else mostra();
 
   function mostra(){

@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261120212321";
-import { PRESETS, registraIngredientes } from "./calculo.js?v=20261120212321";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261120212321";
-import { notificaMudanca } from "./sync.js?v=20261120212321";
+import { ING_BASE } from "./ingredientes-base.js?v=20261120212536";
+import { PRESETS, registraIngredientes } from "./calculo.js?v=20261120212536";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261120212536";
+import { notificaMudanca } from "./sync.js?v=20261120212536";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -170,6 +170,13 @@ export function carrega(){
       db.favaConvertida = true; salva();
     }
     db.ingredientes.forEach(function(i){ if (i.id === "sucoLaranja" && i.nome === "Suco de laranja"){ i.nome = "Suco de laranja pera"; salva(); } });
+    // "Hortelã fresca" passou a se chamar "Menta fresca" (só se o nome não foi trocado à mão).
+    db.ingredientes.forEach(function(i){ if (i.id === "hortela" && i.nome === "Hortelã fresca"){ i.nome = "Menta fresca"; salva(); } });
+    // Cores dos ingredientes por ingrediente (nov/2026): volta todos para a cor automática uma vez só.
+    // A marca fica no próprio ingrediente (vai junto na sincronização), então outro aparelho não repete.
+    let coresMudou = false;
+    db.ingredientes.forEach(function(i){ if (!i.coresV2){ delete i.capa; i.coresV2 = true; coresMudou = true; } });
+    if (coresMudou) salva();
   } else {
     db = vazio();
     if (migraLegado(db)) db.migradoDoLegado = new Date().toISOString();
