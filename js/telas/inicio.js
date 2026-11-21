@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120210706";
-import { abreAjustes } from "./ajustes.js?v=20261120210706";
-import { dataCurta } from "./lote.js?v=20261120210706";
-import { icone, capa, tomVidro } from "../visual.js?v=20261120210706";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120210945";
+import { abreAjustes } from "./ajustes.js?v=20261120210945";
+import { dataCurta } from "./lote.js?v=20261120210945";
+import { icone, capa, tomVidro } from "../visual.js?v=20261120210945";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function diasDesde(iso){ const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000); return d <= 0 ? "hoje" : d === 1 ? "há 1 dia" : "há " + d + " dias"; }
@@ -63,7 +63,7 @@ export function render(el){
     return '<a class="ui-bloco pequeno home-capa" href="' + href + '" style="--capa:' + capa(r.nome, r.capa) + '"><span class="ui-etiqueta' + (final ? ' final' : '') + '">' + (final ? 'Final' : 'Teste') + '</span><span class="titulo">' + esc(r.nome) + '</span></a>';
   }).join("") + '</div>' : '<p class="ui-sec">Nenhuma receita ainda. Comece pela Calculadora.</p>';
 
-  const paraTestar = db.ideias.filter(function(x){ return !x.receitaId; }).length;
+  const paraTestar = db.ideias.filter(function(x){ return !(x.receitaId && receita(x.receitaId)); }).length;
 
   el.innerHTML =
     '<div class="ui-app">' +

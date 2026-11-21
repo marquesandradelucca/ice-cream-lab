@@ -1,9 +1,9 @@
 // Ideias: lista simples (nome, estilo, nota). "Começar receita" abre a calculadora
 // com um rascunho vazio no estilo da ideia, já com o nome dela.
-import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261120210706";
-import { NOMES_ESTILO } from "../calculo.js?v=20261120210706";
-import { confirma } from "../ui.js?v=20261120210706";
-import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261120210706";
+import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261120210945";
+import { NOMES_ESTILO } from "../calculo.js?v=20261120210945";
+import { confirma } from "../ui.js?v=20261120210945";
+import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261120210945";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 const ESTILOS = [["gelato", "Gelato"], ["icecream", "Sorvete"], ["sorbet", "Sorbet"]];
@@ -64,11 +64,13 @@ function novaIdeia(el){
 function lista(el){
   document.body.classList.add("ui");
   const db = dados();
+  // Ideia que já virou receita sai da lista (se a receita for apagada, a ideia volta).
+  const abertas = db.ideias.filter(function(x){ return !(x.receitaId && receita(x.receitaId)); });
   el.innerHTML =
     '<div class="ui-app">' +
     '<header class="ui-cabecalho"><h1>Ideias</h1><button class="ui-redondo" type="button" id="novaIdeia" aria-label="Nova ideia">' + icone("mais") + '</button></header>' +
     '<div class="ui-tela">' +
-      (db.ideias.length ? db.ideias.map(function(x){
+      (abertas.length ? abertas.map(function(x){
         const r = x.receitaId && receita(x.receitaId);
         const meta = [x.estilo ? NOMES_ESTILO[x.estilo] : '', r ? 'virou receita' : ''].filter(Boolean).join(' · ');
         const nota = x.nota ? x.nota.split("\n")[0].slice(0, 120) : '';
