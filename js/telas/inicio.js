@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120212536";
-import { abreAjustes } from "./ajustes.js?v=20261120212536";
-import { dataCurta } from "./lote.js?v=20261120212536";
-import { icone, capa, tomVidro } from "../visual.js?v=20261120212536";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120213558";
+import { abreAjustes } from "./ajustes.js?v=20261120213558";
+import { dataCurta } from "./lote.js?v=20261120213558";
+import { icone, capa, tomVidro } from "../visual.js?v=20261120213558";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function diasDesde(iso){ const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000); return d <= 0 ? "hoje" : d === 1 ? "há 1 dia" : "há " + d + " dias"; }
@@ -49,6 +49,25 @@ export function render(el){
   if (aguardando.length === 1) avaliar = cartaoAvaliar(aguardando[0]);
   else if (aguardando.length > 1) avaliar = '<div class="ui-rolagem home-avaliar-faixa">' + aguardando.map(cartaoAvaliar).join("") + '</div>';
 
+  // Continuar teste: as duas últimas receitas em teste que tiveram lote (pelo lote mais recente de cada).
+  const ultimoLote = {};
+  db.lotes.forEach(function(l){
+    const r = receita(l.receitaId); if (!r || r.status === "final") return;
+    const quando = String(l.fim || l.inicio || "");
+    if (!ultimoLote[r.id] || quando > ultimoLote[r.id].quando) ultimoLote[r.id] = {l:l, quando:quando};
+  });
+  const continuar = Object.keys(ultimoLote).map(function(id){ return ultimoLote[id]; })
+    .sort(function(a, b){ return b.quando.localeCompare(a.quando); }).slice(0, 2)
+    .map(function(x){
+      const r = receita(x.l.receitaId), v = versao(x.l.versaoId);
+      return '<a class="ui-bloco home-continuar" href="#/receita/' + encodeURIComponent(r.id) + '" style="--capa:' + capa(r.nome, r.capa) + ';--ui-tom:' + (tomVidro(r.nome, r.capa) || 'rgba(255,255,255,.24)') + '">' +
+        '<span class="ui-rotulo home-continuar-rotulo">Continuar</span>' +
+        '<span class="ui-redondo escuro home-continuar-seta" aria-hidden="true">' + icone("direita") + '</span>' +
+        '<span class="titulo home-continuar-nome">' + esc(r.nome) + '</span>' +
+        '<span class="ui-sec">' + (v ? 'v' + v.numero + ' · ' : '') + 'lote de ' + dataCurta(x.l.fim || x.l.inicio) + '</span></a>';
+    }).join("");
+  const blocoContinuar = continuar ? '<div class="home-continuar-par">' + continuar + '</div>' : '';
+
   // Receitas: da aberta por último (à esquerda) para a vista há mais tempo; nunca abertas vão ao fim, das mexidas mais recentemente.
   const ultimaData = function(r){ const vs = versoesDe(r.id); return vs.length ? vs[vs.length - 1].data : ""; };
   let vistas = {}; try { vistas = JSON.parse(localStorage.getItem("icl-vistas") || "{}"); } catch(e){}
@@ -69,7 +88,7 @@ export function render(el){
     '<div class="ui-app">' +
     '<header class="ui-cabecalho"><h1>Ice Cream Lab</h1><button class="ui-redondo" type="button" id="abreAjustes" aria-label="Ajustes">' + icone("ajustes") + '</button></header>' +
     '<div class="ui-tela home-tela' + (aguardando.length ? ' com-avaliar' : '') + '">' +
-      avaliar +
+      avaliar + blocoContinuar +
       '<div class="ui-par home-par">' +
         '<a class="ui-cartao ui-vidro home-calc" href="#/calculadora"><h2>Calculadora</h2><div class="home-mini">' + miniGrafico() + '</div></a>' +
         '<div class="home-coluna">' +
