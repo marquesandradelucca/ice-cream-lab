@@ -1,12 +1,12 @@
 // Ajustes: conta (entrar/criar/sair), situação da sincronização e backup em arquivo.
-import { exportaBackup, importaBackup } from "../dados.js?v=20261120205710";
-import { situacao, aoMudar, entrar, criarConta, sair, sincroniza } from "../sync.js?v=20261120205710";
-import { confirma } from "../ui.js?v=20261120205710";
-import { toast } from "../app.js?v=20261120205710";
-import { dados, salva } from "../dados.js?v=20261120205710";
-import { capa, escolheCapa, icone } from "../visual.js?v=20261120205710";
-import { WIDGETS_BIBLIOTECA, capaBiblioteca } from "./biblioteca.js?v=20261120205710";
-import { WIDGETS_HOME, capaHome } from "./inicio.js?v=20261120205710";
+import { exportaBackup, importaBackup } from "../dados.js?v=20261120210706";
+import { situacao, aoMudar, entrar, criarConta, sair, sincroniza } from "../sync.js?v=20261120210706";
+import { confirma } from "../ui.js?v=20261120210706";
+import { toast } from "../app.js?v=20261120210706";
+import { dados, salva } from "../dados.js?v=20261120210706";
+import { capa, escolheCapa, icone } from "../visual.js?v=20261120210706";
+import { WIDGETS_BIBLIOTECA, capaBiblioteca } from "./biblioteca.js?v=20261120210706";
+import { WIDGETS_HOME, capaHome } from "./inicio.js?v=20261120210706";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleString("pt-BR", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }

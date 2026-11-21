@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261120205710";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261120205710";
-import { confirma, LAPIS } from "../ui.js?v=20261120205710";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120205710";
+         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261120210706";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261120210706";
+import { confirma, LAPIS } from "../ui.js?v=20261120210706";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261120210706";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -482,9 +482,11 @@ export function render(el, rota){
     if (ev.target.closest("[data-fechar]")) return fechaEscolha();
     const b = ev.target.closest(".escolha-item"); if (!b) return;
     fechaEscolha();
-    calc.linhas.push({id:b.dataset.id, g:0});
+    const nova = {id:b.dataset.id, g:0};
+    calc.linhas.push(nova);
     desenhaLinhas(); atualiza();
-    const ult = inputs[inputs.length - 1];
+    // A lista é reordenada (contados por unidade vão para o fim): foca o campo da linha nova, não o último.
+    const ult = inputs[calc.linhas.indexOf(nova)];
     if (ult){ ult.focus(); ult.select(); }
   });
   el.querySelector("#adicionar").addEventListener("click", abreEscolha);
