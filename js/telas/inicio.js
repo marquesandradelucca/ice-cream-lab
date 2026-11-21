@@ -1,9 +1,9 @@
 // Home (redesign): hub com blocos de cada área.
 // Para avaliar (se houver lote esperando) · Calculadora + Ideias/Ingredientes · Receitas (faixa lateral) · Estudo.
-import { dados, receita, versao, versoesDe } from "../dados.js?v=20261120213558";
-import { abreAjustes } from "./ajustes.js?v=20261120213558";
-import { dataCurta } from "./lote.js?v=20261120213558";
-import { icone, capa, tomVidro } from "../visual.js?v=20261120213558";
+import { dados, receita, versao, versoesDe } from "../dados.js?v=20261121091931";
+import { abreAjustes } from "./ajustes.js?v=20261121091931";
+import { dataCurta } from "./lote.js?v=20261121091931";
+import { icone, capa, tomVidro } from "../visual.js?v=20261121091931";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function diasDesde(iso){ const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000); return d <= 0 ? "hoje" : d === 1 ? "há 1 dia" : "há " + d + " dias"; }
@@ -49,14 +49,16 @@ export function render(el){
   if (aguardando.length === 1) avaliar = cartaoAvaliar(aguardando[0]);
   else if (aguardando.length > 1) avaliar = '<div class="ui-rolagem home-avaliar-faixa">' + aguardando.map(cartaoAvaliar).join("") + '</div>';
 
-  // Continuar teste: as duas últimas receitas em teste que tiveram lote (pelo lote mais recente de cada).
+  // Continuar teste: as duas últimas receitas com teste em aberto (pelo lote mais recente de cada).
   const ultimoLote = {};
   db.lotes.forEach(function(l){
     const r = receita(l.receitaId); if (!r || r.status === "final") return;
     const quando = String(l.fim || l.inicio || "");
     if (!ultimoLote[r.id] || quando > ultimoLote[r.id].quando) ultimoLote[r.id] = {l:l, quando:quando};
   });
+  // Lote mais recente já avaliado (concluído) = teste terminado: sai do widget.
   const continuar = Object.keys(ultimoLote).map(function(id){ return ultimoLote[id]; })
+    .filter(function(x){ return x.l.status !== "concluido"; })
     .sort(function(a, b){ return b.quando.localeCompare(a.quando); }).slice(0, 2)
     .map(function(x){
       const r = receita(x.l.receitaId), v = versao(x.l.versaoId);
