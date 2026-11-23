@@ -1,8 +1,8 @@
 // Biblioteca: hub da aba com Ingredientes e as seções do Estudo, cada uma como um bloco de capa.
 // Rota: #/biblioteca
-import { dados } from "../dados.js?v=20261123121129";
-import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261123121129";
-import { icone, capa } from "../visual.js?v=20261123121129";
+import { dados } from "../dados.js?v=20261123121359";
+import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261123121359";
+import { icone, capa } from "../visual.js?v=20261123121359";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function plural(n, um, varios){ return n + " " + (n === 1 ? um : varios); }

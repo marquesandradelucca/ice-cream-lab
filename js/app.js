@@ -8,22 +8,22 @@
   window.scrollTo = function(x, y){ rolaJanela.apply(null, arguments); if (typeof y === "number") document.body.scrollTop = y; };
 })();
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261123121129";
-import { iniciaSync, situacao, aoMudar } from "./sync.js?v=20261123121129";
-import * as entrada from "./telas/entrada.js?v=20261123121129";
-import * as inicio from "./telas/inicio.js?v=20261123121129";
-import * as calculadora from "./telas/calculadora.js?v=20261123121129";
-import * as ingredientes from "./telas/ingredientes.js?v=20261123121129";
-import * as receitas from "./telas/receitas.js?v=20261123121129";
-import * as receita from "./telas/receita.js?v=20261123121129";
-import * as testes from "./telas/testes.js?v=20261123121129";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261123121129";
-import * as loteTela from "./telas/lote.js?v=20261123121129";
-import * as estudo from "./telas/estudo.js?v=20261123121129";
-import * as ideias from "./telas/ideias.js?v=20261123121129";
-import * as ajustes from "./telas/ajustes.js?v=20261123121129";
-import * as biblioteca from "./telas/biblioteca.js?v=20261123121129";
-import * as guia from "./telas/guia.js?v=20261123121129";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261123121359";
+import { iniciaSync, situacao, aoMudar } from "./sync.js?v=20261123121359";
+import * as entrada from "./telas/entrada.js?v=20261123121359";
+import * as inicio from "./telas/inicio.js?v=20261123121359";
+import * as calculadora from "./telas/calculadora.js?v=20261123121359";
+import * as ingredientes from "./telas/ingredientes.js?v=20261123121359";
+import * as receitas from "./telas/receitas.js?v=20261123121359";
+import * as receita from "./telas/receita.js?v=20261123121359";
+import * as testes from "./telas/testes.js?v=20261123121359";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261123121359";
+import * as loteTela from "./telas/lote.js?v=20261123121359";
+import * as estudo from "./telas/estudo.js?v=20261123121359";
+import * as ideias from "./telas/ideias.js?v=20261123121359";
+import * as ajustes from "./telas/ajustes.js?v=20261123121359";
+import * as biblioteca from "./telas/biblioteca.js?v=20261123121359";
+import * as guia from "./telas/guia.js?v=20261123121359";
 
 const TELAS = {
   "": inicio,
