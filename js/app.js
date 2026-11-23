@@ -8,22 +8,22 @@
   window.scrollTo = function(x, y){ rolaJanela.apply(null, arguments); if (typeof y === "number") document.body.scrollTop = y; };
 })();
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261123121359";
-import { iniciaSync, situacao, aoMudar } from "./sync.js?v=20261123121359";
-import * as entrada from "./telas/entrada.js?v=20261123121359";
-import * as inicio from "./telas/inicio.js?v=20261123121359";
-import * as calculadora from "./telas/calculadora.js?v=20261123121359";
-import * as ingredientes from "./telas/ingredientes.js?v=20261123121359";
-import * as receitas from "./telas/receitas.js?v=20261123121359";
-import * as receita from "./telas/receita.js?v=20261123121359";
-import * as testes from "./telas/testes.js?v=20261123121359";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261123121359";
-import * as loteTela from "./telas/lote.js?v=20261123121359";
-import * as estudo from "./telas/estudo.js?v=20261123121359";
-import * as ideias from "./telas/ideias.js?v=20261123121359";
-import * as ajustes from "./telas/ajustes.js?v=20261123121359";
-import * as biblioteca from "./telas/biblioteca.js?v=20261123121359";
-import * as guia from "./telas/guia.js?v=20261123121359";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261123121536";
+import { iniciaSync, situacao, aoMudar } from "./sync.js?v=20261123121536";
+import * as entrada from "./telas/entrada.js?v=20261123121536";
+import * as inicio from "./telas/inicio.js?v=20261123121536";
+import * as calculadora from "./telas/calculadora.js?v=20261123121536";
+import * as ingredientes from "./telas/ingredientes.js?v=20261123121536";
+import * as receitas from "./telas/receitas.js?v=20261123121536";
+import * as receita from "./telas/receita.js?v=20261123121536";
+import * as testes from "./telas/testes.js?v=20261123121536";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261123121536";
+import * as loteTela from "./telas/lote.js?v=20261123121536";
+import * as estudo from "./telas/estudo.js?v=20261123121536";
+import * as ideias from "./telas/ideias.js?v=20261123121536";
+import * as ajustes from "./telas/ajustes.js?v=20261123121536";
+import * as biblioteca from "./telas/biblioteca.js?v=20261123121536";
+import * as guia from "./telas/guia.js?v=20261123121536";
 
 const TELAS = {
   "": inicio,
@@ -93,6 +93,9 @@ function rota(){
   document.body.classList.toggle("sem-login", semLogin);
   if (semLogin){
     if (typeof limpa === "function") limpa(); limpa = null;
+    // Fecha folhas abertas (ex.: Ajustes, de onde se sai da conta) pelo próprio fechamento delas.
+    document.querySelectorAll(".ui-veu").forEach(function(v){ v.click(); });
+    document.querySelectorAll(".ui-folha, .ui-veu").forEach(function(e){ e.remove(); });
     anterior = null; rota.ultimo = null;
     elTela.innerHTML = ""; elTitulo.hidden = true; elVoltar.hidden = true;
     document.title = "Ice Cream Lab";
@@ -267,7 +270,7 @@ iniciaSync();
 window.addEventListener("hashchange", rota);
 // Entrou ou saiu da conta: troca entre a tela de entrada e o app.
 let logadoAntes = situacao().logado;
-aoMudar(function(s){ if (s.logado !== logadoAntes){ logadoAntes = s.logado; rota(); } });
+aoMudar(function(s){ if (s.logado !== logadoAntes){ logadoAntes = s.logado; setTimeout(rota, 0); } });
 rota();
 // Primeira tela desenhada: mostra a barra de abas (escondida no index.html até aqui).
 requestAnimationFrame(function(){ document.documentElement.classList.remove("carregando"); });
