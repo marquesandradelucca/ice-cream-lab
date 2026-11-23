@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261123122345";
-import { PRESETS, registraIngredientes } from "./calculo.js?v=20261123122345";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261123122345";
-import { notificaMudanca } from "./sync.js?v=20261123122345";
+import { ING_BASE } from "./ingredientes-base.js?v=20261123122542";
+import { PRESETS, registraIngredientes } from "./calculo.js?v=20261123122542";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261123122542";
+import { notificaMudanca } from "./sync.js?v=20261123122542";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -338,60 +338,6 @@ export function criaLote(versaoId){
 }
 
 export function excluiLote(id){ db.lotes = db.lotes.filter(function(l){ return l.id !== id; }); }
-
-// ---------- Backup em arquivo ----------
-export function exportaBackup(){
-  const pacote = Object.assign({app:"ice-cream-lab", exportadoEm:new Date().toISOString()}, db);
-  const blob = new Blob([JSON.stringify(pacote, null, 2)], {type:"application/json"});
-  const a = document.createElement("a");
-  const hoje = new Date().toISOString().slice(0, 10);
-  a.href = URL.createObjectURL(blob);
-  a.download = "ice-cream-lab-backup-" + hoje + ".json";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-}
-
-// Aceita o backup deste app (substitui tudo) ou o "meus-dados.json" da calculadora antiga (junta).
-export function importaBackup(texto){
-  const bruto = JSON.parse(texto);
-  if (bruto && bruto.versaoDados){
-    const novo = Object.assign(vazio(), bruto);
-    delete novo.app; delete novo.exportadoEm;
-    if (!Array.isArray(novo.ingredientes)) throw new Error("Arquivo sem lista de ingredientes.");
-    db = novo; salva();
-    return "Backup restaurado.";
-  }
-  const produtos = Array.isArray(bruto) ? bruto : (bruto && bruto.produtos) || [];
-  const recs = Array.isArray(bruto) ? [] : (bruto && bruto.receitas) || [];
-  if (!produtos.length && !recs.length) throw new Error("Não reconheci este arquivo.");
-  let np = 0, nr = 0;
-  produtos.forEach(function(p){
-    if (!p || !p.nome) return;
-    const igual = db.ingredientes.find(function(x){ return x.nome === p.nome; });
-    const comp = {gord:Number(p.gord) || 0, ac:{sacarose:Number(p.ac) || 0}, outros:Number(p.outros) || 0};
-    if (igual) Object.assign(igual, comp);
-    else db.ingredientes.push(Object.assign({id:p.id ? String(p.id) : novoId(), nome:String(p.nome).slice(0, 60)}, comp));
-    np++;
-  });
-  recs.forEach(function(r){
-    if (!r || !r.nome || !Array.isArray(r.linhas)) return;
-    const linhas = r.linhas.map(function(l){
-      if (l.id === "custom" && l.comp){
-        const ing = deCompAntiga(l.comp.nome, l.comp); db.ingredientes.push(ing);
-        return {id:ing.id, g:Number(l.g) || 0};
-      }
-      return {id:String(l.id), g:Number(l.g) || 0};
-    });
-    db.receitasLegado = db.receitasLegado.filter(function(x){ return x.nome !== r.nome; });
-    db.receitasLegado.push({id:String(r.id || novoId()), nome:String(r.nome), estilo:r.estilo || "gelato", linhas:linhas});
-    nr++;
-  });
-  converteLegado();
-  salva();
-  return "Importados da calculadora antiga: " + np + " produto(s) e " + nr + " receita(s).";
-}
 
 // Modo de preparo em etapas: uma por linha (números ou marcadores no começo são ignorados).
 export function passosPreparo(txt){

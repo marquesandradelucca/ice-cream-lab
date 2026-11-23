@@ -1,12 +1,11 @@
-// Ajustes: conta (entrar/criar/sair), situação da sincronização e backup em arquivo.
-import { exportaBackup, importaBackup } from "../dados.js?v=20261123122345";
-import { situacao, aoMudar, entrar, criarConta, sair, sincroniza } from "../sync.js?v=20261123122345";
-import { confirma } from "../ui.js?v=20261123122345";
-import { toast } from "../app.js?v=20261123122345";
-import { dados, salva } from "../dados.js?v=20261123122345";
-import { capa, escolheCapa, icone } from "../visual.js?v=20261123122345";
-import { WIDGETS_BIBLIOTECA, capaBiblioteca } from "./biblioteca.js?v=20261123122345";
-import { WIDGETS_HOME, capaHome } from "./inicio.js?v=20261123122345";
+// Ajustes: conta (entrar/criar/sair), situação da sincronização e personalização.
+import { situacao, aoMudar, entrar, criarConta, sair, sincroniza } from "../sync.js?v=20261123122542";
+import { confirma } from "../ui.js?v=20261123122542";
+import { toast } from "../app.js?v=20261123122542";
+import { dados, salva } from "../dados.js?v=20261123122542";
+import { capa, escolheCapa, icone } from "../visual.js?v=20261123122542";
+import { WIDGETS_BIBLIOTECA, capaBiblioteca } from "./biblioteca.js?v=20261123122542";
+import { WIDGETS_HOME, capaHome } from "./inicio.js?v=20261123122542";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleString("pt-BR", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -82,16 +81,7 @@ function conteudo(el){
               '<span class="personaliza-nome">' + w.nome + '<span class="ui-sec">' + (!proprio ? 'Padrão' : proprio.indexOf("paleta:") === 0 ? esc(proprio.slice(7)) : 'Foto') + '</span></span>' +
               '<span class="estudo-seta" aria-hidden="true">' + icone("direita") + '</span></button>';
           }).join("") + '</div></details></section>';
-      }).join("") +
-      // Backup fica discreto: recolhido, aberto só quando precisar.
-      '<section class="ui-cartao ui-vidro ajustes-cartao"><details class="rec-dobra">' +
-        '<summary><h2>Backup em arquivo</h2><span class="rec-seta claro" aria-hidden="true">' + icone("baixo") + '</span></summary>' +
-        '<p class="ui-sec">Uma cópia de segurança fora do app, para guardar no Arquivos ou no Drive.</p>' +
-        '<div class="rec-acoes"><button type="button" class="ui-botao vidro" id="exportar">Exportar</button>' +
-          '<button type="button" class="ui-botao vidro" id="importar">Importar</button></div>' +
-      '</details></section>' +
-      '<input type="file" id="arquivo" accept="application/json,.json" hidden>';
-
+      }).join("");
     if (s.logado){
       el.querySelector("#sincronizar").addEventListener("click", function(){ sincroniza(); });
       el.querySelector("#sair").addEventListener("click", async function(){
@@ -126,22 +116,6 @@ function conteudo(el){
         }});
     }); });
     el.querySelector("#dobraPersonaliza").addEventListener("toggle", function(ev){ personalizaAberta = ev.target.open; });
-    el.querySelector("#exportar").addEventListener("click", exportaBackup);
-    const arq = el.querySelector("#arquivo");
-    el.querySelector("#importar").addEventListener("click", function(){ arq.click(); });
-    arq.addEventListener("change", function(){
-      const f = arq.files && arq.files[0]; if (!f) return;
-      const leitor = new FileReader();
-      leitor.onload = async function(){
-        try {
-          const completo = /"versaoDados"/.test(leitor.result);
-          if (completo && !(await confirma("Restaurar este backup substitui todos os dados atuais do app" + (situacao().logado ? " (e da nuvem, na próxima sincronização)" : "") + ". Continuar?", "Restaurar", true))) return;
-          toast(importaBackup(leitor.result));
-        } catch (e) { toast("Não consegui ler o arquivo: " + e.message); }
-      };
-      leitor.readAsText(f);
-      arq.value = "";
-    });
   }
   desenha();
   // A tela se atualiza sozinha quando a sincronização muda de situação.
