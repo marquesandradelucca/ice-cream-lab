@@ -1,5 +1,5 @@
 // Entrada: tela obrigatória enquanto não há login. Entrar ou criar conta (Supabase, e-mail e senha).
-import { situacao, entrar, criarConta } from "../sync.js?v=20261123122233";
+import { situacao, entrar, criarConta } from "../sync.js?v=20261123122345";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -8,6 +8,8 @@ export function render(el){
   let modo = "entrar";
   const desenha = function(){
     const s = situacao(), criar = modo === "criar";
+    // Só o aviso de sessão expirada interessa aqui; erros de sincronização de uma conta anterior não.
+    const aviso = s.erro && /sessão expirou/i.test(s.erro) ? s.erro : "";
     el.innerHTML =
       '<div class="ui-tela entrada-tela">' +
         '<img class="entrada-icone" src="icons/logo.png?v=2" alt="" width="84" height="84">' +
@@ -17,7 +19,7 @@ export function render(el){
           '<input id="email" class="ui-campo campo-branco" type="email" autocomplete="username" inputmode="email" autocapitalize="off" placeholder="E-mail" aria-label="E-mail" required>' +
           '<input id="senha" class="ui-campo campo-branco" type="password" autocomplete="' + (criar ? 'new-password' : 'current-password') + '" minlength="6" placeholder="Senha' + (criar ? ' (mínimo 6 caracteres)' : '') + '" aria-label="Senha" required>' +
           (criar ? '<input id="senha2" class="ui-campo campo-branco" type="password" autocomplete="new-password" minlength="6" placeholder="Repita a senha" aria-label="Repita a senha" required>' : '') +
-          '<span class="ui-sec ajustes-erro" id="erro"' + (s.erro ? '' : ' hidden') + '>' + esc(s.erro || "") + '</span>' +
+          '<span class="ui-sec ajustes-erro" id="erro"' + (aviso ? '' : ' hidden') + '>' + esc(aviso) + '</span>' +
           '<button type="submit" class="ui-botao preto entrada-botao">' + (criar ? 'Criar conta' : 'Login') + '</button>' +
         '</form>' +
         '<button type="button" class="ui-botao vidro entrada-troca" id="troca">' + (criar ? 'Já tenho conta' : 'Criar conta') + '</button>' +
