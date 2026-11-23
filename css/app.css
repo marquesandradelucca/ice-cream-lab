@@ -1017,7 +1017,7 @@ body.est-capa .temas-lista .tema-bloco{background:var(--ui-vidro-escuro); border
 /* Tela de entrada (sem login): sem barra de abas nem topo */
 body.sem-login #abas, body.sem-login .barra-topo{display:none}
 .entrada-tela{min-height:calc(100dvh - 120px); display:flex; flex-direction:column; justify-content:center; align-items:stretch; gap:var(--ui-e3); max-width:420px; margin:0 auto; padding-top:max(env(safe-area-inset-top), 24px)}
-.entrada-icone{align-self:center; width:120px; height:120px}
+.entrada-icone{align-self:center; width:112px; height:112px; object-fit:contain}
 .entrada-titulo{text-align:center; margin:0; font-size:28px}
 .entrada-sub{text-align:center; margin:0 0 var(--ui-e2)}
 .entrada-cartao{display:flex; flex-direction:column; gap:var(--ui-e3)}
