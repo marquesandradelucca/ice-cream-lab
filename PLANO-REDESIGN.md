@@ -22,7 +22,7 @@ Nada de cálculo muda (regras de `calculo.js` ficam iguais).
 
 ## Fase 1 · Fundação visual (sem mudar telas ainda)
 
-Arquivos: `css/estilo.css`, `js/ui.js`, `GUIA-VISUAL.md`.
+Arquivos: `css/app.css`, `js/ui.js`, `GUIA-VISUAL.md`.
 
 - **Tokens novos** (substituem os atuais):
   - Cores: fundo branco, tinta #141414, secundário #5C5C5C / #8E8E8E, faixas de cálculo (ok/atenção/fora) mantidas.

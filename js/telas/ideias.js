@@ -1,9 +1,9 @@
 // Ideias: lista simples (nome, estilo, nota). "Começar receita" abre a calculadora
 // com um rascunho vazio no estilo da ideia, já com o nome dela.
-import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261123121715";
-import { NOMES_ESTILO } from "../calculo.js?v=20261123121715";
-import { confirma } from "../ui.js?v=20261123121715";
-import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261123121715";
+import { dados, salva, ideia, criaIdeia, receita } from "../dados.js?v=20261123122233";
+import { NOMES_ESTILO } from "../calculo.js?v=20261123122233";
+import { confirma } from "../ui.js?v=20261123122233";
+import { icone, capa, aplicaTom, tomVidro, escolheCapa } from "../visual.js?v=20261123122233";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 const ESTILOS = [["gelato", "Gelato"], ["icecream", "Sorvete"], ["sorbet", "Sorbet"]];
@@ -86,14 +86,14 @@ function lista(el){
     '</div></div>';
   el.querySelector("#novaIdeia").addEventListener("click", function(){ novaIdeia(el); });
   el.querySelectorAll("[data-comecar]").forEach(function(b){ b.addEventListener("click", function(){ const x = ideia(b.dataset.comecar); if (x) comeca(x); }); });
-  return {titulo:"Ideias", limpa:function(){ document.body.classList.remove("ui"); }};
+  return {titulo:"Ideias", limpa:function(){ }};
 }
 
 function editor(el, id){
   const db = dados();
   const nova = id === "nova";
   const x = nova ? {nome:"", estilo:"gelato", nota:""} : ideia(id);
-  const limpa = function(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(o){ o.remove(); }); };
+  const limpa = function(){ document.body.classList.remove("rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(o){ o.remove(); }); };
   if (!x){
     el.innerHTML = '<p class="muted">Ideia não encontrada.</p>';
     return {titulo:"Ideias", voltar:"#/ideias", voltarRotulo:"Ideias"};

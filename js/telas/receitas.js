@@ -1,8 +1,8 @@
 // Receitas (redesign): testes e finais juntos, com filtro Todas / Em teste / Finais.
 // Rotas: #/receitas, #/receitas/teste, #/receitas/finais (o filtro fica no endereço para o voltar lembrar).
-import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261123121715";
-import { NOMES_ESTILO } from "../calculo.js?v=20261123121715";
-import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261123121715";
+import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261123122233";
+import { NOMES_ESTILO } from "../calculo.js?v=20261123122233";
+import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261123122233";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
@@ -101,5 +101,5 @@ export function render(el, rota){
   desenha();
   // Filtro escolhido sempre visível (a fileira rola de lado).
   const ativo = el.querySelector('.ui-filtro[aria-pressed="true"]'); if (ativo) ativo.scrollIntoView({inline:"nearest", block:"nearest"});
-  return {titulo:"Receitas", limpa:function(){ document.body.classList.remove("ui"); }};
+  return {titulo:"Receitas", limpa:function(){ }};
 }

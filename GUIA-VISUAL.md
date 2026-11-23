@@ -1,7 +1,7 @@
 # Guia visual do Ice Cream Lab
 
 Regras de aparência do app. Toda tela nova segue este guia; para mudar algo no visual,
-muda-se aqui primeiro e depois em `css/estilo.css` (onde cada valor é um token no `:root`).
+muda-se aqui primeiro e depois em `css/app.css` (onde cada valor é um token no `:root`).
 
 Princípio: o app é usado no celular, na bancada, com uma mão. Poucas coisas por tela,
 alvos de toque grandes, nada que dependa de precisão. Identidade herdada da calculadora v1.1:

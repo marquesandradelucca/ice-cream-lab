@@ -1,7 +1,488 @@
-/* Ice Cream Lab — redesign "cara de app" (Fase 1: fundação).
-   Tokens e componentes novos, usados pelas telas à medida que forem refeitas.
-   Referência: Figma "Ice Cream Lab · Redesign", página 05. Regras em PLANO-REDESIGN.md.
-   Prefixo "ui-" para não conflitar com o estilo antigo (estilo.css) durante a transição. */
+/* Ice Cream Lab — folha de estilos única.
+   Primeiro a base (reset, estrutura e telas da calculadora), depois os tokens e componentes "ui-".
+   Referência: Figma "Ice Cream Lab · Redesign", página 05. Regras em PLANO-REDESIGN.md. */
+
+/* ======== Base ======== */
+/* ===== 1. Tokens ===== */
+:root{
+  color-scheme: light;
+  --paper:#FCFCFA; --ink:#1B1D1B; --muted:#686E68; --line:#E5E5DE;
+  --surface:color-mix(in srgb, var(--line) 42%, var(--paper));
+  --ok:#3E8A37; --atencao:#B3651E; --critico:#AF3629;
+  --ink-suave:color-mix(in srgb, var(--paper) 70%, var(--ink)); /* texto secundário sobre fundo preto */
+
+  /* Tipografia */
+  --t-titulo:18px; --t-secao:16px; --t-corpo:15px; --t-pequeno:13px; --t-campo:16px;
+
+  /* Espaçamento */
+  --esp-colado:4px; --esp-grupo:8px; --esp-secao:12px; --esp-pagina:24px; --esp-bloco:32px;
+  --esp-card:16px; --esp-lateral:16px;
+
+  /* Formas */
+  --pilula:40px; --raio:8px; --campo:48px; --toque:44px;
+
+  /* Movimento */
+  --mola:cubic-bezier(.34,1.56,.64,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6; --line:#282B27;
+    --ok:#7CC19B; --atencao:#D9A94F; --critico:#E08A7E;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#131513; --ink:#EAEBE7; --muted:#A8ADA6; --line:#282B27;
+  --ok:#7CC19B; --atencao:#D9A94F; --critico:#E08A7E;
+}
+
+/* ===== 2. Base ===== */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
+  font-size:var(--t-corpo); font-weight:400; line-height:1.5;
+  -webkit-font-smoothing:antialiased; -webkit-tap-highlight-color:transparent;
+}
+h1,h2,h3,p{margin:0}
+a{color:inherit}
+button,input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+[hidden]{display:none !important}
+.num,input[type="number"]{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.pequeno{font-size:var(--t-pequeno)}
+
+body.travado{overflow:hidden}
+
+/* ===== 3. Estrutura da tela ===== */
+.barra-topo{
+  position:sticky; top:0; z-index:10; background:var(--paper); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:var(--esp-colado);
+  padding:calc(env(safe-area-inset-top,0px) + var(--esp-grupo)) var(--esp-lateral) var(--esp-grupo); min-height:56px;
+}
+.marca{display:inline-flex; align-items:center; min-height:var(--toque); text-decoration:none; color:var(--ink)}
+.marca h1{font-size:var(--t-titulo); font-weight:600; letter-spacing:-.02em}
+.barra-topo .voltar{display:inline-flex; align-items:center; justify-content:center; width:40px; height:var(--toque);
+  margin-left:calc(var(--esp-secao) * -1); color:var(--ink); text-decoration:none}
+.barra-topo .voltar svg{width:22px; height:22px}
+
+.wrap{max-width:640px; margin:0 auto; padding:var(--esp-pagina) var(--esp-lateral) calc(env(safe-area-inset-bottom,0px) + 48px)}
+.titulo-tela{font-size:var(--t-titulo); font-weight:600; margin-bottom:var(--esp-pagina)}
+
+/* Títulos dentro das telas */
+.form h3{font-size:var(--t-secao); font-weight:500}
+
+.etiqueta{font-size:var(--t-pequeno); color:var(--muted)}
+
+/* ===== 4. Pílulas e botões ===== */
+.botao{
+  display:inline-flex; align-items:center; justify-content:center; gap:var(--esp-grupo);
+  height:var(--pilula); padding:0 20px; border:0; border-radius:999px;
+  font-size:var(--t-corpo); font-weight:400; line-height:1; text-decoration:none; white-space:nowrap; cursor:pointer;
+  touch-action:manipulation;
+}
+.botao{background:var(--ink); color:var(--paper)}
+
+.botao.perigo{background:var(--line); color:var(--critico)}
+
+.botao.largo{display:flex; width:100%}
+
+/* Grupos de ações */
+
+.acoes-ing{display:flex; gap:var(--esp-grupo)}
+.acoes-ing > *{flex:1; min-width:0}
+
+/* Seletor de pílulas (faixas, status): escolhida preta, as outras cinza, sem animação */
+
+/* ===== 5. Cards e listas ===== */
+.cartao{background:var(--surface); border-radius:var(--raio); padding:var(--esp-card); margin-bottom:var(--esp-bloco)}
+
+.item-lista{display:flex; flex-direction:column; justify-content:center; gap:2px; min-height:64px; padding:var(--esp-secao) var(--esp-card);
+  background:var(--surface); border-radius:var(--raio); text-decoration:none}
+
+/* Card recolhível (versões, notas) */
+details.cartao{padding:0}
+details.cartao > summary{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-secao);
+  min-height:52px; padding:0 var(--esp-card); list-style:none; cursor:pointer}
+details.cartao > summary::-webkit-details-marker{display:none}
+
+details.cartao > :not(summary){padding:0 var(--esp-card)}
+details.cartao[open]{padding-bottom:var(--esp-card)}
+
+/* ===== 6. Home ===== */
+
+.grade{display:grid; grid-template-columns:1fr 1fr; gap:var(--esp-grupo)}
+.area{display:flex; flex-direction:column; justify-content:space-between; gap:var(--esp-grupo); min-height:104px; padding:var(--esp-card);
+  background:var(--surface); border-radius:var(--raio); text-decoration:none}
+
+.backup p{margin-bottom:var(--esp-secao)}
+
+/* ===== 7. Campos ===== */
+select{width:100%; height:var(--campo); padding:0 var(--esp-secao); border:0; border-radius:var(--raio);
+  background:var(--paper); font-size:var(--t-campo)}
+
+input[type="number"]{-moz-appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+.rotulo{display:block; font-size:var(--t-pequeno); color:var(--muted); margin-bottom:var(--esp-colado)}
+
+/* Campo de peso: pílula cinza com o "g" dentro */
+.campo-g{display:inline-flex; align-items:center; justify-content:center; gap:2px; height:36px; min-width:72px; padding:0 var(--esp-secao);
+  border-radius:999px; background:var(--line); cursor:text}
+.campo-g input{width:4.2ch; height:100%; padding:0; border:0; background:transparent; text-align:right; font-size:var(--t-campo)}
+.campo-g input:focus{outline:none}
+.campo-g:focus-within{outline:2px solid var(--ink); outline-offset:1px}
+.campo-g span{color:var(--muted)}
+.qtd{display:flex; align-items:center}
+.passo{width:36px; height:var(--toque); border:0; border-radius:var(--raio); background:transparent; color:var(--muted);
+  font-size:18px; line-height:1; cursor:pointer; touch-action:manipulation}
+
+/* ===== 8. Calculadora ===== */
+
+/* Cartão da receita: o nome fica sem caixa própria, dentro de um cartão com o estado e as ações. */
+
+ /* Abrir antes de Salvar */
+.nome-campo{display:flex; align-items:center; gap:var(--esp-grupo); min-width:0; cursor:text}
+
+.nome-campo .lapis{flex:none; width:16px; height:16px; color:var(--muted)}
+.nome-campo:focus-within .lapis{visibility:hidden}
+
+/* Linhas de ingrediente */
+#ingredientes{padding:var(--esp-grupo) var(--esp-secao)}
+#ingredientes .linha{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--esp-colado);
+  padding:var(--esp-colado) 0; border-bottom:1px solid var(--line)}
+.nome-ing{min-width:0; padding:0 var(--esp-colado); line-height:1.3; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.nome-ing.removido{color:var(--critico)}
+.nome-ing.com-nota{border:0; background:transparent; text-align:left; color:var(--ink); cursor:pointer}
+.com-nota .info{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:6px; border-radius:50%;
+  background:var(--line); color:var(--muted); font-size:11px; font-style:italic; vertical-align:1px}
+.com-nota[aria-expanded="true"] .info{background:var(--ink); color:var(--paper)}
+.nota-ing{grid-column:1 / -1; padding:0 var(--esp-colado) var(--esp-colado); font-size:var(--t-pequeno); color:var(--muted); line-height:1.4}
+.remover{display:none; width:32px; height:var(--toque); border:0; background:transparent; color:var(--critico); font-size:18px; cursor:pointer}
+#ingredientes.modo-excluir .linha{grid-template-columns:minmax(0,1fr) auto 32px}
+#ingredientes.modo-excluir .remover{display:block}
+#ingredientes.modo-excluir .linha-total,#ingredientes.modo-excluir #adicionar{display:none}
+#ingredientes.modo-excluir #modoExcluir{background:var(--ink); color:var(--paper)}
+.linha-total{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:var(--esp-colado); padding:var(--esp-colado) 0}
+.rotulo-mistura{color:var(--muted); padding-left:var(--esp-colado)}
+.acoes-ing{margin:var(--esp-grupo) 0 var(--esp-colado)}
+
+/* Composição */
+.resultado{margin-bottom:var(--esp-bloco)}
+
+.notes{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--esp-grupo)}
+.notes li{position:relative; padding-left:var(--esp-card); color:var(--muted)}
+.notes li::before{content:""; position:absolute; left:0; top:.55em; width:8px; height:8px; border-radius:50%; background:var(--muted)}
+.notes li.status-ok::before{background:var(--ok)}
+.notes li.status-atencao::before{background:var(--atencao)}
+.notes li.status-critico::before{background:var(--critico)}
+#avisoEstab{margin-top:var(--esp-secao); font-size:var(--t-pequeno); color:var(--muted)}
+
+/* Gráficos: nome e valor na linha de cima, barra embaixo.
+   Os números da faixa ficam sob a barra; o vão depois deles iguala o espaço nome → barra. */
+.metric-topo{display:flex; justify-content:space-between; align-items:baseline; gap:var(--esp-secao)}
+.metric .name{color:var(--muted)}
+.metric-valor.status-atencao{color:var(--atencao)}
+.metric-valor.status-critico{color:var(--critico)}
+.bar{position:relative; height:3px; margin:var(--esp-secao) 0 44px; background:var(--line)}
+.metric:last-child .bar{margin-bottom:36px}
+.bar .band{position:absolute; top:0; bottom:0; background:color-mix(in srgb, var(--muted) 43%, var(--line))}
+.bar .mark{position:absolute; top:-4px; width:3px; height:11px; background:var(--ink)}
+.bar .mark.status-atencao{background:var(--atencao)}
+.bar .mark.status-critico{background:var(--critico)}
+.bar .range-label{position:absolute; top:9px; transform:translateX(-50%); color:var(--muted); font-size:var(--t-pequeno); line-height:1.3; white-space:nowrap}
+.bar .range-label.min.compact{transform:translateX(calc(-100% - 4px))}
+.bar .range-label.max.compact{transform:translateX(4px)}
+.bar .range-label.edge-start{transform:none}
+.bar .range-label.edge-end{transform:translateX(-100%)}
+
+/* Notas sobre o cálculo */
+details.notas{color:var(--muted); font-size:var(--t-pequeno)}
+details.notas > summary{color:var(--ink); font-size:var(--t-corpo)}
+details.notas p{margin-top:var(--esp-secao)}
+
+/* Menu "Abrir" */
+.menu-abrir{position:relative; display:flex}
+
+.menu-lista{position:absolute; z-index:40; top:calc(100% + 6px); right:0; width:min(280px, calc(100vw - 32px));
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--raio); padding:var(--esp-grupo);
+  box-shadow:0 9px 24px rgba(0,0,0,.09); opacity:0; transform:translateY(-5px); visibility:hidden; pointer-events:none;
+  transition:opacity 210ms ease, transform 210ms ease, visibility 210ms}
+.menu-abrir.aberto .menu-lista{opacity:1; transform:none; visibility:visible; pointer-events:auto}
+
+.menu-rolagem{max-height:320px; overflow-y:auto; overscroll-behavior:contain}
+.menu-grupo{padding:var(--esp-secao) var(--esp-grupo) var(--esp-colado); font-size:var(--t-pequeno); color:var(--muted)}
+.menu-opcao{display:block; width:100%; min-height:var(--toque); padding:var(--esp-grupo); border:0; border-radius:var(--raio);
+  background:transparent; text-align:left; cursor:pointer}
+
+/* Lista para escolher ingrediente (tela cheia) */
+.escolha{position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; background:var(--paper);
+  padding:calc(env(safe-area-inset-top,0px) + var(--esp-secao)) var(--esp-lateral) calc(env(safe-area-inset-bottom,0px) + var(--esp-secao))}
+.escolha-topo{display:flex; align-items:center; gap:var(--esp-grupo); width:100%; max-width:640px; margin:0 auto}
+.escolha-topo input{background:var(--surface)}
+.escolha-lista{flex:1; overflow-y:auto; width:100%; max-width:640px; margin:var(--esp-grupo) auto 0}
+.escolha-item{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-grupo); width:100%; min-height:var(--campo);
+  padding:0 var(--esp-grupo); border:0; border-bottom:1px solid var(--line); border-radius:var(--raio); background:transparent; text-align:left; cursor:pointer}
+.escolha-grupo{margin:var(--esp-card) 0 0 var(--esp-grupo); font-size:var(--t-pequeno); color:var(--muted)}
+.escolha-novo{align-self:center}
+
+/* ===== 9. Receita e versões ===== */
+
+.versao-corpo{display:flex; flex-direction:column; gap:var(--esp-secao)}
+
+.dif{font-size:var(--t-pequeno)}
+
+ /* "marcar como final" ocupa a linha toda */
+
+#preparo{background:var(--surface); margin-bottom:var(--esp-grupo)}
+#preparo + .pequeno{margin-bottom:var(--esp-bloco)}
+.preparo{line-height:1.7}
+
+/* Receita pronta: tamanho do lote */
+
+ /* + 8 do cartão = 16 no fundo */
+
+/* ===== 10. Ingredientes ===== */
+.form .campos{display:flex; flex-direction:column}
+.form .campos .campo{display:flex; align-items:center; justify-content:space-between; gap:var(--esp-secao); min-height:var(--campo); border-bottom:1px solid var(--line)}
+.form .campos .campo:last-child{border-bottom:0}
+.form .campos .campo input{width:96px; height:36px; padding:0 var(--esp-secao); border:0; border-radius:999px; background:var(--line);
+  text-align:center; font-size:var(--t-campo)}
+.form .campo.largo{display:flex; flex-direction:column; gap:var(--esp-colado); margin-bottom:var(--esp-secao)}
+.form .campo.largo span{font-size:var(--t-pequeno); color:var(--muted)}
+.form > p.pequeno{margin-bottom:var(--esp-grupo)}
+.form h3{margin:var(--esp-pagina) 0 var(--esp-colado)}
+.form h3 + p{margin-bottom:var(--esp-grupo)}
+.agua{margin:var(--esp-card) 0; font-weight:500}
+.agua.erro{color:var(--critico)}
+.check{display:flex; align-items:center; gap:var(--esp-secao); min-height:var(--toque)}
+.check input{width:22px; height:22px; accent-color:var(--ink)}
+
+/* ===== 11. Janela de confirmação e aviso rápido ===== */
+
+.confirma-texto{margin-bottom:20px; font-size:var(--t-campo)}
+
+@keyframes aparece{from{opacity:0}}
+@keyframes sobe{from{transform:translateY(24px); opacity:0}}
+.toast{position:fixed; left:var(--esp-card); right:var(--esp-card); bottom:calc(env(safe-area-inset-bottom,0px) + var(--esp-card)); z-index:20;
+  max-width:600px; margin:0 auto; padding:var(--esp-secao) var(--esp-card); border-radius:var(--raio); background:var(--ink); color:var(--paper)}
+
+/* ===== 12. Interação ===== */
+/* Clique: afunda com calma e volta com uma leve mola */
+button,.botao,.item-lista,.area,.menu-opcao,.escolha-item,.voltar,.marca,details.cartao > summary,.passo{
+  transition:transform 260ms var(--mola), background-color 180ms ease, color 180ms ease, opacity 180ms ease;
+}
+button:active,.botao:active,.menu-opcao:active,.escolha-item:active,.voltar:active{
+  transform:scale(.96); transition-duration:140ms; transition-timing-function:ease-out}
+.item-lista:active,.area:active,details.cartao > summary:active{transform:scale(.985); transition-duration:140ms; transition-timing-function:ease-out}
+.nome-ing.com-nota:active,.campo-g:active{transform:none}
+
+/* Preto ao tocar (celular) e ao passar o mouse (computador) */
+.passo:active,.menu-opcao:active,.escolha-item:active,.item-lista:active,.area:active{
+  background:var(--ink); color:var(--paper)}
+
+@media (hover: hover){
+  .passo:hover,.menu-opcao:hover,.escolha-item:hover,
+  .item-lista:hover,.area:hover{background:var(--ink); color:var(--paper)}
+  .escolha-item:hover .muted{color:var(--ink-suave)}
+  .botao.perigo:hover{background:var(--critico); color:#fff}
+  
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+  button:active,.botao:active,.menu-opcao:active,.escolha-item:active,
+  .voltar:active,.item-lista:active,.area:active,details.cartao > summary:active{transform:none; opacity:.7}
+}
+
+/* ===== 13. Modo lote ===== */
+.passos{display:flex; gap:var(--esp-colado); margin-bottom:var(--esp-secao)}
+
+  
+
+
+.marcar{width:var(--toque); height:var(--toque); border:0; background:transparent; position:relative; cursor:pointer}
+.marcar::after{content:""; position:absolute; inset:10px; border-radius:50%; box-shadow:inset 0 0 0 1.5px var(--muted)}
+.marcar[aria-pressed="true"]::after{background:var(--ink); box-shadow:none}
+.marcar[aria-pressed="true"]::before{content:""; position:absolute; left:18px; top:14px; width:6px; height:11px; border-right:2px solid var(--paper); border-bottom:2px solid var(--paper); transform:rotate(45deg); z-index:1}
+
+.filtros{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-bottom:var(--esp-secao)}
+
+/* Lote: sugestões de preparo e textura em grade 2×2 */
+
+.sugestao{display:flex; flex-direction:column; gap:2px; padding:var(--esp-secao) 0; border-bottom:1px solid var(--line)}
+.sugestao:first-child{padding-top:0}
+.sugestao:last-child{padding-bottom:0; border-bottom:0}
+
+/* Lote em dois momentos */
+
+.item-lista.aguardando{box-shadow:inset 3px 0 0 var(--ink)}
+
+textarea:disabled{opacity:.7}
+
+.lote-linha{display:flex; justify-content:space-between; gap:var(--esp-secao); padding:var(--esp-grupo) 0; border-top:1px solid var(--line); text-decoration:none}
+.lote-linha span:last-child{text-align:right}
+
+/* Home: lembrete de lote para avaliar */
+.lembrete{display:flex; flex-direction:column; gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+
+/* Testes: lista única com etiqueta nos lotes que precisam de algo */
+
+/* Testes: card com pílula no tamanho padrão à direita */
+
+/* Nota em estrelas */
+.estrelas{display:flex; gap:var(--esp-colado)}
+.estrela{width:var(--toque); height:var(--toque); padding:0; border:0; background:transparent; cursor:pointer; display:inline-flex; align-items:center; justify-content:center}
+.estrela svg{width:32px; height:32px; fill:none; stroke:var(--muted); stroke-width:1.5; stroke-linejoin:round}
+.estrela.cheia svg{fill:var(--ink); stroke:var(--ink)}
+.estrela:disabled{cursor:default}
+/* Estrelas um pouco maiores; não selecionada = cinza preenchido, selecionada = preto */
+.estrela{width:48px; height:48px}
+.estrela svg{width:38px; height:38px; fill:var(--line); stroke:var(--line)}
+/* As cinco estrelas dividem a largura da coluna, maiores e fáceis de tocar. */
+.estrelas{display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:var(--esp-grupo); margin-bottom:var(--esp-bloco)}
+.estrelas .estrela{width:100%; height:64px}
+.estrelas .estrela svg{width:48px; height:48px}
+.estrela.cheia svg{fill:var(--ink); stroke:var(--ink)}
+/* Toda pílula cinza tem o mesmo texto (tinta), seja ação ou opção não escolhida */
+
+/* Avaliação no padrão do guia: título de seção → conteúdo 12px, entre seções 32px */
+
+/* Painel de salvar: ações empilhadas na largura do card */
+
+ /* as duas formas de salvar lado a lado; Cancelar embaixo */
+ /* rascunho sem receita: só um jeito de salvar */
+#campoNomeNova{margin-bottom:var(--esp-secao)}
+#avisoNome{margin-top:var(--esp-grupo)}
+
+/* Nomes editáveis (calculadora e página da receita): campo cinza do padrão de campos,
+   com rótulo "Nome" em cima — mesmo visual dos outros campos de digitar do app. */
+
+/* Nome editável é um campo: texto de campo (16px, peso normal), não título */
+
+/* Lista de escolher ingrediente: botões no padrão de pílula */
+
+.escolha-novo{align-self:stretch; width:100%; max-width:640px; margin:var(--esp-grupo) auto 0}
+/* Topo da calculadora: Salvar · Versões · Abrir em partes iguais */
+
+.acoes-ing{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr)}
+
+/* ===== 14. Estudo e Ideias ===== */
+.texto-estudo{margin-bottom:var(--esp-bloco); line-height:1.65}
+.texto-estudo p{margin:0 0 var(--esp-secao)}
+.texto-estudo ul,.texto-estudo ol{margin:0 0 var(--esp-secao); padding-left:22px}
+.texto-estudo li{margin-bottom:var(--esp-colado)}
+.texto-estudo b{font-weight:500}
+.tabela-rolagem{overflow-x:auto; margin:0 0 var(--esp-secao); border-radius:var(--raio); background:var(--surface)}
+.texto-estudo table{width:100%; border-collapse:collapse; font-size:var(--t-pequeno); line-height:1.4}
+.texto-estudo th,.texto-estudo td{padding:var(--esp-grupo) var(--esp-secao); text-align:left; vertical-align:top; border-bottom:1px solid var(--line)}
+.texto-estudo th{font-weight:500}
+.texto-estudo tr:last-child td{border-bottom:0}
+
+#estiloIdeia{margin-bottom:0}
+.metric-ajuda{text-decoration:none; color:var(--muted); display:inline-flex; align-items:center}
+.metric-ajuda .info{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; margin-left:6px; border-radius:50%;
+  background:var(--line); color:var(--muted); font-size:11px; font-style:italic}
+@media (hover: hover){ .metric-ajuda:hover{color:var(--ink)} .metric-ajuda:hover .info{background:var(--ink); color:var(--paper)} }
+.metric-ajuda:active .info{background:var(--ink); color:var(--paper)}
+
+/* Home: card de Ideias mostra as últimas anotadas */
+
+.grade{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.area{min-width:0}
+
+/* Card de Ideias na metade: nomes quebram em até duas linhas em vez de cortar */
+
+/* Links externos do Estudo: pílulas cinza na largura toda */
+.lista-links{display:flex; flex-direction:column; gap:var(--esp-grupo); margin:0 0 var(--esp-pagina)}
+.link-externo{white-space:normal; text-align:center; line-height:1.3; height:auto; min-height:var(--pilula); padding:var(--esp-grupo) var(--esp-card)}
+/* Links externos como cards (texto à esquerda, quebra linha sem virar pílula alta) */
+.link-externo{white-space:normal; text-align:left; justify-content:center; height:auto; min-height:var(--campo); padding:var(--esp-secao) var(--esp-card); border-radius:var(--raio); line-height:1.4}
+/* Estudo: busca e edição no fim, discreta */
+
+.texto-estudo + .botao.largo{margin-top:0}
+/* Campo de busca: lupa à esquerda, texto de campo (16px, peso normal) */
+
+/* ===== 15. Ajustes ===== */
+
+.bloco-ajustes{margin:var(--esp-secao) 0 var(--esp-bloco)}
+
+#erroConta{margin-top:var(--esp-secao)}
+
+/* Calculadora em tela larga: ingredientes à esquerda, composição à direita sempre visível. */
+@media (min-width: 960px){
+  
+  
+  
+  /* Notas ficam embaixo dos ingredientes; a composição ocupa as duas linhas à direita. */
+  
+  
+  
+  
+  
+  
+  /* Em tela larga, Salvar e Abrir ficam à direita do nome, dentro do cartão. */
+  
+  
+  
+  /* Sem a linha de baixo (ex.: ingrediente sem nome completo), o nome fica centrado na altura dos botões. */
+  
+  
+  
+  
+  /* Sem a caixa de avisos no meio, o seletor de faixas precisa de respiro antes dos gráficos. */
+  
+  
+}
+
+/* Gráficos da calculadora em duas colunas só quando há largura para os nomes. */
+
+/* Calculadora: adicionar é a ação principal (2/3); Excluir fica com 1/3. */
+#ingredientes .acoes-ing{grid-auto-columns:auto; grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+
+/* Layout de duas colunas para receita e lote em tela larga.
+   No celular os blocos seguem na ordem do código; no desktop, os .col-a vão para a esquerda
+   (um embaixo do outro) e o .col-b ocupa a direita inteira. */
+@media (min-width: 960px){
+  
+  
+  
+  
+  /* Na grade as margens não se somam-e-fundem: o cartão acima já dá o bloco. */
+  
+  /* Receita: versões à esquerda (todas as linhas); preparo e lotes à direita, começando no topo. */
+  
+  
+  
+  
+  
+}
+
+/* Receita: cartão do nome no topo; Excluir no fim, separado por uma linha. */
+
+ /* sem lote aberto nem versão final: nada a mostrar */
+
+/* Avaliar: "Criar próxima versão" (2/3) e "Excluir" (1/3) na mesma linha. */
+
+ /* sem o vão de linha de texto embaixo do campo */
+
+/* Lote dentro da versão: data e estrelas na primeira linha, o que foi marcado e as observações embaixo. */
+.lote-cartao{display:flex; flex-direction:column; gap:var(--esp-colado); padding:var(--esp-secao) 0; border-top:1px solid var(--line); text-decoration:none; color:var(--ink)}
+.lote-topo{display:flex; justify-content:space-between; align-items:center; gap:var(--esp-secao)}
+.lote-data{font-weight:500}
+.lote-nota{display:inline-flex; gap:2px}
+.mini-estrela svg{display:block; width:16px; height:16px; fill:var(--line); stroke:var(--line)}
+.mini-estrela.cheia svg{fill:var(--ink); stroke:var(--ink)}
+.lote-marcas{font-size:var(--t-pequeno); color:var(--muted)}
+.lote-obs{font-size:var(--t-pequeno)}
+#preparo{display:block}
+
+/* Lista e detalhe lado a lado (Estudo, Ingredientes) em tela larga.
+   A lista fica parada à esquerda, com rolagem própria; o item aberto ocupa a direita. */
+
 
 /* ===== Tokens ===== */
 :root{

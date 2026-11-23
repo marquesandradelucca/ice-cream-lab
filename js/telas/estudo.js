@@ -1,16 +1,16 @@
 // Estudo (redesign): temas agrupados, trazidos do Notion e editáveis no app.
 // Rotas: #/estudo (todos, com busca), #/estudo/grupo/<grupo> (filtrado pela seção vinda da Biblioteca),
 // #/estudo/<id> (tema) e #/estudo/<id>/calculadora (aberto por um gráfico: o voltar leva à calculadora).
-import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261123121715";
-import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261123121715";
-import { mdParaHtml, confirma } from "../ui.js?v=20261123121715";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261123121715";
-import { capaBiblioteca } from "./biblioteca.js?v=20261123121715";
+import { dados, salva, paginaEstudo, originalEstudo } from "../dados.js?v=20261123122233";
+import { GRUPOS_ESTUDO } from "../estudo-base.js?v=20261123122233";
+import { mdParaHtml, confirma } from "../ui.js?v=20261123122233";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261123122233";
+import { capaBiblioteca } from "./biblioteca.js?v=20261123122233";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
 function textoPuro(md){ return String(md || "").replace(/\*\*|_|\|/g, " ").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\s+/g, " "); }
-function limpaUi(){ document.body.classList.remove("ui", "rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
+function limpaUi(){ document.body.classList.remove("rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 
 const CAPA_DO_GRUPO = {fundamentos:"fundamentos", bases:"bases", ingredientes:"guia", referencias:"referencias"};
 // Temas de uma seção usam a capa do card dessa seção na Biblioteca (troca em Ajustes › Personalização e muda junto).

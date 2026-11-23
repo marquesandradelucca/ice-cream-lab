@@ -1,6 +1,6 @@
 // Guia de componentes do redesign (Fase 1). Rota escondida: #/guia
 // Serve para conferir os componentes novos no Mac e no iPhone antes de refazer as telas.
-import { icone, estrelas, estrelasEscolha, capa, DUREZA, DOCURA } from "../visual.js?v=20261123121715";
+import { icone, estrelas, estrelasEscolha, capa, DUREZA, DOCURA } from "../visual.js?v=20261123122233";
 
 export function render(el){
   document.body.classList.add("ui");
@@ -64,5 +64,5 @@ export function render(el){
   const est = el.querySelector(".ui-estrelas.grandes");
   est.addEventListener("click", function(ev){ const b = ev.target.closest("button"); if (!b) return; const n = Number(b.dataset.nota); est.querySelectorAll("button").forEach(function(x){ x.classList.toggle("vazia", Number(x.dataset.nota) > n); }); });
 
-  return {titulo:"Guia", limpa:function(){ document.body.classList.remove("ui"); }};
+  return {titulo:"Guia", limpa:function(){ }};
 }

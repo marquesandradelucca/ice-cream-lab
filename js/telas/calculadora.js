@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261123121715";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261123121715";
-import { confirma, LAPIS } from "../ui.js?v=20261123121715";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261123121715";
+         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261123122233";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261123122233";
+import { confirma, LAPIS } from "../ui.js?v=20261123122233";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261123122233";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -603,5 +603,5 @@ export function render(el, rota){
     elTela.classList.remove("sobe"); void elTela.offsetWidth; elTela.classList.add("sobe");
     setTimeout(function(){ elTela.classList.remove("sobe"); }, 900);
   }
-  return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("ui", "calcui", "calc-capa"); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); elEscolha.remove(); document.body.classList.remove("travado"); }};
+  return {titulo:"Calculadora", limpa:function(){ document.body.classList.remove("calcui", "calc-capa"); salva(); document.removeEventListener("pointerdown", foraDoMenu); document.removeEventListener("keydown", escMenu); elEscolha.remove(); document.body.classList.remove("travado"); }};
 }
