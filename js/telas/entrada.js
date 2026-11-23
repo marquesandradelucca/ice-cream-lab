@@ -1,9 +1,10 @@
 // Entrada: tela obrigatória enquanto não há login. Entrar ou criar conta (Supabase, e-mail e senha).
-import { situacao, entrar, criarConta } from "../sync.js?v=20261123121536";
+import { situacao, entrar, criarConta } from "../sync.js?v=20261123121715";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
 export function render(el){
+  document.body.classList.add("ui"); // fonte e cores do app (alguma tela anterior pode ter tirado a classe ao sair)
   let modo = "entrar";
   const desenha = function(){
     const s = situacao(), criar = modo === "criar";

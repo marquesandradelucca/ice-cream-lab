@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261123121536";
-import { PRESETS, registraIngredientes } from "./calculo.js?v=20261123121536";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261123121536";
-import { notificaMudanca } from "./sync.js?v=20261123121536";
+import { ING_BASE } from "./ingredientes-base.js?v=20261123121715";
+import { PRESETS, registraIngredientes } from "./calculo.js?v=20261123121715";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261123121715";
+import { notificaMudanca } from "./sync.js?v=20261123121715";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
