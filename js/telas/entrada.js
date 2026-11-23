@@ -1,5 +1,5 @@
 // Entrada: tela obrigatória enquanto não há login. Entrar ou criar conta (Supabase, e-mail e senha).
-import { situacao, entrar, criarConta } from "../sync.js?v=20261123113658";
+import { situacao, entrar, criarConta } from "../sync.js?v=20261123115302";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -9,14 +9,15 @@ export function render(el){
     const s = situacao(), criar = modo === "criar";
     el.innerHTML =
       '<div class="ui-tela entrada-tela">' +
-        '<img class="entrada-icone" src="icons/icon-192.png?v=5" alt="" width="96" height="96">' +
+        '<img class="entrada-icone" src="icons/logo.png?v=1" alt="" width="120" height="120">' +
         '<h1 class="entrada-titulo">Ice Cream Lab</h1>' +
         '<p class="ui-sec entrada-sub">' + (criar ? 'Crie sua conta para começar.' : 'Entre na sua conta para continuar.') + '</p>' +
         '<form class="ui-cartao ui-vidro entrada-cartao" novalidate>' +
           '<input id="email" class="ui-campo campo-branco" type="email" autocomplete="username" inputmode="email" autocapitalize="off" placeholder="E-mail" aria-label="E-mail" required>' +
           '<input id="senha" class="ui-campo campo-branco" type="password" autocomplete="' + (criar ? 'new-password' : 'current-password') + '" minlength="6" placeholder="Senha' + (criar ? ' (mínimo 6 caracteres)' : '') + '" aria-label="Senha" required>' +
+          (criar ? '<input id="senha2" class="ui-campo campo-branco" type="password" autocomplete="new-password" minlength="6" placeholder="Repita a senha" aria-label="Repita a senha" required>' : '') +
           '<span class="ui-sec ajustes-erro" id="erro"' + (s.erro ? '' : ' hidden') + '>' + esc(s.erro || "") + '</span>' +
-          '<button type="submit" class="ui-botao preto entrada-botao">' + (criar ? 'Criar conta' : 'Entrar') + '</button>' +
+          '<button type="submit" class="ui-botao preto entrada-botao">' + (criar ? 'Criar conta' : 'Login') + '</button>' +
         '</form>' +
         '<button type="button" class="ui-botao vidro entrada-troca" id="troca">' + (criar ? 'Já tenho conta' : 'Criar conta') + '</button>' +
       '</div>';
@@ -27,6 +28,8 @@ export function render(el){
       const email = elE.value.trim(), senha = elS.value;
       if (!email){ elE.focus(); return; }
       if (senha.length < 6){ mostra("A senha precisa ter pelo menos 6 caracteres."); elS.focus(); return; }
+      const elS2 = el.querySelector("#senha2");
+      if (criar && elS2.value !== senha){ mostra("As senhas não são iguais. Digite de novo."); elS2.value = ""; elS2.focus(); return; }
       const b = f.querySelector("button"); b.disabled = true;
       try { await (criar ? criarConta : entrar)(email, senha); }
       catch (e) { mostra(e.message); b.disabled = false; }
