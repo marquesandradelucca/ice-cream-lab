@@ -1,5 +1,5 @@
 // Entrada: tela obrigatória enquanto não há login. Entrar ou criar conta (Supabase, e-mail e senha).
-import { situacao, entrar, criarConta } from "../sync.js?v=20261123115659";
+import { situacao, entrar, criarConta } from "../sync.js?v=20261123120149";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -9,7 +9,7 @@ export function render(el){
     const s = situacao(), criar = modo === "criar";
     el.innerHTML =
       '<div class="ui-tela entrada-tela">' +
-        '<img class="entrada-icone" src="icons/logo.png?v=2" alt="" width="112" height="112">' +
+        '<img class="entrada-icone" src="icons/logo.png?v=2" alt="" width="84" height="84">' +
         '<h1 class="entrada-titulo">Ice Cream Lab</h1>' +
         '<p class="ui-sec entrada-sub">' + (criar ? 'Crie sua conta para começar.' : 'Entre na sua conta para continuar.') + '</p>' +
         '<form class="ui-cartao ui-vidro entrada-cartao" novalidate>' +
