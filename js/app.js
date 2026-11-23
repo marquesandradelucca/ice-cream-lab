@@ -8,22 +8,22 @@
   window.scrollTo = function(x, y){ rolaJanela.apply(null, arguments); if (typeof y === "number") document.body.scrollTop = y; };
 })();
 // Navegação do hub: cada área é uma "tela" escolhida pelo endereço (#/calculadora etc.).
-import { carrega, dados, salva, novoId } from "./dados.js?v=20261123120149";
-import { iniciaSync, situacao, aoMudar } from "./sync.js?v=20261123120149";
-import * as entrada from "./telas/entrada.js?v=20261123120149";
-import * as inicio from "./telas/inicio.js?v=20261123120149";
-import * as calculadora from "./telas/calculadora.js?v=20261123120149";
-import * as ingredientes from "./telas/ingredientes.js?v=20261123120149";
-import * as receitas from "./telas/receitas.js?v=20261123120149";
-import * as receita from "./telas/receita.js?v=20261123120149";
-import * as testes from "./telas/testes.js?v=20261123120149";
-import { icone, defineArmazemFotos } from "./visual.js?v=20261123120149";
-import * as loteTela from "./telas/lote.js?v=20261123120149";
-import * as estudo from "./telas/estudo.js?v=20261123120149";
-import * as ideias from "./telas/ideias.js?v=20261123120149";
-import * as ajustes from "./telas/ajustes.js?v=20261123120149";
-import * as biblioteca from "./telas/biblioteca.js?v=20261123120149";
-import * as guia from "./telas/guia.js?v=20261123120149";
+import { carrega, dados, salva, novoId } from "./dados.js?v=20261123120404";
+import { iniciaSync, situacao, aoMudar } from "./sync.js?v=20261123120404";
+import * as entrada from "./telas/entrada.js?v=20261123120404";
+import * as inicio from "./telas/inicio.js?v=20261123120404";
+import * as calculadora from "./telas/calculadora.js?v=20261123120404";
+import * as ingredientes from "./telas/ingredientes.js?v=20261123120404";
+import * as receitas from "./telas/receitas.js?v=20261123120404";
+import * as receita from "./telas/receita.js?v=20261123120404";
+import * as testes from "./telas/testes.js?v=20261123120404";
+import { icone, defineArmazemFotos } from "./visual.js?v=20261123120404";
+import * as loteTela from "./telas/lote.js?v=20261123120404";
+import * as estudo from "./telas/estudo.js?v=20261123120404";
+import * as ideias from "./telas/ideias.js?v=20261123120404";
+import * as ajustes from "./telas/ajustes.js?v=20261123120404";
+import * as biblioteca from "./telas/biblioteca.js?v=20261123120404";
+import * as guia from "./telas/guia.js?v=20261123120404";
 
 const TELAS = {
   "": inicio,
@@ -271,6 +271,16 @@ aoMudar(function(s){ if (s.logado !== logadoAntes){ logadoAntes = s.logado; rota
 rota();
 // Primeira tela desenhada: mostra a barra de abas (escondida no index.html até aqui).
 requestAnimationFrame(function(){ document.documentElement.classList.remove("carregando"); });
+// Splash: a primeira tela já está pronta por baixo; a gota escorre, o sorvete cresce e some, e a camada sai.
+(function(){
+  const sp = document.getElementById("splash"); if (!sp) return;
+  const tira = function(){ if (sp.parentNode) sp.parentNode.removeChild(sp); };
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    sp.classList.add("vai");
+    sp.addEventListener("animationend", function(ev){ if (ev.animationName === "spFundo") tira(); });
+    setTimeout(tira, 1500);
+  }); });
+})();
 
 if ("serviceWorker" in navigator && location.protocol !== "file:"){
   navigator.serviceWorker.register("sw.js").catch(function(){});
