@@ -1013,3 +1013,12 @@ body.est-capa .temas-lista .tema-bloco{background:var(--ui-vidro-escuro); border
 .home-continuar-seta{position:absolute; right:var(--ui-e3); top:var(--ui-e3)}
 .home-continuar-nome{display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; font-size:var(--ui-t-cartao); -webkit-line-clamp:1}
 .home-continuar .ui-sec{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+/* Tela de entrada (sem login): sem barra de abas nem topo */
+body.sem-login #abas, body.sem-login .barra-topo{display:none}
+.entrada-tela{min-height:calc(100dvh - 120px); display:flex; flex-direction:column; justify-content:center; align-items:stretch; gap:var(--ui-e3); max-width:420px; margin:0 auto; padding-top:max(env(safe-area-inset-top), 24px)}
+.entrada-icone{align-self:center; width:96px; height:96px; border-radius:22px}
+.entrada-titulo{text-align:center; margin:0; font-size:28px}
+.entrada-sub{text-align:center; margin:0 0 var(--ui-e2)}
+.entrada-cartao{display:flex; flex-direction:column; gap:var(--ui-e3)}
+.entrada-botao, .entrada-troca{width:100%}
