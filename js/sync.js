@@ -7,7 +7,7 @@
 // - O app lembra como cada item estava na última sincronização. O que mudou desde então sobe;
 //   o que chegou de outro aparelho desce. Se o mesmo item mudou dos dois lados, vale o mais recente.
 // - Sem internet, nada se perde: as mudanças ficam no aparelho e sobem quando a conexão voltar.
-import { dados, salvaLocal } from "./dados.js?v=20261123122542";
+import { dados, salvaLocal } from "./dados.js?v=20261123122838";
 
 const URL_SUPABASE = "https://bigruncntcxnckcttjuw.supabase.co";
 const CHAVE_PUBLICA = "sb_publishable_Mff_WvrBX1Qgyvbx0jn8eA_YsDL78KI"; // pública de propósito; a tabela é protegida por RLS
@@ -26,7 +26,7 @@ function novoEstado(){ return {cursor:null, conhecido:{}, editado:{}, ultima:nul
 
 // ---------- Situação, para a tela de Ajustes ----------
 export function situacao(){
-  return {logado:!!sessao, email:sessao && sessao.user && sessao.user.email, ultima:estado.ultima,
+  return {logado:!!sessao, email:sessao && sessao.user && sessao.user.email, nome:(sessao && sessao.user && sessao.user.nome) || "", ultima:estado.ultima,
     erro:estado.erro, sincronizando:emAndamento, online:navigator.onLine};
 }
 export function aoMudar(fn){ ouvintes.push(fn); return function(){ ouvintes = ouvintes.filter(function(x){ return x !== fn; }); }; }
@@ -52,7 +52,8 @@ function traduzErro(j){
 }
 function guardaSessao(j){
   sessao = {access_token:j.access_token, refresh_token:j.refresh_token,
-    expira:Date.now() + (Number(j.expires_in) || 3600) * 1000, user:{id:j.user && j.user.id, email:j.user && j.user.email}};
+    expira:Date.now() + (Number(j.expires_in) || 3600) * 1000, user:{id:j.user && j.user.id, email:j.user && j.user.email,
+    nome:(j.user && j.user.user_metadata && j.user.user_metadata.nome) || (sessao && sessao.user && sessao.user.nome) || ""}};
   grava(CHAVE_SESSAO, sessao);
 }
 
@@ -60,8 +61,8 @@ export async function entrar(email, senha){
   const j = await chamaAuth("token?grant_type=password", {email:email, password:senha});
   aoEntrar(j);
 }
-export async function criarConta(email, senha){
-  const j = await chamaAuth("signup", {email:email, password:senha});
+export async function criarConta(email, senha, nome){
+  const j = await chamaAuth("signup", {email:email, password:senha, data:{nome:nome || ""}});
   if (!j.access_token) throw new Error("Conta criada. Confirme pelo link no seu e-mail e depois toque em “Entrar”.");
   aoEntrar(j);
 }
@@ -72,6 +73,16 @@ function aoEntrar(j){
   estado.usuario = sessao.user.id; estado.erro = null; grava(CHAVE_ESTADO, estado);
   avisa();
   sincroniza();
+}
+// Nome da pessoa: fica nos dados do usuário no Supabase (user_metadata.nome).
+export async function mudaNome(nome){
+  const t = await token(); if (!t) throw new Error("Entre na conta para mudar o nome.");
+  const r = await fetch(URL_SUPABASE + "/auth/v1/user", {method:"PUT",
+    headers:{"Content-Type":"application/json", apikey:CHAVE_PUBLICA, Authorization:"Bearer " + t}, body:JSON.stringify({data:{nome:nome}})});
+  const j = await r.json().catch(function(){ return {}; });
+  if (!r.ok) throw new Error(traduzErro(j));
+  sessao.user.nome = (j.user_metadata && j.user_metadata.nome) || nome; grava(CHAVE_SESSAO, sessao);
+  avisa();
 }
 export function sair(){
   sessao = null; grava(CHAVE_SESSAO, null);

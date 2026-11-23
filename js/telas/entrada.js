@@ -1,5 +1,5 @@
 // Entrada: tela obrigatória enquanto não há login. Entrar ou criar conta (Supabase, e-mail e senha).
-import { situacao, entrar, criarConta } from "../sync.js?v=20261123122542";
+import { situacao, entrar, criarConta } from "../sync.js?v=20261123122838";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -16,6 +16,7 @@ export function render(el){
         '<h1 class="entrada-titulo">Ice Cream Lab</h1>' +
         '<p class="ui-sec entrada-sub">' + (criar ? 'Crie sua conta para começar.' : 'Entre na sua conta para continuar.') + '</p>' +
         '<form class="ui-cartao ui-vidro entrada-cartao" novalidate>' +
+          (criar ? '<input id="nome" class="ui-campo campo-branco" type="text" autocomplete="name" autocapitalize="words" placeholder="Seu nome" aria-label="Seu nome" required>' : '') +
           '<input id="email" class="ui-campo campo-branco" type="email" autocomplete="username" inputmode="email" autocapitalize="off" placeholder="E-mail" aria-label="E-mail" required>' +
           '<input id="senha" class="ui-campo campo-branco" type="password" autocomplete="' + (criar ? 'new-password' : 'current-password') + '" minlength="6" placeholder="Senha' + (criar ? ' (mínimo 6 caracteres)' : '') + '" aria-label="Senha" required>' +
           (criar ? '<input id="senha2" class="ui-campo campo-branco" type="password" autocomplete="new-password" minlength="6" placeholder="Repita a senha" aria-label="Repita a senha" required>' : '') +
@@ -31,10 +32,12 @@ export function render(el){
       const email = elE.value.trim(), senha = elS.value;
       if (!email){ elE.focus(); return; }
       if (senha.length < 6){ mostra("A senha precisa ter pelo menos 6 caracteres."); elS.focus(); return; }
+      const elN = el.querySelector("#nome"), nome = elN ? elN.value.trim() : "";
+      if (criar && !nome){ mostra("Digite seu nome."); elN.focus(); return; }
       const elS2 = el.querySelector("#senha2");
       if (criar && elS2.value !== senha){ mostra("As senhas não são iguais. Digite de novo."); elS2.value = ""; elS2.focus(); return; }
       const b = f.querySelector("button"); b.disabled = true;
-      try { await (criar ? criarConta : entrar)(email, senha); }
+      try { if (criar) await criarConta(email, senha, nome); else await entrar(email, senha); }
       catch (e) { mostra(e.message); b.disabled = false; }
     });
     el.querySelector("#troca").addEventListener("click", function(){ modo = criar ? "entrar" : "criar"; desenha(); });
