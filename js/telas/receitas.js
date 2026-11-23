@@ -1,8 +1,8 @@
 // Receitas (redesign): testes e finais juntos, com filtro Todas / Em teste / Finais.
 // Rotas: #/receitas, #/receitas/teste, #/receitas/finais (o filtro fica no endereço para o voltar lembrar).
-import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261123122838";
-import { NOMES_ESTILO } from "../calculo.js?v=20261123122838";
-import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261123122838";
+import { dados, versao, versoesDe, ingrediente } from "../dados.js?v=20261123123112";
+import { NOMES_ESTILO } from "../calculo.js?v=20261123123112";
+import { icone, capa, tomVidro, estrelas } from "../visual.js?v=20261123123112";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function normal(t){ return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }

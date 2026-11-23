@@ -1504,9 +1504,6 @@ body.sem-login #abas, body.sem-login .barra-topo{display:none}
 .entrada-cartao{display:flex; flex-direction:column; gap:var(--ui-e3)}
 .entrada-botao, .entrada-troca{width:100%}
 
-/* Ajustes: nome da pessoa (toque para mudar) e e-mail embaixo */
+/* Ajustes: nome da pessoa e e-mail embaixo */
 .ajustes-quem{display:flex; flex-direction:column; gap:var(--ui-e2)}
-.ajustes-nome{display:inline-flex; align-items:center; gap:var(--ui-e2); align-self:flex-start; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer}
-.ajustes-nome b{font-size:var(--ui-t-cartao)}
-.ajustes-lapis{display:inline-flex; width:16px; height:16px; color:var(--ui-texto3)}
-.ajustes-lapis svg{width:16px; height:16px}
+.ajustes-nome{font-size:var(--ui-t-cartao)}

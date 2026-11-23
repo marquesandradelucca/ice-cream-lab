@@ -7,7 +7,7 @@
 // - O app lembra como cada item estava na última sincronização. O que mudou desde então sobe;
 //   o que chegou de outro aparelho desce. Se o mesmo item mudou dos dois lados, vale o mais recente.
 // - Sem internet, nada se perde: as mudanças ficam no aparelho e sobem quando a conexão voltar.
-import { dados, salvaLocal } from "./dados.js?v=20261123122838";
+import { dados, salvaLocal } from "./dados.js?v=20261123123112";
 
 const URL_SUPABASE = "https://bigruncntcxnckcttjuw.supabase.co";
 const CHAVE_PUBLICA = "sb_publishable_Mff_WvrBX1Qgyvbx0jn8eA_YsDL78KI"; // pública de propósito; a tabela é protegida por RLS
@@ -73,16 +73,6 @@ function aoEntrar(j){
   estado.usuario = sessao.user.id; estado.erro = null; grava(CHAVE_ESTADO, estado);
   avisa();
   sincroniza();
-}
-// Nome da pessoa: fica nos dados do usuário no Supabase (user_metadata.nome).
-export async function mudaNome(nome){
-  const t = await token(); if (!t) throw new Error("Entre na conta para mudar o nome.");
-  const r = await fetch(URL_SUPABASE + "/auth/v1/user", {method:"PUT",
-    headers:{"Content-Type":"application/json", apikey:CHAVE_PUBLICA, Authorization:"Bearer " + t}, body:JSON.stringify({data:{nome:nome}})});
-  const j = await r.json().catch(function(){ return {}; });
-  if (!r.ok) throw new Error(traduzErro(j));
-  sessao.user.nome = (j.user_metadata && j.user_metadata.nome) || nome; grava(CHAVE_SESSAO, sessao);
-  avisa();
 }
 export function sair(){
   sessao = null; grava(CHAVE_SESSAO, null);

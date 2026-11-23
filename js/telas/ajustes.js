@@ -1,11 +1,11 @@
 // Ajustes: conta (entrar/criar/sair), situação da sincronização e personalização.
-import { situacao, aoMudar, entrar, criarConta, sair, sincroniza, mudaNome } from "../sync.js?v=20261123122838";
-import { confirma } from "../ui.js?v=20261123122838";
-import { toast } from "../app.js?v=20261123122838";
-import { dados, salva } from "../dados.js?v=20261123122838";
-import { capa, escolheCapa, icone } from "../visual.js?v=20261123122838";
-import { WIDGETS_BIBLIOTECA, capaBiblioteca } from "./biblioteca.js?v=20261123122838";
-import { WIDGETS_HOME, capaHome } from "./inicio.js?v=20261123122838";
+import { situacao, aoMudar, entrar, criarConta, sair, sincroniza } from "../sync.js?v=20261123123112";
+import { confirma } from "../ui.js?v=20261123123112";
+import { toast } from "../app.js?v=20261123123112";
+import { dados, salva } from "../dados.js?v=20261123123112";
+import { capa, escolheCapa, icone } from "../visual.js?v=20261123123112";
+import { WIDGETS_BIBLIOTECA, capaBiblioteca } from "./biblioteca.js?v=20261123123112";
+import { WIDGETS_HOME, capaHome } from "./inicio.js?v=20261123123112";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleString("pt-BR", {day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -56,10 +56,7 @@ function conteudo(el){
       '<span class="ui-rotulo ajustes-rotulo">Conta</span>' +
       (s.logado ?
         '<section class="ui-cartao ui-vidro ajustes-cartao">' +
-          '<div class="ajustes-quem" id="quem">' +
-            '<button type="button" class="ajustes-nome" id="editaNome" aria-label="Mudar nome"><b>' + esc(s.nome || "Adicionar seu nome") + '</b>' +
-              '<span class="ajustes-lapis" aria-hidden="true">' + icone("editar") + '</span></button>' +
-            '<span class="ui-sec">' + esc(s.email) + '</span></div>' +
+          '<div class="ajustes-quem">' + (s.nome ? '<b class="ajustes-nome">' + esc(s.nome) + '</b><span class="ui-sec">' + esc(s.email) + '</span>' : '<b class="ajustes-nome">' + esc(s.email) + '</b>') + '</div>' +
           '<span class="ui-sec' + (s.erro ? ' ajustes-erro' : '') + '">' + esc(textoSituacao(s)) + '</span>' +
           '<div class="rec-acoes bloco-ajustes"><button type="button" class="ui-botao vidro" id="sair">Sair</button>' +
             '<button type="button" class="ui-botao preto" id="sincronizar"' + (s.sincronizando ? ' disabled' : '') + '>Sincronizar</button></div>' +
@@ -86,22 +83,6 @@ function conteudo(el){
           }).join("") + '</div></details></section>';
       }).join("");
     if (s.logado){
-      el.querySelector("#editaNome").addEventListener("click", function(){
-        const quem = el.querySelector("#quem");
-        quem.innerHTML = '<input id="campoNome" class="ui-campo campo-branco" type="text" autocomplete="name" autocapitalize="words" placeholder="Seu nome" aria-label="Seu nome" value="' + esc(s.nome) + '">' +
-          '<span class="ui-sec ajustes-erro" id="erroNome" hidden></span>' +
-          '<div class="rec-acoes"><button type="button" class="ui-botao vidro" id="cancelaNome">Cancelar</button><button type="button" class="ui-botao preto" id="salvaNome">Salvar</button></div>';
-        const campo = quem.querySelector("#campoNome"); campo.focus();
-        const salvar = async function(){
-          const nome = campo.value.trim(); if (!nome){ campo.focus(); return; }
-          quem.querySelector("#salvaNome").disabled = true;
-          try { campo.blur(); await mudaNome(nome); desenha(); }
-          catch (e) { const er = quem.querySelector("#erroNome"); er.textContent = e.message; er.hidden = false; quem.querySelector("#salvaNome").disabled = false; }
-        };
-        quem.querySelector("#salvaNome").addEventListener("click", salvar);
-        campo.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); salvar(); } });
-        quem.querySelector("#cancelaNome").addEventListener("click", function(){ desenha(); });
-      });
       el.querySelector("#sincronizar").addEventListener("click", function(){ sincroniza(); });
       el.querySelector("#sair").addEventListener("click", async function(){
         if (!(await confirma("Sair da conta neste aparelho? Os dados continuam aqui e na nuvem; só param de sincronizar até você entrar de novo.", "Sair"))) return;
@@ -140,7 +121,7 @@ function conteudo(el){
   // A tela se atualiza sozinha quando a sincronização muda de situação.
   parar = aoMudar(function(){
     const foco = document.activeElement && document.activeElement.id;
-    if (foco === "email" || foco === "senha" || foco === "campoNome") return; // não apaga o que está sendo digitado
+    if (foco === "email" || foco === "senha") return; // não apaga o que está sendo digitado
     desenha();
   });
   return {titulo:"Ajustes", limpa:function(){ if (parar) parar(); }};
