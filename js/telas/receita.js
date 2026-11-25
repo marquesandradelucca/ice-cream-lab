@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261123165502";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261123165502";
-import { confirma, LAPIS } from "../ui.js?v=20261123165502";
-import { atualizaVoltar } from "../app.js?v=20261123165502";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261123165502";
-import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261123165502";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261125143332";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261125143332";
+import { confirma, LAPIS } from "../ui.js?v=20261125143332";
+import { atualizaVoltar } from "../app.js?v=20261125143332";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261125143332";
+import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261125143332";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -206,7 +206,9 @@ function detalhe(el, r, abertas, aba){
   function desenhaPassos(foco){
     elPassos.innerHTML = passos.map(function(t, i){
       return '<li><textarea class="rec-passo" rows="1" data-p="' + i + '" placeholder="Descreva a etapa">' + esc(t) + '</textarea>' +
-        '<button type="button" class="rec-passo-x" data-x="' + i + '" aria-label="Remover etapa ' + (i + 1) + '">' + icone("fechar") + '</button></li>'; }).join("");
+        '<button type="button" class="rec-passo-x" data-x="' + i + '" aria-label="Remover etapa ' + (i + 1) + '">' + icone("fechar") + '</button>' +
+        '<span class="rec-passo-alca" data-a="' + i + '" aria-label="Arrastar etapa ' + (i + 1) + '"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></li>'; }).join("");
+    elPassos.querySelectorAll(".rec-passo-alca").forEach(arrastavel);
     elPassos.querySelectorAll(".rec-passo").forEach(function(c){
       const ajusta = function(){ c.style.height = "auto"; c.style.height = c.scrollHeight + "px"; };
       ajusta();
@@ -215,6 +217,41 @@ function detalhe(el, r, abertas, aba){
     });
     elPassos.querySelectorAll("[data-x]").forEach(function(b){ b.addEventListener("click", function(){ passos.splice(Number(b.dataset.x), 1); guardaPassos(); desenhaPassos(); }); });
     if (foco != null){ const c = elPassos.querySelector('[data-p="' + foco + '"]'); if (c) c.focus(); }
+  }
+  // Arrastar pela alça (≡) para reordenar. No toque, segura um instante antes (como no Lembretes).
+  function arrastavel(alca){
+    alca.addEventListener("pointerdown", function(ev){
+      ev.preventDefault();
+      const li = alca.closest("li"), id = ev.pointerId, y0 = ev.clientY;
+      let ativo = false, dy = 0, base = 0;
+      const comeca = function(){ ativo = true; base = li.offsetTop; li.classList.add("arrastando"); if (navigator.vibrate) navigator.vibrate(10); };
+      const espera = ev.pointerType === "mouse" ? (comeca(), null) : setTimeout(comeca, 220);
+      const move = function(e){
+        if (e.pointerId !== id) return;
+        if (ativo) e.preventDefault();
+        if (!ativo){ if (Math.abs(e.clientY - y0) > 8){ clearTimeout(espera); fim(); } return; }
+        dy = e.clientY - y0;
+        const meio = base + dy + li.offsetHeight / 2;
+        const irmaos = Array.prototype.filter.call(elPassos.children, function(x){ return x !== li; });
+        let antes = null;
+        for (const x of irmaos){ if (meio < x.offsetTop + x.offsetHeight / 2){ antes = x; break; } }
+        if (li.nextElementSibling !== antes && !(antes === null && !li.nextElementSibling)){
+          elPassos.insertBefore(li, antes);
+        }
+        li.style.transform = "translateY(" + (base + dy - li.offsetTop) + "px)";
+      };
+      const fim = function(e){
+        if (e && e.pointerId != null && e.pointerId !== id) return;
+        clearTimeout(espera);
+        window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", fim); window.removeEventListener("pointercancel", fim);
+        document.body.classList.remove("arrastando-passo");
+        if (!ativo) return;
+        const ordem = Array.prototype.map.call(elPassos.children, function(x){ return passos[Number(x.querySelector(".rec-passo").dataset.p)]; });
+        passos.splice(0, passos.length, ...ordem); guardaPassos(); desenhaPassos();
+      };
+      document.body.classList.add("arrastando-passo");
+      window.addEventListener("pointermove", move, {passive:false}); window.addEventListener("pointerup", fim); window.addEventListener("pointercancel", fim);
+    });
   }
   desenhaPassos();
   el.querySelector("#maisPasso").addEventListener("click", function(){ passos.push(""); desenhaPassos(passos.length - 1); });
