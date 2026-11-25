@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261125143332";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261125143332";
-import { confirma, LAPIS } from "../ui.js?v=20261125143332";
-import { atualizaVoltar } from "../app.js?v=20261125143332";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261125143332";
-import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261125143332";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261125150235";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261125150235";
+import { confirma, LAPIS } from "../ui.js?v=20261125150235";
+import { atualizaVoltar } from "../app.js?v=20261125150235";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261125150235";
+import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261125150235";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -220,37 +220,48 @@ function detalhe(el, r, abertas, aba){
   }
   // Arrastar pela alça (≡) para reordenar. No toque, segura um instante antes (como no Lembretes).
   function arrastavel(alca){
-    alca.addEventListener("pointerdown", function(ev){
-      ev.preventDefault();
-      const li = alca.closest("li"), id = ev.pointerId, y0 = ev.clientY;
-      let ativo = false, dy = 0, base = 0;
+    // Núcleo comum: y0 é onde o dedo/mouse começou; toque espera um instante parado antes de pegar a etapa.
+    const pega = function(y0, toque){
+      const li = alca.closest("li");
+      let ativo = false, base = 0, acabou = false;
       const comeca = function(){ ativo = true; base = li.offsetTop; li.classList.add("arrastando"); if (navigator.vibrate) navigator.vibrate(10); };
-      const espera = ev.pointerType === "mouse" ? (comeca(), null) : setTimeout(comeca, 220);
-      const move = function(e){
-        if (e.pointerId !== id) return;
-        if (ativo) e.preventDefault();
-        if (!ativo){ if (Math.abs(e.clientY - y0) > 8){ clearTimeout(espera); fim(); } return; }
-        dy = e.clientY - y0;
-        const meio = base + dy + li.offsetHeight / 2;
-        const irmaos = Array.prototype.filter.call(elPassos.children, function(x){ return x !== li; });
+      const espera = toque ? setTimeout(comeca, 200) : (comeca(), null);
+      document.body.classList.add("arrastando-passo");
+      const move = function(y){
+        if (!ativo){ if (Math.abs(y - y0) > 12){ fim(); } return; }
+        const dy = y - y0, meio = base + dy + li.offsetHeight / 2;
         let antes = null;
-        for (const x of irmaos){ if (meio < x.offsetTop + x.offsetHeight / 2){ antes = x; break; } }
-        if (li.nextElementSibling !== antes && !(antes === null && !li.nextElementSibling)){
-          elPassos.insertBefore(li, antes);
-        }
+        for (const x of elPassos.children){ if (x !== li && meio < x.offsetTop + x.offsetHeight / 2){ antes = x; break; } }
+        if (antes !== li.nextElementSibling) elPassos.insertBefore(li, antes);
         li.style.transform = "translateY(" + (base + dy - li.offsetTop) + "px)";
       };
-      const fim = function(e){
-        if (e && e.pointerId != null && e.pointerId !== id) return;
-        clearTimeout(espera);
-        window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", fim); window.removeEventListener("pointercancel", fim);
-        document.body.classList.remove("arrastando-passo");
+      const fim = function(){
+        if (acabou) return; acabou = true;
+        clearTimeout(espera); document.body.classList.remove("arrastando-passo");
         if (!ativo) return;
         const ordem = Array.prototype.map.call(elPassos.children, function(x){ return passos[Number(x.querySelector(".rec-passo").dataset.p)]; });
         passos.splice(0, passos.length, ...ordem); guardaPassos(); desenhaPassos();
       };
-      document.body.classList.add("arrastando-passo");
-      window.addEventListener("pointermove", move, {passive:false}); window.addEventListener("pointerup", fim); window.addEventListener("pointercancel", fim);
+      return {move:move, fim:fim};
+    };
+    // iPhone: eventos de toque, com preventDefault para a página não rolar no lugar do arrasto.
+    alca.addEventListener("touchstart", function(ev){
+      if (ev.touches.length !== 1) return;
+      ev.preventDefault();
+      const t = ev.changedTouches[0], id = t.identifier, g = pega(t.clientY, true);
+      const acha = function(e){ for (const x of e.changedTouches) if (x.identifier === id) return x; return null; };
+      const mv = function(e){ const x = acha(e); if (!x) return; e.preventDefault(); g.move(x.clientY); };
+      const up = function(e){ if (!acha(e)) return; document.removeEventListener("touchmove", mv); document.removeEventListener("touchend", up); document.removeEventListener("touchcancel", up); g.fim(); };
+      document.addEventListener("touchmove", mv, {passive:false}); document.addEventListener("touchend", up); document.addEventListener("touchcancel", up);
+    }, {passive:false});
+    // Mouse (computador): arrasta na hora.
+    alca.addEventListener("pointerdown", function(ev){
+      if (ev.pointerType !== "mouse") return;
+      ev.preventDefault();
+      const g = pega(ev.clientY, false);
+      const mv = function(e){ g.move(e.clientY); };
+      const up = function(){ window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); g.fim(); };
+      window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up);
     });
   }
   desenhaPassos();
