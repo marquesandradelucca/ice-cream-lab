@@ -1,9 +1,9 @@
 // Banco local do app: um único objeto salvo no localStorage a cada mudança.
 // Até a etapa 5 os dados ficam só no aparelho; por isso existe o backup em arquivo.
-import { ING_BASE } from "./ingredientes-base.js?v=20261127225542";
-import { PRESETS, registraIngredientes } from "./calculo.js?v=20261127225542";
-import { ESTUDO_BASE } from "./estudo-base.js?v=20261127225542";
-import { notificaMudanca } from "./sync.js?v=20261127225542";
+import { ING_BASE } from "./ingredientes-base.js?v=20261127225708";
+import { PRESETS, registraIngredientes } from "./calculo.js?v=20261127225708";
+import { ESTUDO_BASE } from "./estudo-base.js?v=20261127225708";
+import { notificaMudanca } from "./sync.js?v=20261127225708";
 
 const CHAVE = "icelab-v1";
 const LEGADO = {calc:"mistura-v1", produtos:"mistura-produtos-v1", receitas:"mistura-receitas-v1"};
@@ -142,6 +142,7 @@ export function carrega(){
       db.frutasTbca = true; salva();
     }
     db.ingredientes.forEach(function(i){
+      if (i.id === "cocoPoWeNutri" && i.nome === "Coco em pó WeNutri"){ i.nome = "Leite de coco em pó WeNutri"; delete i.longo; salva(); }
       if (i.id === "cocoPoWeNutri" && i.outros === 5 && i.ac && i.ac.malto === 53){
         const b = ING_BASE.find(function(x){ return x.id === "cocoPoWeNutri"; });
         i.outros = b.outros; i.ac = copia(b.ac); i.nota = b.nota; salva();
