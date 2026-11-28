@@ -86,6 +86,8 @@ export const ING_BASE = [
     nota:"Industrializado. Marcas variam muito (de 10 a 25% de gordura): confira o rótulo. Fonte: TBCA (BRC0175C); açúcar tratado como sacarose."},
   {id:"notMilkBarista", nome:"NotMilk Barista", longo:"Leite vegetal NotMilk Barista", cats:["vegetal"], gord:1.5, ac:{sacarose:1.5}, outros:3.4,
     nota:"Leite vegetal (sem lactose): gordura 1,5, açúcares 1,5 (1 adicionado), proteína 1,8, fibra 1,1 por 100 ml. Rótulo em ml, tratado como g. Outros = proteína + fibra + carboidrato restante + minerais; açúcar tratado como sacarose."},
+  {id:"cocoPoWeNutri", nome:"Coco em pó WeNutri", longo:"Leite de coco em pó WeNutri", cats:["vegetal"], gord:36, ac:{malto:53, sacarose:4}, outros:5,
+    nota:"Rótulo por 100 g: gordura 36 (22 saturada), carboidratos 59, proteína 1, fibra 3. O rótulo não separa açúcares: carboidrato tratado como maltodextrina (veículo comum no pó) + ~4 de sacarose do coco; ~2% de umidade. Confira os ingredientes da embalagem."},
   {id:"estab", nome:"Estabilizante (liga)", outros:100, estab:true, longo:"Estabilizante (liga pronta)",
     nota:"Siga o fornecedor: a liga define a temperatura de hidratação e a dose."},
   {id:"guar", nome:"Goma guar", outros:100, estab:true,
