@@ -1405,6 +1405,9 @@ body.calc-capa .bar{box-shadow:none}
 /* Faixa de categorias: rolagem horizontal própria, sem disputar o gesto com a página */
 .estudo-filtros{overflow-x:auto; scrollbar-width:none; padding:6px var(--ui-margem) 12px; margin:-6px calc(-1 * var(--ui-margem)) -12px; padding-bottom:20px; margin-bottom:-20px; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x pan-y; transform:translateZ(0)}
 .ing-cats{flex-wrap:wrap; row-gap:var(--ui-e2)}
+.ing-cat-nova{display:inline-flex; align-items:center; gap:4px; border-style:dashed}
+.ing-cat-nova svg{width:14px; height:14px}
+.ing-cat-campo{width:170px; font:inherit; font-size:16px; outline:none}
 /* Faixa dentro do cabeçalho vai até as bordas da tela (compensa a margem negativa) */
 .ui-cabecalho.com-extras > .estudo-filtros{flex-basis:calc(100% + 2 * var(--ui-margem)); max-width:none}
 /* Abas da receita: os cartões dentro de cada aba mantêm o espaçamento da página */

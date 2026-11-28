@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261127224112";
-import { confirma } from "../ui.js?v=20261127224112";
-import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261127224112";
-import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261127224112";
-import { n } from "../calculo.js?v=20261127224112";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261127224231";
+import { confirma } from "../ui.js?v=20261127224231";
+import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261127224231";
+import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261127224231";
+import { n } from "../calculo.js?v=20261127224231";
 
 function limpaUi(){ document.body.classList.remove("rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -55,7 +55,13 @@ function categorias(i){
   if (Array.isArray(i.cats) && i.cats.length) return i.estab ? ["estab"].concat(i.cats) : i.cats;
   return [categoria(i)];
 }
-const nomeCat = function(c){ const x = CATEGORIAS.find(function(k){ return k[0] === c; }); return x ? x[1] : c; };
+// Categorias criadas pela pessoa (db.categorias, sincronizadas) entram antes de Estabilizantes/Outros.
+function todasCats(){
+  const extras = (dados().categorias || []).map(function(c){ return [c.id, c.nome]; });
+  const fim = CATEGORIAS.filter(function(c){ return c[0] === "estab" || c[0] === "outros"; });
+  return CATEGORIAS.filter(function(c){ return fim.indexOf(c) < 0; }).concat(extras, fim);
+}
+const nomeCat = function(c){ const x = todasCats().find(function(k){ return k[0] === c; }); return x ? x[1] : c; };
 
 export function render(el, rota){
   const id = rota.args[0] ? decodeURIComponent(rota.args[0]) : "";
@@ -73,7 +79,7 @@ function lista(el){
       '<a class="ui-redondo" href="#/ingredientes/novo" aria-label="Novo ingrediente">' + icone("mais") + '</a></header>' +
     '<div class="ui-tela">' +
       '<input id="buscaIng" class="ui-campo" type="search" placeholder="Buscar ingrediente" aria-label="Buscar ingrediente" value="' + esc(buscaIng) + '">' +
-      '<div class="ui-filtros estudo-filtros" id="cats">' + CATEGORIAS.map(function(c){ return '<button type="button" class="ui-filtro" data-cat="' + c[0] + '" aria-pressed="' + (catIng === c[0]) + '">' + c[1] + '</button>'; }).join("") + '</div>' +
+      '<div class="ui-filtros estudo-filtros" id="cats">' + todasCats().map(function(c){ return '<button type="button" class="ui-filtro" data-cat="' + c[0] + '" aria-pressed="' + (catIng === c[0]) + '">' + esc(c[1]) + '</button>'; }).join("") + '</div>' +
       '<div id="grade"></div>' +
       '<div id="restaura"></div>' +
     '</div></div>';
@@ -199,8 +205,7 @@ function editor(el, id){
           '<label class="ui-rotulo" for="longoIng">Nome completo (opcional)</label><input id="longoIng" type="text" class="ui-campo campo-branco" data-k="longo" maxlength="90" value="' + esc(rasc.longo) + '">' +
         '</section>' +
         '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Categorias</h2><span class="ui-sec">uma ou mais</span></div>' +
-          '<div class="ui-filtros ing-cats" id="catsEd">' + CATEGORIAS.filter(function(c){ return c[0] && c[0] !== "estab"; }).map(function(c){
-            return '<button type="button" class="ui-filtro" data-catEd="' + c[0] + '" aria-pressed="' + (selCats.indexOf(c[0]) >= 0) + '">' + c[1] + '</button>'; }).join("") + '</div>' +
+          '<div class="ui-filtros ing-cats" id="catsEd"></div>' +
           '<p class="ui-sec">Sem escolha, o app deduz pela composição e pelo nome. Estabilizante se marca mais abaixo.</p></section>' +
         '<section class="ui-cartao ui-vidro"><div class="estudo-cab"><h2>Medida</h2></div>' +
           '<div class="ui-opcoes ing-medida" id="medida" role="group" aria-label="Medida"><button type="button" data-m="g" aria-pressed="' + !rasc.un + '">Gramas</button><button type="button" data-m="un" aria-pressed="' + !!rasc.un + '">Unidade</button></div>' +
@@ -257,15 +262,49 @@ function editor(el, id){
       });
     });
 
-    el.querySelectorAll("[data-catEd]").forEach(function(b){
-      b.addEventListener("click", function(){
-        const c = b.getAttribute("data-catEd"), k = selCats.indexOf(c);
-        if (k >= 0) selCats.splice(k, 1); else selCats.push(c);
-        b.setAttribute("aria-pressed", String(k < 0));
-        if (selCats.length) rasc.cats = CATEGORIAS.map(function(x){ return x[0]; }).filter(function(x){ return selCats.indexOf(x) >= 0; });
-        else delete rasc.cats;
+    // Chips de categoria + "Nova categoria" (vira um campo; Enter ou sair do campo cria e já marca).
+    const elCatsEd = el.querySelector("#catsEd");
+    const guardaCats = function(){
+      if (selCats.length) rasc.cats = todasCats().map(function(x){ return x[0]; }).filter(function(x){ return selCats.indexOf(x) >= 0; });
+      else delete rasc.cats;
+    };
+    function desenhaCats(){
+      elCatsEd.innerHTML = todasCats().filter(function(c){ return c[0] && c[0] !== "estab"; }).map(function(c){
+        return '<button type="button" class="ui-filtro" data-catEd="' + esc(c[0]) + '" aria-pressed="' + (selCats.indexOf(c[0]) >= 0) + '">' + esc(c[1]) + '</button>'; }).join("") +
+        '<button type="button" class="ui-filtro ing-cat-nova" id="novaCat">' + icone("mais") + 'Nova categoria</button>';
+      elCatsEd.querySelectorAll("[data-catEd]").forEach(function(b){
+        b.addEventListener("click", function(){
+          const c = b.getAttribute("data-catEd"), k = selCats.indexOf(c);
+          if (k >= 0) selCats.splice(k, 1); else selCats.push(c);
+          b.setAttribute("aria-pressed", String(k < 0));
+          guardaCats();
+        });
       });
-    });
+      const bt = elCatsEd.querySelector("#novaCat");
+      bt.addEventListener("click", function(){
+        const campo = document.createElement("input");
+        campo.type = "text"; campo.className = "ui-filtro ing-cat-campo"; campo.maxLength = 30;
+        campo.placeholder = "Nome da categoria"; campo.setAttribute("aria-label", "Nome da nova categoria"); campo.autocapitalize = "sentences";
+        bt.replaceWith(campo); campo.focus();
+        let feito = false;
+        const cria = function(){
+          if (feito) return; feito = true;
+          const nome = campo.value.trim().replace(/\s+/g, " ");
+          if (nome){
+            const db = dados();
+            const igual = todasCats().find(function(c){ return c[0] && c[1].toLowerCase() === nome.toLowerCase(); });
+            const id = igual ? igual[0] : "c:" + novoId().slice(2);
+            if (!igual){ (db.categorias || (db.categorias = [])).push({id:id, nome:nome}); salva(); }
+            if (selCats.indexOf(id) < 0) selCats.push(id);
+            guardaCats();
+          }
+          desenhaCats();
+        };
+        campo.addEventListener("keydown", function(ev){ if (ev.key === "Enter"){ ev.preventDefault(); cria(); } else if (ev.key === "Escape"){ campo.value = ""; cria(); } });
+        campo.addEventListener("blur", cria);
+      });
+    }
+    desenhaCats();
 
     // Medida: gramas ou unidade. Por unidade, a quantidade é contada (de ½ em ½) e fica fora da conta.
     const elUn = el.querySelector("#unIng");
