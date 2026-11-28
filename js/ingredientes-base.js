@@ -84,6 +84,8 @@ export const ING_BASE = [
     nota:"Coco maduro, polpa fresca. Gordura de coco é dura e saturada: deixa o gelato mais firme. Fonte: TBCA (BRC0040U); açúcares pela USDA."},
   {id:"leiteCoco", nome:"Leite de coco", gord:18.4, ac:{frutose:0, dextrose:0, sacarose:1.5}, outros:2.1,
     nota:"Industrializado. Marcas variam muito (de 10 a 25% de gordura): confira o rótulo. Fonte: TBCA (BRC0175C); açúcar tratado como sacarose."},
+  {id:"notMilkBarista", nome:"NotMilk Barista", longo:"Leite vegetal NotMilk Barista", cats:["vegetal"], gord:1.5, ac:{sacarose:1.5}, outros:3.4,
+    nota:"Leite vegetal (sem lactose): gordura 1,5, açúcares 1,5 (1 adicionado), proteína 1,8, fibra 1,1 por 100 ml. Rótulo em ml, tratado como g. Outros = proteína + fibra + carboidrato restante + minerais; açúcar tratado como sacarose."},
   {id:"estab", nome:"Estabilizante (liga)", outros:100, estab:true, longo:"Estabilizante (liga pronta)",
     nota:"Siga o fornecedor: a liga define a temperatura de hidratação e a dose."},
   {id:"guar", nome:"Goma guar", outros:100, estab:true,
