@@ -1,10 +1,10 @@
 // Calculadora: editor de mistura com balanço ao vivo.
 // Funciona sozinha: o rascunho aberto é salvo automaticamente a cada toque, sem precisar "salvar receita".
 import { calcula, ALVOS, ESCALA, ALVO_FP, ALVO_ESTAB, PRESETS, NOMES_ESTILO,
-         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261125150235";
-import { icone, capa, aplicaTom } from "../visual.js?v=20261125150235";
-import { confirma, LAPIS } from "../ui.js?v=20261125150235";
-import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261125150235";
+         pontoCongelamento, avisos, n, nivelFaixa, porUnidade, unidades, passoUn } from "../calculo.js?v=20261127223943";
+import { icone, capa, aplicaTom } from "../visual.js?v=20261127223943";
+import { confirma, LAPIS } from "../ui.js?v=20261127223943";
+import { dados, salva, ingrediente, receita, versao, versoesDe, criaReceita, novaVersao, ingredientesMudados, snapshotDe } from "../dados.js?v=20261127223943";
 
 function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 
@@ -126,7 +126,7 @@ export function render(el, rota){
       '<div class="linha-total">' +
         '<span class="rotulo-mistura">Mistura total</span>' +
         '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir o peso total">−</button>' +
-        '<label class="campo-g"><input type="number" id="peso" inputmode="decimal" min="0" step="10" aria-label="Mistura total em gramas (reescala a receita)"><span aria-hidden="true">g</span></label>' +
+        '<label class="campo-g"><input type="text" id="peso" inputmode="decimal" autocomplete="off" min="0" step="10" aria-label="Mistura total em gramas (reescala a receita)"><span aria-hidden="true">g</span></label>' +
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar o peso total">+</button></div>' +
       '</div>' +
       '<div class="acoes-ing">' +
@@ -404,7 +404,7 @@ export function render(el, rota){
         (ing && ing.nota ? '<button type="button" class="nome-ing com-nota" aria-expanded="false">' + esc(nomeIng(l.id)) + '<span class="info" aria-hidden="true">i</span></button>' :
           '<span class="nome-ing' + (ing ? '' : ' removido') + '">' + esc(nomeIng(l.id)) + '</span>') +
         '<div class="qtd"><button type="button" class="passo" data-dir="-1" aria-label="Diminuir">−</button>' +
-        '<label class="campo-g"><input type="number" inputmode="decimal" min="0" step="' + (porUnidade(ingrediente(l.id)) ? passoUn(ingrediente(l.id)) : '1') + '" aria-label="Gramas"><span aria-hidden="true">' + (porUnidade(ingrediente(l.id)) ? 'un' : 'g') + '</span></label>' +
+        '<label class="campo-g"><input type="text" inputmode="decimal" autocomplete="off" min="0" step="' + (porUnidade(ingrediente(l.id)) ? passoUn(ingrediente(l.id)) : '1') + '" aria-label="Gramas"><span aria-hidden="true">' + (porUnidade(ingrediente(l.id)) ? 'un' : 'g') + '</span></label>' +
         '<button type="button" class="passo" data-dir="1" aria-label="Aumentar">+</button></div>' +
         '<button type="button" class="remover" aria-label="Remover ingrediente">×</button>' +
         (ing && ing.nota ? '<p class="nota-ing muted pequeno" hidden>' + esc(ing.nota) + '</p>' : "");
@@ -416,17 +416,17 @@ export function render(el, rota){
       const inp = row.querySelector("input");
       const ingU = ingrediente(l.id) || ing;   // unidade vem do ingrediente atual (mesmo com versão antiga aberta)
       const un = porUnidade(ingU);   // contado por unidade: o campo mostra unidades (de ½ em ½), a conta segue em gramas
-      inp.value = un ? unidades(ingU, l.g) : l.g;
+      inp.value = mostraNum(un ? unidades(ingU, l.g) : l.g);
       inp.setAttribute("aria-label", (un ? "Unidades de " : "Gramas de ") + (ing ? ing.nome : "ingrediente"));
-      inp.addEventListener("input", function(){ const v = inp.value === "" ? 0 : Number(inp.value); l.g = un ? Math.round(v / passoUn(ingU)) * passoUn(ingU) * ingU.gUn : v; atualiza(); });
+      inp.addEventListener("input", function(){ const v = leNum(inp.value); if (isNaN(v)) return; l.g = un ? Math.round(v / passoUn(ingU)) * passoUn(ingU) * ingU.gUn : v; atualiza(); });
       row.querySelector(".remover").addEventListener("click", function(){ calc.linhas.splice(idx, 1); desenhaLinhas(); atualiza(); });
       row.querySelectorAll(".passo").forEach(function(b){
         b.addEventListener("click", function(){
           const dir = Number(b.dataset.dir), atual = Number(l.g) || 0;
-          if (un){ const u = Math.max(0, unidades(ingU, atual) + dir * passoUn(ingU)); l.g = u * ingU.gUn; inp.value = u; atualiza(); return; }
+          if (un){ const u = Math.max(0, unidades(ingU, atual) + dir * passoUn(ingU)); l.g = u * ingU.gUn; inp.value = mostraNum(u); atualiza(); return; }
           const passo = passoDe(dir > 0 ? atual + 0.01 : atual - 0.01);
           l.g = Math.max(0, Math.round((atual + dir * passo) * 10) / 10);
-          inp.value = l.g; atualiza();
+          inp.value = mostraNum(l.g); atualiza();
         });
       });
       inputs[idx] = inp;
@@ -437,6 +437,9 @@ export function render(el, rota){
 
   // Ingrediente por unidade: ao escalar, arredonda para meia unidade.
   function arredondaUn(l){ const i = ingrediente(l.id); if (porUnidade(i)) l.g = unidades(i, l.g) * i.gUn; }
+  // Campos de número aceitam vírgula (teclado do iPhone em português) e mostram com vírgula.
+  function leNum(t){ t = String(t).trim().replace(",", "."); return t === "" || t === "." ? 0 : Number(t); }
+  function mostraNum(v){ return String(v).replace(".", ","); }
   function valorCampo(l){ const i = ingrediente(l.id); return porUnidade(i) ? unidades(i, l.g) : l.g; }
 
   // O × de remover só aparece quando se pede: "remover ingredientes" liga, "concluir" desliga.
@@ -499,10 +502,10 @@ export function render(el, rota){
   });
   elPeso.addEventListener("input", function(){
     if (!base) return;
-    const alvo = Number(elPeso.value);
+    const alvo = leNum(elPeso.value);
     if (!isFinite(alvo) || alvo <= 0 || elPeso.value === "") return;
     const fator = alvo / base.total;
-    calc.linhas.forEach(function(l, i){ l.g = Math.round(base.g[i] * fator * 10) / 10; arredondaUn(l); if (inputs[i]) inputs[i].value = valorCampo(l); });
+    calc.linhas.forEach(function(l, i){ l.g = Math.round(base.g[i] * fator * 10) / 10; arredondaUn(l); if (inputs[i]) inputs[i].value = mostraNum(valorCampo(l)); });
     atualiza();
   });
   elPeso.addEventListener("blur", function(){ base = null; atualiza(); });
@@ -512,7 +515,7 @@ export function render(el, rota){
       const alvo = Math.max(0, Math.round((total + Number(b.dataset.dir) * 10) / 10) * 10);
       if (!alvo) return;
       const fator = alvo / total;
-      calc.linhas.forEach(function(l, i){ l.g = Math.round((Number(l.g) || 0) * fator * 10) / 10; arredondaUn(l); if (inputs[i]) inputs[i].value = valorCampo(l); });
+      calc.linhas.forEach(function(l, i){ l.g = Math.round((Number(l.g) || 0) * fator * 10) / 10; arredondaUn(l); if (inputs[i]) inputs[i].value = mostraNum(valorCampo(l)); });
       atualiza();
     });
   });
@@ -558,7 +561,7 @@ export function render(el, rota){
   function atualiza(){
     const r = calcula(calc.linhas, comp);
     const alvo = ALVOS[calc.estilo], est = calc.estilo;
-    if (document.activeElement !== elPeso) elPeso.value = Math.round(r.peso * 10) / 10;
+    if (document.activeElement !== elPeso) elPeso.value = mostraNum(Math.round(r.peso * 10) / 10);
     const elM = el.querySelector("#metricas"), elA = el.querySelector("#avisos");
     if (!r.peso){
       elM.innerHTML = '<p class="muted">A composição aparece aqui assim que a receita tiver algum ingrediente com quantidade.</p>';
