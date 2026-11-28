@@ -1,11 +1,11 @@
 // Página de uma receita: status, versões, modo de preparo e a receita pronta com escala.
 // Rotas: #/receita/<id> (versões e edição) e #/receita/<id>/pronta (para usar na bancada).
-import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261127223943";
-import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261127223943";
-import { confirma, LAPIS } from "../ui.js?v=20261127223943";
-import { atualizaVoltar } from "../app.js?v=20261127223943";
-import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261127223943";
-import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261127223943";
+import { dados, salva, receita, versao, versoesDe, excluiReceita, ingrediente, criaLote, passosPreparo } from "../dados.js?v=20261127224112";
+import { icone, capa, aplicaTom, estrelas, escolheCapa, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261127224112";
+import { confirma, LAPIS } from "../ui.js?v=20261127224112";
+import { atualizaVoltar } from "../app.js?v=20261127224112";
+import { resumoLote, cartaoLote, dataCurta as dataLote } from "./lote.js?v=20261127224112";
+import { calcula, NOMES_ESTILO, n, qtdTexto, porUnidade } from "../calculo.js?v=20261127224112";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function dataCurta(iso){
@@ -360,13 +360,13 @@ function prontaHtml(r, v){
         '<div class="ui-linhas" id="quantidades"></div>' +
         '<div class="rec-tamanhos" role="group" aria-label="Tamanho do lote">' + tamanhos.map(function(g){
           return '<button type="button" data-g="' + g + '" aria-pressed="false">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>'; }).join("") +
-          '<label class="rec-outro"><input type="number" id="lote" inputmode="decimal" min="50" step="50" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
+          '<label class="rec-outro"><input type="text" id="lote" inputmode="decimal" autocomplete="off" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
       '</section>';
   function liga(el){
     const elLote = el.querySelector("#lote");
     function desenha(foco){
       const f = alvo / base;
-      if (!foco) elLote.value = tamanhos.indexOf(alvo) >= 0 ? "" : alvo;
+      if (!foco) elLote.value = tamanhos.indexOf(alvo) >= 0 ? "" : String(alvo).replace(".", ",");
       el.querySelector("#paraTotal").textContent = "para " + (alvo >= 1000 && alvo % 1000 === 0 ? alvo / 1000 + " kg" : alvo + " g");
       el.querySelector("#quantidades").innerHTML = noFim(v.linhas).map(function(l){ const i = comp(l.id);
         return '<div class="ui-linha"><span>' + esc(i ? i.nome : "(ingrediente removido)") + '</span><b class="ui-num">' + qtdTexto(ingrediente(l.id) || i, l.g * f) + '</b></div>'; }).join("") +
@@ -376,7 +376,7 @@ function prontaHtml(r, v){
       larguraOutro(elLote);
     }
     el.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.addEventListener("click", function(){ alvo = Number(b.dataset.g); desenha(); }); });
-    elLote.addEventListener("input", function(){ const x = Number(elLote.value); if (x > 0){ alvo = x; desenha(true); } larguraOutro(elLote); });
+    elLote.addEventListener("input", function(){ const x = Number(elLote.value.trim().replace(",", ".")); if (x > 0){ alvo = x; desenha(true); } larguraOutro(elLote); });
     el.querySelector("#comecar").addEventListener("click", function(){
       // Preparo deixado pela metade é retomado, em vez de criar outro.
       const l = db.lotes.find(function(x){ return x.versaoId === v.id && x.status !== "concluido"; }) || criaLote(v.id); if (!l) return;

@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261127223943";
-import { confirma } from "../ui.js?v=20261127223943";
-import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261127223943";
-import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261127223943";
-import { n } from "../calculo.js?v=20261127223943";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261127224112";
+import { confirma } from "../ui.js?v=20261127224112";
+import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261127224112";
+import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261127224112";
+import { n } from "../calculo.js?v=20261127224112";
 
 function limpaUi(){ document.body.classList.remove("rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -188,7 +188,7 @@ function editor(el, id){
     document.body.classList.remove("rec"); document.body.classList.add("ui");
     const selCats = Array.isArray(rasc.cats) ? rasc.cats.slice() : (novo ? [] : categorias(rasc).filter(function(c){ return c !== "estab"; }));
     function campo(chave, rotulo, valor){
-      return '<label class="ui-linha ing-campo"><span>' + rotulo + '</span><span class="ing-num"><input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-k="' + chave + '" value="' + (valor || "") + '" placeholder="0"><span>g</span></span></label>';
+      return '<label class="ui-linha ing-campo"><span>' + rotulo + '</span><span class="ing-num"><input type="text" inputmode="decimal" autocomplete="off" data-num="1" data-k="' + chave + '" value="' + String(valor || "").replace(".", ",") + '" placeholder="0"><span>g</span></span></label>';
     }
     el.innerHTML =
       '<div class="ui-app">' +
@@ -244,10 +244,10 @@ function editor(el, id){
           if (k === "contaTotal"){ if (c.checked) delete rasc.contaTotal; else rasc.contaTotal = false; }
           else { if (c.checked) rasc.estab = true; else delete rasc.estab; el.querySelector("#cxSoma").hidden = !c.checked; }
         } else if (k.indexOf("ac.") === 0){
-          const t = k.slice(3), v = Number(c.value) || 0;
+          const t = k.slice(3), v = Number(c.value.trim().replace(",", ".")) || 0;
           if (v) rasc.ac[t] = v; else delete rasc.ac[t];
-        } else if (c.type === "number"){
-          const v = Number(c.value) || 0;
+        } else if (c.dataset.num){
+          const v = Number(c.value.trim().replace(",", ".")) || 0;
           if (v) rasc[k] = v; else delete rasc[k];
         } else {
           const v = c.value.trim() ? c.value.trim() : "";

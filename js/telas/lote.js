@@ -3,11 +3,11 @@
 //   2. Avaliar (horas depois, após maturar e endurecer): textura, dureza, doçura e nota, por toques.
 // Situações do lote: "em andamento" (preparando) → "aguardando" (falta avaliar) → "concluido".
 // Tudo é salvo a cada toque; se o app fechar, o lote volta onde parou. Tela acesa enquanto aberto.
-import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote, passosPreparo } from "../dados.js?v=20261127223943";
-import { n, porUnidade, unidades, textoUnidades, qtdTexto } from "../calculo.js?v=20261127223943";
-import { confirma } from "../ui.js?v=20261127223943";
-import { atualizaVoltar } from "../app.js?v=20261127223943";
-import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261127223943";
+import { dados, salva, lote, receita, versao, versoesDe, ingrediente, excluiLote, passosPreparo } from "../dados.js?v=20261127224112";
+import { n, porUnidade, unidades, textoUnidades, qtdTexto } from "../calculo.js?v=20261127224112";
+import { confirma } from "../ui.js?v=20261127224112";
+import { atualizaVoltar } from "../app.js?v=20261127224112";
+import { icone, capa, aplicaTom, estrelasEscolha, DUREZA, DOCURA, docuraAtual, larguraOutro } from "../visual.js?v=20261127224112";
 
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
 function hora(iso){ try { return new Date(iso).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"}); } catch (e) { return ""; } }
@@ -238,7 +238,7 @@ export function render(el, rota){
         '<div class="ui-linha rec-total"><span>Peso total</span><b class="ui-num">' + gramas(total) + ' g</b></div></div>' +
         '<div class="rec-tamanhos" role="group" aria-label="Tamanho do lote">' + tamanhos.map(function(g){
           return '<button type="button" data-g="' + g + '" aria-pressed="' + (alvoG === g) + '">' + (g < 1000 ? g + ' g' : g / 1000 + ' kg') + '</button>'; }).join("") +
-          '<label class="rec-outro' + (tamanhos.indexOf(alvoG) < 0 ? ' ativo' : '') + '"><input type="number" id="loteTotal" inputmode="decimal" min="50" step="50" value="' + (tamanhos.indexOf(alvoG) < 0 ? alvoG : '') + '" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
+          '<label class="rec-outro' + (tamanhos.indexOf(alvoG) < 0 ? ' ativo' : '') + '"><input type="text" id="loteTotal" inputmode="decimal" autocomplete="off" value="' + (tamanhos.indexOf(alvoG) < 0 ? String(alvoG).replace(".", ",") : '') + '" placeholder="Outro" aria-label="Outro tamanho em gramas"><span>g</span></label></div>' +
       '</section>' +
       // Preparo da receita e sugestões, recolhíveis.
       // Na bancada o modo de preparo já vem aberto.
@@ -255,7 +255,7 @@ export function render(el, rota){
     alvo.querySelectorAll(".rec-tamanhos [data-g]").forEach(function(b){ b.addEventListener("click", function(){ escala(Number(b.dataset.g)); }); });
     const elTotal = alvo.querySelector("#loteTotal");
     larguraOutro(elTotal); elTotal.addEventListener("input", function(){ larguraOutro(elTotal); });
-    elTotal.addEventListener("change", function(){ escala(Number(elTotal.value)); });
+    elTotal.addEventListener("change", function(){ escala(Number(elTotal.value.trim().replace(",", "."))); });
     // Lista: o círculo marca/desmarca como pesado; o resto da linha leva o ingrediente para a bancada.
     alvo.querySelectorAll(".lote-linha").forEach(function(b){ b.addEventListener("click", function(ev){
       const i = Number(b.dataset.i);
