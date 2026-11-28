@@ -1,9 +1,9 @@
 // Ingredientes: lista editável. O que é editado aqui aparece no seletor da calculadora.
-import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261127224529";
-import { confirma } from "../ui.js?v=20261127224529";
-import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261127224529";
-import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261127224529";
-import { n } from "../calculo.js?v=20261127224529";
+import { dados, salva, ingrediente, ingredienteUsado, novoId } from "../dados.js?v=20261127224642";
+import { confirma } from "../ui.js?v=20261127224642";
+import { icone, capa, capaIngrediente, paletaIngrediente, aplicaTom, escolheCapa } from "../visual.js?v=20261127224642";
+import { TIPOS_ACUCAR, ING_BASE } from "../ingredientes-base.js?v=20261127224642";
+import { n } from "../calculo.js?v=20261127224642";
 
 function limpaUi(){ document.body.classList.remove("rec"); document.querySelectorAll(".ui-veu,.ui-folha").forEach(function(x){ x.remove(); }); }
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -37,7 +37,7 @@ function barra(i, pequena){
 
 let buscaIng = "", catIng = "";
 // Categoria deduzida da composição (não precisa marcar nada no ingrediente).
-const CATEGORIAS = [["", "Todos"], ["lacteos", "Lácteos"], ["acucares", "Açúcares"], ["frutas", "Frutas"], ["cacau", "Cacau"], ["castanhas", "Castanhas"], ["vegetal", "Vegetal"], ["aromas", "Aromas"], ["estab", "Estabilizantes"], ["outros", "Outros"]];
+const CATEGORIAS = [["", "Todos"], ["lacteos", "Lácteos"], ["acucares", "Açúcares"], ["frutas", "Frutas"], ["cacau", "Cacau"], ["castanhas", "Castanhas"], ["vegetal", "Vegetais"], ["aromas", "Aromas"], ["estab", "Estabilizantes"], ["outros", "Outros"]];
 function categoria(i){
   if (i.estab) return "estab";
   if (/\b(vegetal|notmilk|not milk)\b/i.test(i.nome + " " + (i.longo || "")) || /^leite de (aveia|amêndoa|amendoa|soja|arroz|castanha)/i.test(i.nome || "")) return "vegetal";
